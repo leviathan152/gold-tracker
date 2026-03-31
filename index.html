@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wealth Vision v20.1 - 資產管理系統</title>
+    <title>Wealth Vision v21.0 - 專業資產管理系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -22,18 +22,21 @@
         .privacy-masked { filter: blur(4px); pointer-events: none; }
         .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
         .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+        /* 隱藏原生檔案上傳按鈕 */
+        #import-file { display: none; }
     </style>
 </head>
 <body class="p-4 md:p-8 pb-32">
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 pb-6 border-b border-slate-800 gap-6">
             <div>
-                <h1 class="text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-indigo-400 to-emerald-400">Wealth Vision v20.1</h1>
+                <h1 class="text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-indigo-400 to-emerald-400">Wealth Vision v21.0</h1>
                 <p class="text-slate-500 text-xs mt-2 font-bold uppercase tracking-widest">Premium Asset Management Interface</p>
             </div>
             <div class="flex flex-wrap gap-3">
                 <button onclick="togglePrivacy()" id="privacy-btn" class="bg-slate-800 hover:bg-slate-700 px-6 py-2.5 rounded-xl text-xs font-bold border border-slate-700 text-amber-400">👁️ 顯示數值</button>
-                <button onclick="changePassword()" class="btn-ghost px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400">🔑 修改密碼</button>
+                <input type="file" id="import-file" onchange="importData(event)" accept=".json">
+                <button onclick="document.getElementById('import-file').click()" class="bg-slate-800 hover:bg-slate-700 px-6 py-2.5 rounded-xl text-xs font-bold border border-slate-700 text-indigo-400">📥 匯入數據</button>
                 <button onclick="exportAllData()" class="bg-slate-800 hover:bg-slate-700 px-6 py-2.5 rounded-xl text-xs font-bold border border-slate-700">📦 備份全部</button>
                 <button onclick="fetchAllPrices()" class="btn-primary px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20">🔄 刷新即時數據</button>
             </div>
@@ -48,11 +51,11 @@
             </div>
             <div class="card flex flex-col items-center justify-center">
                 <h3 class="stat-label mb-6">Allocation</h3>
-                <div class="relative w-full aspect-square max-h-[240px]">
+                <div class="relative w-full aspect-square max-h-[240px] flex items-center justify-center">
                     <canvas id="allocationChart"></canvas>
                     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span class="text-[10px] text-slate-500 font-bold uppercase">Net Worth</span>
-                        <span id="center-total-worth" class="text-xl font-black">--</span>
+                        <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Net Worth</span>
+                        <span id="center-total-worth" class="text-2xl font-black tracking-tight">--</span>
                     </div>
                 </div>
             </div>
@@ -171,14 +174,6 @@
             } else { isPrivacyMode = true; updateUI(); }
         }
 
-        function changePassword() {
-            const old = prompt("輸入舊密碼：");
-            if (old === userPassword) {
-                const n = prompt("輸入新密碼：");
-                if (n && n.length >= 4) { userPassword = n; localStorage.setItem(K_PWD, n); alert("密碼已更新"); }
-            } else if (old !== null) alert("驗證失敗");
-        }
-
         function fNum(val, isPrice = true) {
             if (isPrivacyMode) return "****";
             if (typeof val !== 'number') return val;
@@ -190,7 +185,7 @@
             let sV = 0, sC = 0, sD = 0, sShares = 0;
             let gV = 0, gC = 0, gW = 0;
 
-            // 處理股票
+            // 股票處理
             let sH = '';
             stockRecs.map((r, i) => ({...r, ori: i})).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(r => {
                 const nowP = marketPrices[r.code] || r.buyPrice;
@@ -208,7 +203,7 @@
             });
             document.getElementById('stock-list').innerHTML = sH || '<tr><td colspan="6" class="p-10 text-center text-slate-600">NO DATA</td></tr>';
 
-            // 處理黃金
+            // 黃金處理
             let gH = '';
             goldRecs.map((r, i) => ({...r, ori: i})).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(r => {
                 let w = r.weight; if(r.unit==='ts') w *= 3.75;
@@ -226,25 +221,22 @@
             });
             document.getElementById('gold-list').innerHTML = gH || '<tr><td colspan="6" class="p-10 text-center text-slate-600">NO DATA</td></tr>';
 
-            // 更新看板數據
+            // 看板數值更新
             document.getElementById('privacy-btn').innerText = isPrivacyMode ? "👁️ 顯示數值" : "🔒 隱藏數值";
             document.getElementById('chart-area').className = isPrivacyMode ? "chart-container privacy-masked" : "chart-container";
 
-            // 股票區
             document.getElementById('stock-total-cost').innerText = fNum(sC);
             document.getElementById('stock-worth').innerText = fNum(sV);
             const sPerf = sC > 0 ? (((sV + sD) - sC) / sC * 100) : 0;
             document.getElementById('stock-perf').innerText = fNum(sPerf, false);
             document.getElementById('real-cost-per-share').innerText = isPrivacyMode ? "****" : (sShares > 0 ? ((sC - sD) / sShares).toFixed(2) : '0.00');
 
-            // 黃金區
             document.getElementById('gold-total-cost').innerText = fNum(gC);
             document.getElementById('gold-worth').innerText = fNum(gV);
             const gPerf = gC > 0 ? ((gV - gC) / gC * 100) : 0;
             document.getElementById('gold-perf').innerText = fNum(gPerf, false);
             document.getElementById('gold-total-weight').innerText = isPrivacyMode ? "****" : `${gW.toFixed(2)} g`;
 
-            // 總計區
             const tC = sC + gC;
             const tV = sV + gV;
             const tPerf = tC > 0 ? (((tV + sD) - tC) / tC * 100) : 0;
@@ -306,6 +298,7 @@
             });
         }
 
+        // 核心管理與資料處理
         function saveStock() {
             const idx = parseInt(document.getElementById('stock-edit-idx').value);
             const r = { code: document.getElementById('stock-code').value.toUpperCase(), date: document.getElementById('stock-date').value || new Date().toISOString().split('T')[0], type: document.getElementById('stock-type').value, shares: parseFloat(document.getElementById('stock-shares').value)||0, buyPrice: parseFloat(document.getElementById('stock-buy-price').value)||0, cost: parseFloat(document.getElementById('stock-cost').value)||0, dividend: parseFloat(document.getElementById('stock-div-amount').value)||0 };
@@ -313,6 +306,45 @@
             if(idx === -1) stockRecs.push(r); else stockRecs[idx] = r;
             saveAll(); clearStockForm(); updateUI();
         }
+        
+        function saveGold() {
+            const idx = parseInt(document.getElementById('gold-edit-idx').value);
+            const r = { name: document.getElementById('gold-name').value || '未命名黃金', date: document.getElementById('gold-date').value || new Date().toISOString().split('T')[0], weight: parseFloat(document.getElementById('gold-weight').value)||0, unit: document.getElementById('gold-unit').value, cost: parseFloat(document.getElementById('gold-cost').value)||0 };
+            if(idx === -1) goldRecs.push(r); else goldRecs[idx] = r;
+            saveAll(); clearGoldForm(); updateUI();
+        }
+
+        function exportAllData() {
+            const s = JSON.stringify({ stocks: stockRecs, golds: goldRecs, prices: marketPrices }, null, 2);
+            const blob = new Blob([s], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `WealthVision_Backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.stocks) stockRecs = data.stocks;
+                    if (data.golds) goldRecs = data.golds;
+                    if (data.prices) marketPrices = data.prices;
+                    saveAll();
+                    updateUI();
+                    alert("數據匯入成功！");
+                } catch (err) {
+                    alert("檔案格式錯誤，請確保是正確的 JSON 備份檔。");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 基本工具函數 (保持不變)
         function editStock(i) {
             const r = stockRecs[i];
             document.getElementById('stock-edit-idx').value = i;
@@ -327,19 +359,7 @@
             document.getElementById('stock-cancel').classList.remove('hidden');
             toggleStockDiv();
         }
-        function clearStockForm() {
-            document.getElementById('stock-edit-idx').value = "-1";
-            document.getElementById('stock-input-card').classList.remove('editing-mode');
-            document.getElementById('stock-cancel').classList.add('hidden');
-            ['stock-code','stock-shares','stock-buy-price','stock-cost','stock-div-amount'].forEach(id => document.getElementById(id).value = "");
-        }
 
-        function saveGold() {
-            const idx = parseInt(document.getElementById('gold-edit-idx').value);
-            const r = { name: document.getElementById('gold-name').value || '未命名黃金', date: document.getElementById('gold-date').value || new Date().toISOString().split('T')[0], weight: parseFloat(document.getElementById('gold-weight').value)||0, unit: document.getElementById('gold-unit').value, cost: parseFloat(document.getElementById('gold-cost').value)||0 };
-            if(idx === -1) goldRecs.push(r); else goldRecs[idx] = r;
-            saveAll(); clearGoldForm(); updateUI();
-        }
         function editGold(i) {
             const r = goldRecs[i];
             document.getElementById('gold-edit-idx').value = i;
@@ -351,39 +371,21 @@
             document.getElementById('gold-input-card').classList.add('editing-mode');
             document.getElementById('gold-cancel').classList.remove('hidden');
         }
-        function clearGoldForm() {
-            document.getElementById('gold-edit-idx').value = "-1";
-            document.getElementById('gold-input-card').classList.remove('editing-mode');
-            document.getElementById('gold-cancel').classList.add('hidden');
-            ['gold-name','gold-weight','gold-cost','gold-date'].forEach(id => document.getElementById(id).value = "");
-        }
 
-        function updateMarketPrice() {
-            const c = document.getElementById('market-code').value.toUpperCase();
-            const p = parseFloat(document.getElementById('market-price').value);
-            if(c && !isNaN(p)) { marketPrices[c] = p; saveAll(); updateUI(); }
-        }
-        function renderPriceTags() {
-            let h = '';
-            for(let c in marketPrices) {
-                h += `<div class="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30 text-[10px] flex items-center gap-2 font-bold">${c}: ${isPrivacyMode?'***':'$'+marketPrices[c]}<button onclick="deletePrice('${c}')">✕</button></div>`;
-            }
-            document.getElementById('price-tags').innerHTML = h;
-        }
+        function clearStockForm() { document.getElementById('stock-edit-idx').value = "-1"; document.getElementById('stock-input-card').classList.remove('editing-mode'); document.getElementById('stock-cancel').classList.add('hidden'); ['stock-code','stock-shares','stock-buy-price','stock-cost','stock-div-amount'].forEach(id => document.getElementById(id).value = ""); }
+        function clearGoldForm() { document.getElementById('gold-edit-idx').value = "-1"; document.getElementById('gold-input-card').classList.remove('editing-mode'); document.getElementById('gold-cancel').classList.add('hidden'); ['gold-name','gold-weight','gold-cost','gold-date'].forEach(id => document.getElementById(id).value = ""); }
+        function updateMarketPrice() { const c = document.getElementById('market-code').value.toUpperCase(); const p = parseFloat(document.getElementById('market-price').value); if(c && !isNaN(p)) { marketPrices[c] = p; saveAll(); updateUI(); } }
+        function renderPriceTags() { let h = ''; for(let c in marketPrices) { h += `<div class="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30 text-[10px] flex items-center gap-2 font-bold">${c}: ${isPrivacyMode?'***':'$'+marketPrices[c]}<button onclick="deletePrice('${c}')">✕</button></div>`; } document.getElementById('price-tags').innerHTML = h; }
         function deletePrice(c) { delete marketPrices[c]; saveAll(); updateUI(); }
         function del(t, i) { if(confirm("確定刪除？")) { if(t==='stk') stockRecs.splice(i,1); else goldRecs.splice(i,1); saveAll(); updateUI(); } }
-        function switchTab(t) {
-            document.getElementById('section-stock').classList.toggle('hidden', t!=='stock');
-            document.getElementById('section-gold').classList.toggle('hidden', t!=='gold');
-            document.getElementById('tab-stock').className = t==='stock' ? 'pb-4 text-sm font-bold tab-active' : 'pb-4 text-sm font-bold text-slate-500';
-            document.getElementById('tab-gold').className = t==='gold' ? 'pb-4 text-sm font-bold tab-active' : 'pb-4 text-sm font-bold text-slate-500';
-        }
+        function switchTab(t) { document.getElementById('section-stock').classList.toggle('hidden', t!=='stock'); document.getElementById('section-gold').classList.toggle('hidden', t!=='gold'); document.getElementById('tab-stock').className = t==='stock' ? 'pb-4 text-sm font-bold tab-active' : 'pb-4 text-sm font-bold text-slate-500'; document.getElementById('tab-gold').className = t==='gold' ? 'pb-4 text-sm font-bold tab-active' : 'pb-4 text-sm font-bold text-slate-500'; }
         function toggleStockDiv() { document.getElementById('stock-div-field').classList.toggle('hidden', document.getElementById('stock-type').value !== 'dividend'); }
         function saveAll() { localStorage.setItem(K_STK, JSON.stringify(stockRecs)); localStorage.setItem(K_GLD, JSON.stringify(goldRecs)); localStorage.setItem(K_PRC, JSON.stringify(marketPrices)); }
-        function exportAllData() { const s = JSON.stringify({ stocks: stockRecs, golds: goldRecs, prices: marketPrices }); const el = document.createElement('textarea'); el.value = s; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); alert("數據已拷貝"); }
         async function fetchAllPrices() { try { const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT'); const d = await res.json(); curGoldUSD = parseFloat(d.price); updateUI(); } catch(e){ console.error("價格更新失敗"); } }
 
-        updateUI(); fetchAllPrices();
+        // 初始化
+        updateUI(); 
+        fetchAllPrices();
     </script>
 </body>
 </html>
