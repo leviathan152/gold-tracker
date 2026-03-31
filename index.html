@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>傑哥的秘密 v21.0 - 專業資產管理系統</title>
+    <title>Wealth Vision v21.1 - 專業資產管理系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -22,7 +22,6 @@
         .privacy-masked { filter: blur(4px); pointer-events: none; }
         .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
         .btn-ghost:hover { background: rgba(255,255,255,0.1); }
-        /* 隱藏原生檔案上傳按鈕 */
         #import-file { display: none; }
     </style>
 </head>
@@ -30,7 +29,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 pb-6 border-b border-slate-800 gap-6">
             <div>
-                <h1 class="text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-indigo-400 to-emerald-400">Wealth Vision v21.0</h1>
+                <h1 class="text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-indigo-400 to-emerald-400">Wealth Vision v21.1</h1>
                 <p class="text-slate-500 text-xs mt-2 font-bold uppercase tracking-widest">Premium Asset Management Interface</p>
             </div>
             <div class="flex flex-wrap gap-3">
@@ -84,6 +83,7 @@
                 <h3 class="stat-label text-emerald-400 mb-4">Consolidated</h3>
                 <div class="space-y-4">
                     <div class="flex justify-between items-end"><span class="text-xs text-slate-400">總投入成本</span><span id="total-all-cost" class="text-xl font-bold">--</span></div>
+                    <div class="flex justify-between items-end"><span class="text-xs text-slate-400 text-emerald-500">總累計股利</span><span id="total-all-dividend" class="text-xl font-bold text-emerald-500">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-slate-400">總資產現值</span><span id="total-all-worth" class="text-xl font-bold text-emerald-400">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-slate-400">總報酬率</span><span id="total-all-perf" class="text-xl font-black">--</span></div>
                 </div>
@@ -241,6 +241,7 @@
             const tV = sV + gV;
             const tPerf = tC > 0 ? (((tV + sD) - tC) / tC * 100) : 0;
             document.getElementById('total-all-cost').innerText = fNum(tC);
+            document.getElementById('total-all-dividend').innerText = fNum(sD); // 新增總股利更新
             document.getElementById('total-all-worth').innerText = fNum(tV);
             document.getElementById('total-all-perf').innerText = fNum(tPerf, false);
             document.getElementById('center-total-worth').innerText = fNum(tV);
@@ -298,7 +299,6 @@
             });
         }
 
-        // 核心管理與資料處理
         function saveStock() {
             const idx = parseInt(document.getElementById('stock-edit-idx').value);
             const r = { code: document.getElementById('stock-code').value.toUpperCase(), date: document.getElementById('stock-date').value || new Date().toISOString().split('T')[0], type: document.getElementById('stock-type').value, shares: parseFloat(document.getElementById('stock-shares').value)||0, buyPrice: parseFloat(document.getElementById('stock-buy-price').value)||0, cost: parseFloat(document.getElementById('stock-cost').value)||0, dividend: parseFloat(document.getElementById('stock-div-amount').value)||0 };
@@ -344,7 +344,6 @@
             reader.readAsText(file);
         }
 
-        // 基本工具函數 (保持不變)
         function editStock(i) {
             const r = stockRecs[i];
             document.getElementById('stock-edit-idx').value = i;
@@ -383,7 +382,6 @@
         function saveAll() { localStorage.setItem(K_STK, JSON.stringify(stockRecs)); localStorage.setItem(K_GLD, JSON.stringify(goldRecs)); localStorage.setItem(K_PRC, JSON.stringify(marketPrices)); }
         async function fetchAllPrices() { try { const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT'); const d = await res.json(); curGoldUSD = parseFloat(d.price); updateUI(); } catch(e){ console.error("價格更新失敗"); } }
 
-        // 初始化
         updateUI(); 
         fetchAllPrices();
     </script>
