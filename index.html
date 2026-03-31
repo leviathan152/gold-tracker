@@ -3,36 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資產智能智庫 v11.0 - 支援編輯功能</title>
+    <title>資產配置管理系統 v13.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #020617; color: #f1f5f9; font-family: sans-serif; }
-        .card { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 1.5rem; transition: 0.3s; }
+        .card { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 1.5rem; transition: 0.3; }
         .gold-text { color: #fbbf24; }
         .stock-text { color: #60a5fa; }
-        .profit-pos { color: #4ade80; }
-        .profit-neg { color: #f87171; }
         input, select { background-color: #020617 !important; border: 1px solid #334155 !important; color: white !important; border-radius: 10px; padding: 0.6rem; outline: none; font-size: 0.875rem; }
-        .market-tag { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 0.75rem; }
+        .tab-active { border-bottom: 4px solid #6366f1; color: #818cf8; }
         .editing-mode { border-color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
     </style>
 </head>
 <body class="p-4 md:p-8 pb-32">
     <div class="max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-10 pb-6 border-b border-slate-800">
-            <h1 class="text-3xl font-black gold-text italic">資產配置管理系統 v11.0</h1>
-            <div class="flex gap-2">
-                <button onclick="fetchAllPrices()" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-full text-sm font-bold shadow-lg">刷新即時金價</button>
+        <header class="flex justify-between items-center mb-8 pb-6 border-b border-slate-800">
+            <h1 class="text-3xl font-black gold-text italic">資產配置管理系統 v13.5</h1>
+            <div class="flex gap-3">
+                <button onclick="importByJSON()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-2.5 rounded-full text-sm font-bold shadow-lg transition">貼上 JSON 匯入資料</button>
+                <button onclick="fetchAllPrices()" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-full text-sm font-bold shadow-lg">刷新即時數據</button>
             </div>
         </header>
-
-        <section class="mb-8">
-            <div class="card border-l-4 border-indigo-500 bg-slate-900/50">
-                <h3 class="text-indigo-400 text-sm font-bold mb-4">● 各標的目前市價設定</h3>
-                <div id="market-price-container" class="flex flex-wrap gap-4"></div>
-            </div>
-        </section>
 
         <section class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-10">
             <div class="card lg:col-span-1 flex flex-col items-center justify-center relative min-h-[200px]">
@@ -43,226 +35,182 @@
                 </div>
             </div>
             <div class="lg:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="card border-t-2 border-amber-500/50 text-center">
-                    <span class="text-gray-500 text-xs">黃金現值</span>
-                    <div id="gold-worth" class="text-xl font-black gold-text mt-2">--</div>
-                </div>
-                <div class="card border-t-2 border-blue-500/50 text-center">
-                    <span class="text-gray-500 text-xs">股票現值</span>
-                    <div id="stock-worth" class="text-xl font-black stock-text mt-2">--</div>
-                </div>
-                <div class="card border-t-2 border-green-500/50 text-center">
-                    <span class="text-gray-500 text-xs">累計領取股利</span>
-                    <div id="total-dividends" class="text-xl font-black text-green-400 mt-2">--</div>
-                </div>
-                <div class="card border-t-2 border-emerald-500/50 text-center">
-                    <span class="text-gray-500 text-xs">資產總報酬率</span>
-                    <div id="total-profit" class="text-xl font-black mt-2">--</div>
-                    <div id="total-percent" class="text-xs font-mono mt-1">--</div>
-                </div>
+                <div class="card border-t-2 border-amber-500/50 text-center"><span class="text-gray-500 text-xs">黃金總現值</span><div id="gold-worth" class="text-xl font-black gold-text mt-2">--</div></div>
+                <div class="card border-t-2 border-blue-500/50 text-center"><span class="text-gray-500 text-xs">股票總現值</span><div id="stock-worth" class="text-xl font-black stock-text mt-2">--</div></div>
+                <div class="card border-t-2 border-green-500/50 text-center"><span class="text-gray-500 text-xs">累計領取股利</span><div id="total-dividends" class="text-xl font-black text-green-400 mt-2">--</div></div>
+                <div class="card border-t-2 border-emerald-500/50 text-center"><span class="text-gray-500 text-xs">資產總報酬率</span><div id="total-profit" class="text-xl font-black mt-2">--</div><div id="total-percent" class="text-xs font-mono mt-1">--</div></div>
             </div>
         </section>
 
-        <section class="mb-10">
-            <div class="flex space-x-6 mb-6 border-b border-slate-800 font-bold">
-                <button class="pb-4 px-2 text-sm border-b-4 border-blue-500 text-blue-400">股票交易與股利登錄</button>
-            </div>
-            <div id="input-card" class="card border-l-4 border-blue-500 bg-slate-900/30">
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                    <input type="hidden" id="edit-index" value="-1">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] text-gray-500">標的代號</label>
-                        <input type="text" id="stock-code" placeholder="2330">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] text-gray-500">日期</label>
-                        <input type="date" id="stock-date">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] text-gray-500">類型</label>
-                        <select id="stock-type" onchange="toggleDivField()">
-                            <option value="buy">一般買入</option>
-                            <option value="dividend">股利再投入</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] text-gray-500">股數</label>
-                        <input type="number" id="stock-shares">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] text-gray-500">成交單價</label>
-                        <input type="number" step="0.01" id="stock-buy-price">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] text-gray-500">持有成本(含費)</label>
-                        <input type="number" id="stock-total-cost">
-                    </div>
-                    <div id="div-amount-field" class="flex flex-col gap-1 opacity-30 pointer-events-none">
-                        <label class="text-[10px] text-green-500 font-bold">配發股利金額</label>
-                        <input type="number" id="stock-div-amount">
-                    </div>
+        <div class="flex space-x-8 mb-6 border-b border-slate-800 font-bold">
+            <button id="tab-stock" onclick="switchTab('stock')" class="pb-4 px-2 text-sm tab-active">股票管理</button>
+            <button id="tab-gold" onclick="switchTab('gold')" class="pb-4 px-2 text-sm text-gray-500">黃金管理</button>
+        </div>
+
+        <div id="section-stock">
+            <div id="stock-input-card" class="card border-l-4 border-blue-500 bg-slate-900/30 mb-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 text-xs">
+                    <input type="hidden" id="stock-edit-idx" value="-1">
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">標的代號</label><input type="text" id="stock-code" placeholder="00878"></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">日期</label><input type="date" id="stock-date"></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">類型</label><select id="stock-type" onchange="toggleStockDiv()"><option value="buy">一般買入</option><option value="dividend">股利再投入</option></select></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">股數</label><input type="number" id="stock-shares"></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">成交單價</label><input type="number" step="0.01" id="stock-buy-price"></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">持有成本</label><input type="number" id="stock-cost"></div>
+                    <div id="stock-div-field" class="flex flex-col gap-1 opacity-30 pointer-events-none"><label class="text-green-500 font-bold">股利金額</label><input type="number" id="stock-div-amount"></div>
                 </div>
                 <div class="flex gap-2 mt-6">
-                    <button id="btn-submit" onclick="addStockRecord()" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold text-sm shadow-lg transition">登錄交易紀錄</button>
-                    <button id="btn-cancel" onclick="clearForm()" class="hidden bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-bold text-sm transition">取消編輯</button>
+                    <button id="stock-btn" onclick="saveStock()" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold">登錄交易紀錄</button>
+                    <button id="stock-cancel" onclick="clearStockForm()" class="hidden bg-slate-700 px-6 rounded-xl font-bold">取消</button>
                 </div>
             </div>
-        </section>
+            <div class="card overflow-x-auto p-0">
+                <table class="w-full text-xs text-left"><thead class="bg-slate-900/50 text-gray-500"><tr><th class="p-4">日期</th><th class="p-4">標的</th><th class="p-4">類型</th><th class="p-4 text-right">股數</th><th class="p-4 text-right">成本</th><th class="p-4 text-right">股利</th><th class="p-4 text-center">操作</th></tr></thead><tbody id="stock-list" class="divide-y divide-slate-800 font-mono"></tbody></table>
+            </div>
+        </div>
 
-        <div class="card overflow-x-auto p-0">
-            <table class="w-full text-xs text-left">
-                <thead class="text-gray-500 bg-slate-900/50">
-                    <tr>
-                        <th class="p-4">日期</th><th class="p-4">標的</th><th class="p-4">類型</th><th class="p-4 text-right">股數</th><th class="p-4 text-right">成交價</th><th class="p-4 text-right">持有成本</th><th class="p-4 text-right">配發股利</th><th class="p-4 text-center">管理</th>
-                    </tr>
-                </thead>
-                <tbody id="stock-list" class="divide-y divide-slate-800 font-mono"></tbody>
-            </table>
+        <div id="section-gold" class="hidden">
+            <div id="gold-input-card" class="card border-l-4 border-amber-500 bg-slate-900/30 mb-8">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-xs">
+                    <input type="hidden" id="gold-edit-idx" value="-1">
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">名稱</label><input type="text" id="gold-name" placeholder="實體金條"></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">購入日期</label><input type="date" id="gold-date"></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">單位</label><select id="gold-unit"><option value="g">公克 (g)</option><option value="ts">台錢</option></select></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">重量</label><input type="number" step="0.01" id="gold-weight"></div>
+                    <div class="flex flex-col gap-1"><label class="text-gray-500">總成本</label><input type="number" id="gold-cost"></div>
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button id="gold-btn" onclick="saveGold()" class="flex-1 bg-amber-600 py-3 rounded-xl font-bold text-black">登錄黃金紀錄</button>
+                    <button id="gold-cancel" onclick="clearGoldForm()" class="hidden bg-slate-700 px-6 rounded-xl font-bold">取消</button>
+                </div>
+            </div>
+            <div class="card overflow-x-auto p-0">
+                <table class="w-full text-xs text-left"><thead class="bg-slate-900/50 text-gray-500"><tr><th class="p-4">日期</th><th class="p-4">名稱</th><th class="p-4">重量</th><th class="p-4 text-right">購入成本</th><th class="p-4 text-right">當前市值</th><th class="p-4 text-center">操作</th></tr></thead><tbody id="gold-list" class="divide-y divide-slate-800"></tbody></table>
+            </div>
         </div>
     </div>
 
     <script>
-        const KEY_STOCK = 'wealth_v11_stock';
-        const KEY_PRICES = 'wealth_v11_prices';
-        let stockRecs = JSON.parse(localStorage.getItem(KEY_STOCK)) || [];
-        let marketPrices = JSON.parse(localStorage.getItem(KEY_PRICES)) || {};
-        let curGold = 0;
+        const K_STK = 'wv13_stk', K_GLD = 'wv13_gld', K_PRC = 'wv13_prc';
+        let stockRecs = JSON.parse(localStorage.getItem(K_STK)) || [];
+        let goldRecs = JSON.parse(localStorage.getItem(K_GLD)) || [];
+        let marketPrices = JSON.parse(localStorage.getItem(K_PRC)) || {};
+        let curGoldUSD = 0, rateUSD = 32.75;
 
-        function toggleDivField() {
-            const type = document.getElementById('stock-type').value;
-            const field = document.getElementById('div-amount-field');
-            if(type === 'dividend') {
-                field.classList.remove('opacity-30', 'pointer-events-none');
-            } else {
-                field.classList.add('opacity-30', 'pointer-events-none');
-            }
+        // JSON 匯入功能
+        function importByJSON() {
+            const rawJson = prompt("請貼上我給你的 JSON 資料內容：");
+            if (!rawJson) return;
+            try {
+                const data = JSON.parse(rawJson);
+                if (Array.isArray(data)) {
+                    stockRecs = [...stockRecs, ...data];
+                    localStorage.setItem(K_STK, JSON.stringify(stockRecs));
+                    data.forEach(r => { if(marketPrices[r.code] === undefined) marketPrices[r.code] = r.buyPrice; });
+                    localStorage.setItem(K_PRC, JSON.stringify(marketPrices));
+                    alert(`成功匯入 ${data.length} 筆資料！`);
+                    updateUI();
+                }
+            } catch (e) { alert("JSON 格式不正確，請確認後重新貼上。"); }
+        }
+
+        function switchTab(t) {
+            document.getElementById('section-stock').classList.toggle('hidden', t!=='stock');
+            document.getElementById('section-gold').classList.toggle('hidden', t!=='gold');
+            document.getElementById('tab-stock').className = `pb-4 px-2 text-sm ${t==='stock'?'tab-active':'text-gray-500'}`;
+            document.getElementById('tab-gold').className = `pb-4 px-2 text-sm ${t==='gold'?'tab-active':'text-gray-500'}`;
         }
 
         async function fetchAllPrices() {
             try {
                 const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
-                const d = await res.json(); curGold = parseFloat(d.price); updateUI();
-            } catch(e) { console.log("Gold Sync Fail"); }
+                const d = await res.json(); curGoldUSD = parseFloat(d.price); updateUI();
+            } catch(e) { console.log("Price Error"); }
         }
 
-        function updateMarketPrice(code, val) {
-            marketPrices[code] = parseFloat(val) || 0;
-            localStorage.setItem(KEY_PRICES, JSON.stringify(marketPrices));
-            updateUI();
+        function toggleStockDiv() {
+            const isDiv = document.getElementById('stock-type').value === 'dividend';
+            document.getElementById('stock-div-field').style.opacity = isDiv ? '1' : '0.3';
+            document.getElementById('stock-div-field').style.pointerEvents = isDiv ? 'auto' : 'none';
         }
 
-        function addStockRecord() {
-            const index = parseInt(document.getElementById('edit-index').value);
-            const code = document.getElementById('stock-code').value.toUpperCase();
-            if(!code) return alert("請輸入標的代號");
-
-            const r = {
-                code,
-                date: document.getElementById('stock-date').value || new Date().toISOString().split('T')[0],
-                type: document.getElementById('stock-type').value,
-                shares: parseFloat(document.getElementById('stock-shares').value) || 0,
-                buyPrice: parseFloat(document.getElementById('stock-buy-price').value) || 0,
-                cost: parseFloat(document.getElementById('stock-total-cost').value) || 0,
-                dividend: parseFloat(document.getElementById('stock-div-amount').value) || 0
-            };
-
-            if(index === -1) {
-                stockRecs.push(r);
-            } else {
-                stockRecs[index] = r;
-            }
-
-            localStorage.setItem(KEY_STOCK, JSON.stringify(stockRecs));
-            if(marketPrices[code] === undefined) marketPrices[code] = r.buyPrice;
-            clearForm();
-            updateUI();
+        function saveStock() {
+            const idx = parseInt(document.getElementById('stock-edit-idx').value);
+            const r = { code: document.getElementById('stock-code').value.toUpperCase(), date: document.getElementById('stock-date').value || new Date().toISOString().split('T')[0], type: document.getElementById('stock-type').value, shares: parseFloat(document.getElementById('stock-shares').value)||0, buyPrice: parseFloat(document.getElementById('stock-buy-price').value)||0, cost: parseFloat(document.getElementById('stock-cost').value)||0, dividend: parseFloat(document.getElementById('stock-div-amount').value)||0 };
+            if(!r.code) return;
+            if(idx === -1) stockRecs.push(r); else stockRecs[idx] = r;
+            localStorage.setItem(K_STK, JSON.stringify(stockRecs));
+            marketPrices[r.code] = r.buyPrice;
+            clearStockForm(); updateUI();
         }
 
-        function editRecord(index) {
-            const r = stockRecs[index];
-            document.getElementById('edit-index').value = index;
-            document.getElementById('stock-code').value = r.code;
-            document.getElementById('stock-date').value = r.date;
-            document.getElementById('stock-type').value = r.type;
-            document.getElementById('stock-shares').value = r.shares;
-            document.getElementById('stock-buy-price').value = r.buyPrice;
-            document.getElementById('stock-total-cost').value = r.cost;
+        function editStock(i) {
+            const r = stockRecs[i]; document.getElementById('stock-edit-idx').value = i;
+            document.getElementById('stock-code').value = r.code; document.getElementById('stock-date').value = r.date;
+            document.getElementById('stock-type').value = r.type; document.getElementById('stock-shares').value = r.shares;
+            document.getElementById('stock-buy-price').value = r.buyPrice; document.getElementById('stock-cost').value = r.cost;
             document.getElementById('stock-div-amount').value = r.dividend;
-            
-            toggleDivField();
-            document.getElementById('input-card').classList.add('editing-mode');
-            document.getElementById('btn-submit').innerText = "儲存更新紀錄";
-            document.getElementById('btn-submit').classList.replace('bg-blue-600', 'bg-amber-600');
-            document.getElementById('btn-cancel').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            toggleStockDiv(); document.getElementById('stock-input-card').classList.add('editing-mode');
+            document.getElementById('stock-btn').innerText = "儲存更新"; document.getElementById('stock-cancel').classList.remove('hidden');
         }
 
-        function clearForm() {
-            document.getElementById('edit-index').value = "-1";
-            document.getElementById('stock-code').value = "";
-            document.getElementById('stock-shares').value = "";
-            document.getElementById('stock-buy-price').value = "";
-            document.getElementById('stock-total-cost').value = "";
-            document.getElementById('stock-div-amount').value = "";
-            document.getElementById('input-card').classList.remove('editing-mode');
-            document.getElementById('btn-submit').innerText = "登錄交易紀錄";
-            document.getElementById('btn-submit').classList.replace('bg-amber-600', 'bg-blue-600');
-            document.getElementById('btn-cancel').classList.add('hidden');
-            toggleDivField();
+        function clearStockForm() { document.getElementById('stock-edit-idx').value = "-1"; document.getElementById('stock-input-card').classList.remove('editing-mode'); document.getElementById('stock-btn').innerText = "登錄交易紀錄"; document.getElementById('stock-cancel').classList.add('hidden'); }
+
+        function saveGold() {
+            const idx = parseInt(document.getElementById('gold-edit-idx').value);
+            const r = { name: document.getElementById('gold-name').value, date: document.getElementById('gold-date').value, unit: document.getElementById('gold-unit').value, weight: parseFloat(document.getElementById('gold-weight').value)||0, cost: parseFloat(document.getElementById('gold-cost').value)||0 };
+            if(!r.name) return;
+            if(idx === -1) goldRecs.push(r); else goldRecs[idx] = r;
+            localStorage.setItem(K_GLD, JSON.stringify(goldRecs));
+            clearGoldForm(); updateUI();
         }
+
+        function editGold(i) {
+            const r = goldRecs[i]; document.getElementById('gold-edit-idx').value = i;
+            document.getElementById('gold-name').value = r.name; document.getElementById('gold-date').value = r.date;
+            document.getElementById('gold-unit').value = r.unit; document.getElementById('gold-weight').value = r.weight;
+            document.getElementById('gold-cost').value = r.cost;
+            document.getElementById('gold-input-card').classList.add('editing-mode');
+            document.getElementById('gold-btn').innerText = "儲存更新"; document.getElementById('gold-cancel').classList.remove('hidden');
+        }
+
+        function clearGoldForm() { document.getElementById('gold-edit-idx').value = "-1"; document.getElementById('gold-input-card').classList.remove('editing-mode'); document.getElementById('gold-btn').innerText = "登錄黃金紀錄"; document.getElementById('gold-cancel').classList.add('hidden'); }
 
         function updateUI() {
-            const uniqueCodes = [...new Set(stockRecs.map(r => r.code))];
-            let marketHTML = '';
-            uniqueCodes.forEach(code => {
-                marketHTML += `<div class="market-tag flex items-center gap-3">
-                    <span class="text-xs font-bold text-indigo-400">${code}</span>
-                    <input type="number" step="0.1" value="${marketPrices[code] || 0}" onchange="updateMarketPrice('${code}', this.value)" class="w-24 bg-transparent !border-none !p-0 text-right font-black">
-                </div>`;
-            });
-            document.getElementById('market-price-container').innerHTML = marketHTML || '<span class="text-gray-600 italic text-xs">尚無股票資料</span>';
+            const goldTWD_g = (curGoldUSD / 31.1035) * rateUSD;
+            let totalSTKV = 0, totalSTKC = 0, totalDiv = 0, totalGOLDV = 0, totalGOLDC = 0;
 
-            let sV=0, realCost=0, totalDiv=0, sH='';
-            // 介面顯示按照日期排序，但編輯時需要使用原始索引
-            const displayRecs = stockRecs.map((r, i) => ({...r, originalIndex: i}))
-                                        .sort((a,b)=>new Date(b.date)-new Date(a.date));
-
-            displayRecs.forEach((r) => {
+            let sH = '';
+            const sortedStock = stockRecs.map((r, i) => ({...r, ori: i})).sort((a,b)=>new Date(b.date)-new Date(a.date));
+            sortedStock.forEach((r) => {
                 const nowP = marketPrices[r.code] || 0;
-                const curV = nowP * r.shares;
-                sV += curV;
-                totalDiv += r.dividend;
-                if(r.type === 'buy') realCost += r.cost;
-
-                sH += `<tr class="hover:bg-slate-800/30">
-                    <td class="p-4 text-gray-500">${r.date}</td>
-                    <td class="p-4 font-bold text-blue-400">${r.code}</td>
-                    <td class="p-4">${r.type==='buy'?'一般買入':'股利再投'}</td>
-                    <td class="p-4 text-right">${r.shares.toLocaleString()}</td>
-                    <td class="p-4 text-right text-gray-400">$${r.buyPrice}</td>
-                    <td class="p-4 text-right font-bold text-white">$${r.cost.toLocaleString()}</td>
-                    <td class="p-4 text-right text-green-400 font-bold">${r.dividend > 0 ? '$'+r.dividend.toLocaleString() : '-'}</td>
-                    <td class="p-4 text-center flex justify-center gap-3">
-                        <button onclick="editRecord(${r.originalIndex})" class="text-indigo-400 hover:text-indigo-300">✎</button>
-                        <button onclick="del(${r.originalIndex})" class="text-gray-700 hover:text-red-500">✕</button>
-                    </td>
-                </tr>`;
+                const val = nowP * r.shares;
+                totalSTKV += val; totalDiv += r.dividend; if(r.type === 'buy') totalSTKC += r.cost;
+                sH += `<tr class="hover:bg-slate-800/30"><td class="p-4 text-gray-500">${r.date}</td><td class="p-4 font-bold text-blue-400">${r.code}</td><td class="p-4">${r.type==='buy'?'買入':'股利'}</td><td class="p-4 text-right">${r.shares.toLocaleString()}</td><td class="p-4 text-right">$${r.cost.toLocaleString()}</td><td class="p-4 text-right text-green-400 font-bold">${r.dividend? '$'+r.dividend.toLocaleString() :'-'}</td><td class="p-4 text-center"><button onclick="editStock(${r.ori})">✎</button> <button onclick="del('stk',${r.ori})">✕</button></td></tr>`;
             });
             document.getElementById('stock-list').innerHTML = sH;
 
-            const totalProfit = (sV + totalDiv) - realCost;
-            document.getElementById('center-total-worth').innerText = `NT$ ${Math.round(sV).toLocaleString()}`;
-            document.getElementById('stock-worth').innerText = `NT$ ${Math.round(sV).toLocaleString()}`;
+            let gH = '';
+            goldRecs.forEach((r, i) => {
+                let w = r.weight; if(r.unit==='ts') w *= 3.75;
+                const val = w * goldTWD_g; totalGOLDV += val; totalGOLDC += r.cost;
+                gH += `<tr class="hover:bg-slate-800/30"><td class="p-4 text-gray-500">${r.date}</td><td class="p-4 font-bold text-amber-400">${r.name}</td><td class="p-4">${r.weight}${r.unit}</td><td class="p-4 text-right">$${r.cost.toLocaleString()}</td><td class="p-4 text-right font-bold text-white">$${Math.round(val).toLocaleString()}</td><td class="p-4 text-center"><button onclick="editGold(${i})">✎</button> <button onclick="del('gld',${i})">✕</button></td></tr>`;
+            });
+            document.getElementById('gold-list').innerHTML = gH;
+
+            const totalWorth = totalSTKV + totalGOLDV;
+            const totalProfit = (totalWorth + totalDiv) - (totalSTKC + totalGOLDC);
+            document.getElementById('center-total-worth').innerText = `NT$ ${Math.round(totalWorth).toLocaleString()}`;
+            document.getElementById('stock-worth').innerText = `NT$ ${Math.round(totalSTKV).toLocaleString()}`;
+            document.getElementById('gold-worth').innerText = `NT$ ${Math.round(totalGOLDV).toLocaleString()}`;
             document.getElementById('total-dividends').innerText = `NT$ ${Math.round(totalDiv).toLocaleString()}`;
             document.getElementById('total-profit').innerText = `NT$ ${Math.round(totalProfit).toLocaleString()}`;
-            document.getElementById('total-profit').className = `text-xl font-black mt-2 ${totalProfit>=0?'profit-pos':'profit-neg'}`;
-            const perf = realCost > 0 ? ((totalProfit / realCost) * 100).toFixed(2) : 0;
+            const perf = (totalSTKC + totalGOLDC) > 0 ? (totalProfit / (totalSTKC + totalGOLDC) * 100).toFixed(2) : 0;
             document.getElementById('total-percent').innerText = `${perf}% 資產績效`;
-            
-            renderAllocation(0, sV);
+            renderAllocation(totalGOLDV, totalSTKV);
         }
 
-        function del(i){ if(confirm("確定刪除這筆紀錄？")){ stockRecs.splice(i,1); localStorage.setItem(KEY_STOCK, JSON.stringify(stockRecs)); updateUI(); } }
+        function del(t, i) { if(confirm("確定刪除？")) { if(t==='stk') stockRecs.splice(i,1); else goldRecs.splice(i,1); localStorage.setItem(t==='stk'?K_STK:K_GLD, JSON.stringify(t==='stk'?stockRecs:goldRecs)); updateUI(); } }
         let allocChart;
         function renderAllocation(g, s){
             const ctx = document.getElementById('allocationChart').getContext('2d');
