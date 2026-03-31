@@ -3,198 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的黃金追蹤器</title>
+    <title>金股財富追蹤器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: sans-serif; }
         .card { background-color: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 1.5rem; }
         .gold-text { color: #d4af37; }
+        .stock-text { color: #3b82f6; } /* 藍色代表股票 */
+        .tab-active { border-b-2 border-yellow-500; color: #d4af37; font-weight: bold; }
+        .profit-pos { color: #4ade80; } /* 綠色代表獲利 */
+        .profit-neg { color: #f87171; } /* 紅色代表虧損 */
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold gold-text">✦ 傑哥記錄 ✦</h1>
-            <button onclick="fetchGoldPrice()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition">↻ 更新金價</button>
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+            <h1 class="text-3xl font-bold gold-text">✦ 財富珍藏記錄 ✦</h1>
+            <div class="flex gap-2">
+                <button onclick="fetchAllPrices()" class="bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded-lg transition">↻ 更新全部行情</button>
+            </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card md:col-span-1 flex flex-col justify-center items-center">
+                <p class="text-gray-400 text-sm mb-2">總資產配置</p>
+                <div style="width: 200px; height: 200px;">
+                    <canvas id="allocationChart"></canvas>
+                </div>
+            </div>
+            <div class="card md:col-span-2 grid grid-cols-2 gap-4">
+                <div class="text-center border-r border-gray-800">
+                    <p class="text-xs text-gray-400">總市值 (TWD)</p>
+                    <p id="total-net-worth" class="text-3xl font-bold gold-text">--</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-400">總投資成本</p>
+                    <p id="total-invested-cost" class="text-3xl font-bold">--</p>
+                </div>
+                <div class="text-center border-r border-gray-800 pt-4 mt-4 border-t border-gray-800 col-span-2">
+                    <p class="text-xs text-gray-400">總投資損益</p>
+                    <p id="total-overall-profit" class="text-2xl font-bold">--</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="card text-center">
                 <p class="text-gray-400 text-sm">國際金價 (USD/oz)</p>
-                <p id="price-usd" class="text-2xl font-mono">載入中...</p>
+                <p id="price-usd" class="text-xl font-mono">載入中...</p>
             </div>
             <div class="card text-center">
                 <p class="text-gray-400 text-sm">美元匯率 (USD/TWD)</p>
-                <p id="rate-twd" class="text-2xl font-mono">32.15</p>
+                <p id="rate-twd" class="text-xl font-mono">32.15</p>
             </div>
             <div class="card text-center">
                 <p class="text-gray-400 text-sm">台幣金價 (TWD/g)</p>
-                <p id="price-twd-g" class="text-2xl font-mono gold-text">--</p>
+                <p id="price-twd-g" class="text-xl font-mono gold-text">--</p>
+            </div>
+             <div class="card text-center border-blue-900 border-2">
+                <p class="text-gray-400 text-sm">台股大盤 (展示)</p>
+                <p id="price-twse" class="text-xl font-mono stock-text">--</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="card">
-                <p class="text-xs text-gray-400">持倉總重(g)</p>
-                <p id="total-weight" class="text-lg">0</p>
-            </div>
-            <div class="card">
-                <p class="text-xs text-gray-400">總成本</p>
-                <p id="total-cost" class="text-lg">0</p>
-            </div>
-            <div class="card">
-                <p class="text-xs text-gray-400">當前市值</p>
-                <p id="current-value" class="text-lg text-green-400">0</p>
-            </div>
-            <div class="card">
-                <p class="text-xs text-gray-400">未實現損益</p>
-                <p id="total-profit" class="text-lg">0</p>
-            </div>
+        <div class="flex border-b border-gray-800 mb-6 text-lg">
+            <button id="tab-gold" onclick="switchTab('gold')" class="px-6 py-2 tab-active">黃金資產</button>
+            <button id="tab-stock" onclick="switchTab('stock')" class="px-6 py-2 text-gray-400">股票資產</button>
         </div>
 
-        <section class="card mb-8">
-            <h2 class="text-xl mb-4 border-b border-gray-700 pb-2">＋ 新增紀錄</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <input type="text" id="record-name" placeholder="名稱 (如: 台銀金幣)" class="bg-zinc-800 p-2 rounded border border-gray-600">
-                <select id="unit-select" class="bg-zinc-800 p-2 rounded border border-gray-600">
-                    <option value="g">公克 (g)</option>
-                    <option value="tsubos">錢 (台錢)</option>
-                    <option value="oz">盎司 (oz)</option>
-                </select>
-                <input type="number" id="record-weight" placeholder="重量" class="bg-zinc-800 p-2 rounded border border-gray-600">
-                <input type="number" id="record-price" placeholder="總買入價格" class="bg-zinc-800 p-2 rounded border border-gray-600">
-            </div>
-            <button onclick="addRecord()" class="mt-4 w-full bg-yellow-700 p-2 rounded font-bold hover:bg-yellow-600">登錄紀錄</button>
+        <section id="content-gold">
+            <section class="card mb-8">
+                <h2 class="text-xl mb-4 gold-text">＋ 新增黃金紀錄</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <input type="text" id="gold-name" placeholder="名稱 (如: 台銀金幣)" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                    <select id="gold-unit" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                        <option value="g">公克 (g)</option>
+                        <option value="tsubos">錢 (台錢)</option>
+                        <option value="oz">盎司 (oz)</option>
+                    </select>
+                    <input type="number" id="gold-weight" placeholder="重量" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                    <input type="number" id="gold-price" placeholder="總買入價格(TWD)" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                </div>
+                <button onclick="addGoldRecord()" class="mt-4 w-full bg-yellow-700 p-2 rounded font-bold hover:bg-yellow-600 transition">登錄黃金</button>
+            </section>
+
+            <section class="card">
+                <h2 class="text-xl mb-4 gold-text">黃金持倉清單</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400">
+                                <th class="py-2">名稱</th>
+                                <th>重量</th>
+                                <th>成本</th>
+                                <th>當前市值</th>
+                                <th>損益</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gold-list"></tbody>
+                    </table>
+                </div>
+            </section>
         </section>
 
-        <div class="card mb-8">
-            <canvas id="profitChart" height="100"></canvas>
-        </div>
+        <section id="content-stock" class="hidden">
+            <section class="card mb-8 border-blue-900 border-2">
+                <h2 class="text-xl mb-4 stock-text">＋ 新增股票紀錄</h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <input type="text" id="stock-code" placeholder="代號 (如: 2330)" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                    <input type="text" id="stock-name" placeholder="名稱 (台積電)" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                    <input type="number" id="stock-shares" placeholder="股數 (如: 1000)" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                    <input type="number" id="stock-cost-price" placeholder="買入均價" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                    <input type="number" id="stock-fee" placeholder="手續費(選填)" class="bg-zinc-800 p-2 rounded border border-gray-600">
+                </div>
+                <button onclick="addStockRecord()" class="mt-4 w-full bg-blue-700 p-2 rounded font-bold hover:bg-blue-600 transition">登錄股票</button>
+            </section>
 
-        <section class="card">
-            <h2 class="text-xl mb-4">持倉清單</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="border-b border-gray-700">
-                            <th class="py-2">名稱</th>
-                            <th>重量</th>
-                            <th>買入成本</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="record-list">
-                        </tbody>
-                </table>
-            </div>
+            <section class="card">
+                <h2 class="text-xl mb-4 stock-text">股票持倉清單</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400">
+                                <th class="py-2">代號</th>
+                                <th>名稱</th>
+                                <th>股數</th>
+                                <th>平均成本</th>
+                                <th>當前價</th>
+                                <th>市值</th>
+                                <th>損益</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stock-list"></tbody>
+                    </table>
+                </div>
+            </section>
         </section>
+        
+        <footer class="text-center text-gray-600 mt-12 text-xs">數據僅供參考，API來源可能存在延遲。</footer>
     </div>
 
     <script>
-        let currentGoldPriceUSD = 0;
-        const usdToTwd = 32.15; // 預設匯率
-        let records = JSON.parse(localStorage.getItem('gold_records')) || [];
+        // 資料儲存 Key
+        const STORAGE_KEY_GOLD = 'wealth_tracker_gold';
+        const STORAGE_KEY_STOCK = 'wealth_tracker_stock';
 
-        // 1. 取得金價 (使用開放 API)
-        async function fetchGoldPrice() {
-            try {
-                // 這裡使用一個展示用的 API，實務上建議申請免費的 GoldAPI key
-                const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
-                const data = await response.json();
-                currentGoldPriceUSD = parseFloat(data.price);
-                updateUI();
-            } catch (error) {
-                console.error("無法取得金價", error);
-                document.getElementById('price-usd').innerText = "連線失敗";
+        // 即時行情變數
+        let currentGoldPriceUSD = 0;
+        const usdToTwd = 32.15; // 預設匯率，實務上可串接 API
+        let currentTwseIndex = 19500; // 展示用大盤
+
+        // 模擬的股票即時價格 (實務上需要串接 API)
+        const mockStockPrices = {
+            '2330': 780,
+            '2317': 155,
+            '0050': 158
+        };
+
+        // 資產資料陣列
+        let goldRecords = JSON.parse(localStorage.getItem(STORAGE_KEY_GOLD)) || [];
+        let stockRecords = JSON.parse(localStorage.getItem(STORAGE_KEY_STOCK)) || [];
+
+        // --- 初始化 ---
+        window.onload = function() {
+            fetchAllPrices();
+        };
+
+        // --- Tabs 切換邏輯 ---
+        function switchTab(type) {
+            const goldBtn = document.getElementById('tab-gold');
+            const stockBtn = document.getElementById('tab-stock');
+            const goldContent = document.getElementById('content-gold');
+            const stockContent = document.getElementById('content-stock');
+
+            if (type === 'gold') {
+                goldBtn.classList.add('tab-active'); goldBtn.classList.remove('text-gray-400');
+                stockBtn.classList.remove('tab-active'); stockBtn.classList.add('text-gray-400');
+                goldContent.classList.remove('hidden'); stockContent.classList.add('hidden');
+            } else {
+                stockBtn.classList.add('tab-active'); stockBtn.classList.remove('text-gray-400');
+                goldBtn.classList.remove('tab-active'); goldBtn.classList.add('text-gray-400');
+                stockContent.classList.remove('hidden'); goldContent.classList.add('hidden');
             }
         }
 
-        // 2. 更新介面數值
+        // --- 行情抓取引擎 ---
+        async function fetchAllPrices() {
+            try {
+                // 1. 抓取金價 (PAXG作為基準)
+                const goldRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
+                const goldData = await goldRes.json();
+                currentGoldPriceUSD = parseFloat(goldData.price);
+
+                // 2. 抓取股票行情 (範例: 這裡使用模擬資料，實務上需替換為真正的股票 API URL)
+                // 註：真正的台灣股市公開 API 通常需要 Key 並且有跨域請求限制。
+                console.log("正在更新股票行情...");
+                // 假設我們呼叫了一個 fakeApi.com/taiwan-stocks
+                // records.forEach(r => r.currentPrice = fetchPrice(r.code));
+
+                // 模擬更新所有持有股票的「當前價格」
+                stockRecords.forEach(r => {
+                    r.currentPrice = mockStockPrices[r.code] || (r.costPrice * 1.05); // 有模擬用模擬，沒有就模擬漲5%
+                });
+
+                updateUI();
+            } catch (error) {
+                console.error("更新行情失敗", error);
+                alert("部分行情更新失敗，請稍後再試。");
+            }
+        }
+
+        // --- UI 更新主邏輯 ---
         function updateUI() {
+            // 計算台幣金價/克
             const pricePerGram = (currentGoldPriceUSD / 31.1035) * usdToTwd;
             document.getElementById('price-usd').innerText = `$ ${currentGoldPriceUSD.toLocaleString()}`;
             document.getElementById('price-twd-g').innerText = `NT$ ${Math.round(pricePerGram).toLocaleString()}`;
+            document.getElementById('price-twse').innerText = `${currentTwseIndex.toLocaleString()}`;
 
-            let totalWeightG = 0;
-            let totalCost = 0;
-            let listHTML = '';
+            // 1. 更新黃金表格與計算
+            let goldTotalCost = 0;
+            let goldTotalValue = 0;
+            let goldListHTML = '';
 
-            records.forEach((r, index) => {
-                let weightG = r.weight;
+            goldRecords.forEach((r, index) => {
+                let weightG = parseFloat(r.weight);
                 if(r.unit === 'tsubos') weightG = r.weight * 3.75;
                 if(r.unit === 'oz') weightG = r.weight * 31.1035;
                 
-                totalWeightG += weightG;
-                totalCost += r.price;
+                const cost = parseFloat(r.price);
+                const value = weightG * pricePerGram;
+                const profit = value - cost;
+                const profitRate = (profit / cost) * 100;
 
-                listHTML += `
+                goldTotalCost += cost;
+                goldTotalValue += value;
+
+                goldListHTML += `
                     <tr class="border-b border-zinc-800">
                         <td class="py-3">${r.name}</td>
-                        <td>${r.weight} ${r.unit}</td>
-                        <td>$${r.price.toLocaleString()}</td>
-                        <td><button onclick="deleteRecord(${index})" class="text-red-500 text-sm">刪除</button></td>
+                        <td>${r.weight} ${r.unit} (${weightG.toFixed(1)}g)</td>
+                        <td>$${cost.toLocaleString()}</td>
+                        <td class="gold-text">$${Math.round(value).toLocaleString()}</td>
+                        <td class="${profit >=0 ? 'profit-pos' : 'profit-neg'}">${Math.round(profit).toLocaleString()} (${profitRate.toFixed(1)}%)</td>
+                        <td><button onclick="deleteRecord('gold', ${index})" class="text-red-500 text-xs">刪除</button></td>
                     </tr>
                 `;
             });
+            document.getElementById('gold-list').innerHTML = goldListHTML;
 
-            const currentValue = totalWeightG * pricePerGram;
-            document.getElementById('total-weight').innerText = totalWeightG.toFixed(2);
-            document.getElementById('total-cost').innerText = Math.round(totalCost).toLocaleString();
-            document.getElementById('current-value').innerText = Math.round(currentValue).toLocaleString();
-            document.getElementById('total-profit').innerText = Math.round(currentValue - totalCost).toLocaleString();
-            document.getElementById('total-profit').className = (currentValue - totalCost) >= 0 ? 'text-lg text-green-400' : 'text-lg text-red-400';
-            document.getElementById('record-list').innerHTML = listHTML;
+            // 2. 更新股票表格與計算 (New!)
+            let stockTotalCost = 0;
+            let stockTotalValue = 0;
+            let stockListHTML = '';
 
-            updateChart(totalCost, currentValue);
+            stockRecords.forEach((r, index) => {
+                const currentPrice = r.currentPrice || r.costPrice; // 如果API沒抓到，用成本價代替
+                const cost = (parseFloat(r.costPrice) * parseFloat(r.shares)) + (parseFloat(r.fee) || 0);
+                const value = currentPrice * parseFloat(r.shares);
+                
+                // 簡單計算現值 (扣除模擬的賣出手續費 0.1425% 和 證交稅 0.3%)
+                const estimatedValue = value * 0.9955; 
+                const profit = estimatedValue - cost;
+                const profitRate = (profit / cost) * 100;
+
+                stockTotalCost += cost;
+                stockTotalValue += estimatedValue;
+
+                stockListHTML += `
+                    <tr class="border-b border-zinc-800">
+                        <td class="py-3">${r.code}</td>
+                        <td>${r.name}</td>
+                        <td>${parseFloat(r.shares).toLocaleString()}</td>
+                        <td>$${parseFloat(r.costPrice).toFixed(2)}</td>
+                        <td class="stock-text">$${currentPrice.toFixed(2)}</td>
+                        <td>$${Math.round(estimatedValue).toLocaleString()}</td>
+                        <td class="${profit >=0 ? 'profit-pos' : 'profit-neg'}">${Math.round(profit).toLocaleString()} (${profitRate.toFixed(1)}%)</td>
+                        <td><button onclick="deleteRecord('stock', ${index})" class="text-red-500 text-xs">刪除</button></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('stock-list').innerHTML = stockListHTML;
+
+            // 3. 更新總體統計 (New!)
+            const totalNetWorth = goldTotalValue + stockTotalValue;
+            const totalInvestedCost = goldTotalCost + stockTotalCost;
+            const totalOverallProfit = totalNetWorth - totalInvestedCost;
+
+            document.getElementById('total-net-worth').innerText = `NT$ ${Math.round(totalNetWorth).toLocaleString()}`;
+            document.getElementById('total-invested-cost').innerText = Math.round(totalInvestedCost).toLocaleString();
+            document.getElementById('total-overall-profit').innerText = Math.round(totalOverallProfit).toLocaleString();
+            document.getElementById('total-overall-profit').className = `text-2xl font-bold ${totalOverallProfit >= 0 ? 'profit-pos' : 'profit-neg'}`;
+
+            // 4. 更新圓餅圖 (New!)
+            updateAllocationChart(goldTotalValue, stockTotalValue);
         }
 
-        // 3. 新增紀錄
-        function addRecord() {
-            const name = document.getElementById('record-name').value;
-            const unit = document.getElementById('unit-select').value;
-            const weight = parseFloat(document.getElementById('record-weight').value);
-            const price = parseFloat(document.getElementById('record-price').value);
-
-            if(!name || !weight || !price) return alert("請填寫完整資訊");
-
-            records.push({ name, unit, weight, price });
-            localStorage.setItem('gold_records', JSON.stringify(records));
+        // --- 資料操作 ---
+        function addGoldRecord() {
+            const name = document.getElementById('gold-name').value;
+            const unit = document.getElementById('gold-unit').value;
+            const weight = document.getElementById('gold-weight').value;
+            const price = document.getElementById('gold-price').value;
+            if(!name || !weight || !price) return alert("請填寫黃金完整資訊");
+            goldRecords.push({ name, unit, weight, price: parseFloat(price) });
+            localStorage.setItem(STORAGE_KEY_GOLD, JSON.stringify(goldRecords));
             updateUI();
         }
 
-        // 4. 刪除紀錄
-        function deleteRecord(index) {
-            records.splice(index, 1);
-            localStorage.setItem('gold_records', JSON.stringify(records));
+        function addStockRecord() {
+            const code = document.getElementById('stock-code').value;
+            const name = document.getElementById('stock-name').value;
+            const shares = document.getElementById('stock-shares').value;
+            const costPrice = document.getElementById('stock-cost-price').value;
+            const fee = document.getElementById('stock-fee').value || 0;
+            if(!code || !shares || !costPrice) return alert("請填寫股票代號、股數及買入價");
+            
+            stockRecords.push({ code, name: name || code, shares: parseFloat(shares), costPrice: parseFloat(costPrice), fee: parseFloat(fee) });
+            localStorage.setItem(STORAGE_KEY_STOCK, JSON.stringify(stockRecords));
+            updateUI();
+            fetchAllPrices(); // 新增股票後重新抓取一次行情
+        }
+
+        function deleteRecord(type, index) {
+            if(!confirm("確定要刪除此筆紀錄？")) return;
+            if(type === 'gold') {
+                goldRecords.splice(index, 1);
+                localStorage.setItem(STORAGE_KEY_GOLD, JSON.stringify(goldRecords));
+            } else {
+                stockRecords.splice(index, 1);
+                localStorage.setItem(STORAGE_KEY_STOCK, JSON.stringify(stockRecords));
+            }
             updateUI();
         }
 
-        // 5. 圖表渲染
-        let myChart;
-        function updateChart(cost, value) {
-            const ctx = document.getElementById('profitChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'bar',
+        // --- Chart.js 圓餅圖邏輯 (New!) ---
+        let allocationChart;
+        function updateAllocationChart(goldVal, stockVal) {
+            const ctx = document.getElementById('allocationChart').getContext('2d');
+            
+            // 如果資產皆為0，不渲染圖表
+            if (goldVal === 0 && stockVal === 0) {
+                 if (allocationChart) allocationChart.destroy();
+                 return;
+            }
+
+            if (allocationChart) allocationChart.destroy();
+            
+            allocationChart = new Chart(ctx, {
+                type: 'doughnut', // 使用環形圖，看起來更現代
                 data: {
-                    labels: ['總成本', '當前市值'],
+                    labels: ['黃金', '股票'],
                     datasets: [{
-                        label: '金額 (TWD)',
-                        data: [cost, value],
-                        backgroundColor: ['#444', '#d4af37']
+                        data: [goldVal, stockVal],
+                        backgroundColor: ['#d4af37', '#3b82f6'],
+                        borderColor: '#1e1e1e',
+                        borderWidth: 2
                     }]
                 },
-                options: { 
-                    indexAxis: 'y',
-                    plugins: { legend: { display: false } },
-                    scales: { x: { grid: { color: '#333' } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }, // 隱藏原生 Legend，使用自訂介面
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `NT$ ${Math.round(value).toLocaleString()} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%' // 設置環形圖中間的空心比例
                 }
             });
         }
-
-        // 初始化
-        fetchGoldPrice();
     </script>
 </body>
 </html>
