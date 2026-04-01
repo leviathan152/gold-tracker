@@ -2,13 +2,36 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>資產管理 - 專業資產管理系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { background-color: #020617; color: #f1f5f9; font-family: 'Noto Sans TC', 'Inter', system-ui, sans-serif; }
+        html {
+            -webkit-text-size-adjust: 100%;
+            height: 100%;
+        }
+        body {
+            background-color: #020617;
+            color: #f1f5f9;
+            font-family: 'Noto Sans TC', 'Inter', system-ui, sans-serif;
+            min-height: 100%;
+            min-height: 100dvh;
+            min-height: -webkit-fill-available;
+            padding-left: max(1rem, env(safe-area-inset-left, 0px));
+            padding-right: max(1rem, env(safe-area-inset-right, 0px));
+            padding-top: max(1rem, env(safe-area-inset-top, 0px));
+            padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+        }
+        @media (min-width: 768px) {
+            body {
+                padding-left: max(2rem, env(safe-area-inset-left, 0px));
+                padding-right: max(2rem, env(safe-area-inset-right, 0px));
+                padding-top: max(2rem, env(safe-area-inset-top, 0px));
+                padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+            }
+        }
         .card { background: linear-gradient(145deg, #0f172a, #1e293b); border: 1px solid #334155; border-radius: 24px; padding: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         .stat-label { color: #94a3b8; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; }
         .gold-text { color: #fbbf24; }
@@ -34,9 +57,29 @@
             line-height: 1.5;
             display: block;
         }
+        /* 手機瀏覽器底部工具列／瀏海：全螢幕覆蓋層安全區 */
+        .modal-overlay-safe {
+            padding-top: max(1rem, env(safe-area-inset-top, 0px));
+            padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+            padding-left: max(1rem, env(safe-area-inset-left, 0px));
+            padding-right: max(1rem, env(safe-area-inset-right, 0px));
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;
+        }
+        .modal-panel-bottom-space {
+            margin-bottom: max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
+        }
+        /* iOS 聚焦輸入框時避免整頁縮放 */
+        @media (max-width: 640px) {
+            input, select, textarea { font-size: 16px !important; }
+        }
+        .table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
-<body class="p-4 md:p-8 pb-8">
+<body>
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 pb-6 border-b border-slate-800 gap-6">
             <div class="header-brand">
@@ -157,8 +200,8 @@
                     <button id="stock-cancel" onclick="clearStockForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                 </div>
             </div>
-            <div class="card overflow-hidden p-0">
-                <table class="w-full text-xs text-left">
+            <div class="card overflow-hidden p-0 table-scroll">
+                <table class="w-full text-xs text-left min-w-[640px]">
                     <thead class="bg-slate-800/50 text-slate-500 font-bold">
                         <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">市場現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
@@ -183,8 +226,8 @@
                         <button type="button" id="stock-sell-cancel" onclick="clearStockSellForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8">
-                    <table class="w-full text-xs text-left">
+                <div class="card overflow-hidden p-0 mb-8 table-scroll">
+                    <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="bg-slate-800/50 text-slate-500 font-bold">
                             <tr><th class="p-4">賣出日</th><th class="p-4">標的</th><th class="p-4 text-right">數量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
                         </thead>
@@ -214,8 +257,8 @@
                     <button id="gold-cancel" onclick="clearGoldForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                 </div>
             </div>
-            <div class="card overflow-hidden p-0">
-                <table class="w-full text-xs text-left">
+            <div class="card overflow-hidden p-0 table-scroll">
+                <table class="w-full text-xs text-left min-w-[640px]">
                     <thead class="bg-slate-800/50 text-slate-500 font-bold">
                         <tr><th class="p-5">購買日期</th><th class="p-5">名稱</th><th class="p-5 text-right">重量</th><th class="p-5 text-right">購入成本</th><th class="p-5 text-right">預估現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
@@ -240,8 +283,8 @@
                         <button type="button" id="gold-sell-cancel" onclick="clearGoldSellForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8">
-                    <table class="w-full text-xs text-left">
+                <div class="card overflow-hidden p-0 mb-8 table-scroll">
+                    <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="bg-slate-800/50 text-slate-500 font-bold">
                             <tr><th class="p-4">賣出日</th><th class="p-4">備註</th><th class="p-4 text-right">重量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
                         </thead>
@@ -272,8 +315,8 @@
                     <button type="button" id="coll-cancel" onclick="clearCollForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                 </div>
             </div>
-            <div class="card overflow-hidden p-0">
-                <table class="w-full text-xs text-left">
+            <div class="card overflow-hidden p-0 table-scroll">
+                <table class="w-full text-xs text-left min-w-[640px]">
                     <thead class="bg-slate-800/50 text-slate-500 font-bold">
                         <tr><th class="p-5">日期</th><th class="p-5">名稱</th><th class="p-5 text-right">數量</th><th class="p-5 text-right">購入成本</th><th class="p-5 text-right">估計現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
@@ -298,8 +341,8 @@
                         <button type="button" id="coll-sell-cancel" onclick="clearCollSellForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8">
-                    <table class="w-full text-xs text-left">
+                <div class="card overflow-hidden p-0 mb-8 table-scroll">
+                    <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="bg-slate-800/50 text-slate-500 font-bold">
                             <tr><th class="p-4">賣出日</th><th class="p-4">備註</th><th class="p-4 text-right">數量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
                         </thead>
@@ -310,8 +353,8 @@
         </div>
     </div>
 
-    <div id="settings-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" onclick="if(event.target===this)closeSettingsModal()">
-        <div class="card max-w-lg w-full p-6 border border-slate-600 shadow-2xl my-8" onclick="event.stopPropagation()">
+    <div id="settings-modal" class="fixed inset-0 z-[100] hidden flex-col items-stretch overflow-y-auto modal-overlay-safe bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" onclick="if(event.target===this)closeSettingsModal()">
+        <div class="card max-w-lg w-full p-6 border border-slate-600 shadow-2xl mx-auto mt-2 modal-panel-bottom-space shrink-0" onclick="event.stopPropagation()">
             <div class="flex justify-between items-start gap-4 mb-6">
                 <h2 id="settings-modal-title" class="stat-label">系統設定</h2>
                 <button type="button" onclick="closeSettingsModal()" class="text-slate-500 hover:text-white text-xl leading-none px-1" aria-label="關閉">✕</button>
@@ -368,8 +411,8 @@
         </div>
     </div>
 
-    <div id="privacy-modal" class="fixed inset-0 z-[101] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title" onclick="if(event.target===this)closePrivacyPasswordModal()">
-        <div class="card max-w-sm w-full p-6 border border-slate-600 shadow-2xl" onclick="event.stopPropagation()">
+    <div id="privacy-modal" class="fixed inset-0 z-[101] hidden flex flex-col items-center justify-center overflow-y-auto modal-overlay-safe bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title" onclick="if(event.target===this)closePrivacyPasswordModal()">
+        <div class="card max-w-sm w-full p-6 border border-slate-600 shadow-2xl mx-4 modal-panel-bottom-space shrink-0" onclick="event.stopPropagation()">
             <h2 id="privacy-modal-title" class="stat-label mb-2">解除數值遮罩</h2>
             <p class="text-sm text-slate-400 mb-4">請輸入管理密碼（輸入內容將以密碼欄位隱藏）</p>
             <input type="password" id="privacy-password-input" class="w-full mb-4" placeholder="管理密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();submitPrivacyPassword();}">
