@@ -770,21 +770,49 @@
             });
 
             const timeline = [
-                ...stockRecs.map(r => ({ date: r.date, type: 's', cost: r.cost })),
-                ...goldRecs.map(r => ({ date: r.date, type: 'g', cost: r.cost })),
-                ...collRecs.map(r => ({ date: r.date, type: 'c', cost: r.cost }))
+                ...stockRecs.map(r => ({ date: r.date, type: 's', rec: r })),
+                ...goldRecs.map(r => ({ date: r.date, type: 'g', rec: r })),
+                ...collRecs.map(r => ({ date: r.date, type: 'c', rec: r }))
             ].sort((a,b) => new Date(a.date) - new Date(b.date));
 
-            const labels = [], sData = [], gData = [], cData = [], tData = [];
+            const labels = [], sData = [], gData = [], cData = [], tData = [], worthData = [];
             let curS = 0, curG = 0, curC = 0;
             const incS = !!inc.stockWorth, incG = !!inc.goldWorth, incC = !!inc.collWorth;
+            const goldTWD_g = (curGoldUSD / 31.1035) * rateUSD;
+            const heldS = [], heldG = [], heldC = [];
             timeline.forEach(h => {
                 labels.push(h.date);
-                if (h.type === 's') { if (incS) curS += h.cost; }
-                else if (h.type === 'g') { if (incG) curG += h.cost; }
-                else { if (incC) curC += h.cost; }
+                if (h.type === 's') {
+                    if (incS) { curS += h.rec.cost; heldS.push(h.rec); }
+                } else if (h.type === 'g') {
+                    if (incG) { curG += h.rec.cost; heldG.push(h.rec); }
+                } else {
+                    if (incC) { curC += h.rec.cost; heldC.push(h.rec); }
+                }
                 sData.push(curS); gData.push(curG); cData.push(curC);
                 tData.push(curS + curG + curC);
+                let wTot = 0;
+                if (incS) {
+                    heldS.forEach(r => {
+                        const nowP = marketPrices[r.code] || r.buyPrice || 0;
+                        wTot += (parseFloat(nowP) || 0) * (parseFloat(r.shares) || 0);
+                    });
+                }
+                if (incG) {
+                    heldG.forEach(r => {
+                        let w = parseFloat(r.weight) || 0;
+                        if (r.unit === 'ts') w *= 3.75;
+                        wTot += w * goldTWD_g;
+                    });
+                }
+                if (incC) {
+                    heldC.forEach(r => {
+                        const ev = (r.estValue != null && r.estValue !== '' && !isNaN(parseFloat(r.estValue)) && parseFloat(r.estValue) > 0)
+                            ? parseFloat(r.estValue) : (parseFloat(r.cost) || 0);
+                        wTot += ev;
+                    });
+                }
+                worthData.push(wTot);
             });
 
             const fmtMoney = (n) => 'NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
@@ -812,6 +840,22 @@
                     backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(52, 211, 153, 0.28)', 'rgba(52, 211, 153, 0)')
                 }
             ];
+            if (incS || incG || incC) {
+                trendDatasets.push({
+                    label: '合計（總現值）',
+                    data: worthData,
+                    borderColor: '#2dd4bf',
+                    borderWidth: 2.5,
+                    borderDash: [8, 5],
+                    tension: 0.35,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHoverBorderWidth: 2,
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#2dd4bf'
+                });
+            }
             if (incS) {
                 trendDatasets.push({
                     label: '股票（累計投入）',
@@ -897,8 +941,8 @@
                                 title: (items) => items.length ? fmtTickDate(items[0].label) : '',
                                 label: (ctx) => {
                                     const name = ctx.dataset.label || '';
-                                    if (isPrivacyMode) return ' ' + name.split('（')[0] + '：****';
-                                    return ' ' + name.split('（')[0] + '：' + fmtMoney(ctx.raw);
+                                    if (isPrivacyMode) return ' ' + name + '：****';
+                                    return ' ' + name + '：' + fmtMoney(ctx.raw);
                                 }
                             }
                         }
