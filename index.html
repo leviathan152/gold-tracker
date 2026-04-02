@@ -47,15 +47,22 @@
         .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
         .btn-ghost:hover { background: rgba(255,255,255,0.1); }
         #import-file { display: none; }
+        /* bg-clip-text + 斜體在 Safari 易裁掉字尾筆畫，需放寬行高與底緣 */
         .header-brand h1 {
-            line-height: 1.2;
-            padding-bottom: 0.35rem;
+            line-height: 1.42;
+            padding-top: 0.08em;
+            padding-bottom: 0.22em;
             display: block;
+            overflow: visible;
+            -webkit-box-decoration-break: clone;
         }
         .header-brand .header-subtitle {
-            margin-top: 0.65rem;
+            margin-top: 0.5rem;
             line-height: 1.5;
             display: block;
+        }
+        .header-brand-icons span {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
         }
         /* 手機瀏覽器底部工具列／瀏海：全螢幕覆蓋層安全區 */
         .modal-overlay-safe {
@@ -86,9 +93,17 @@
 <body>
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 pb-6 border-b border-slate-800 gap-6">
-            <div class="header-brand">
-                <h1 class="text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-indigo-400 to-emerald-400">資產管理</h1>
-                <p class="header-subtitle text-slate-500 text-xs font-bold tracking-widest">資產管理介面</p>
+            <div class="header-brand min-w-0">
+                <div class="flex items-start gap-3 sm:gap-4">
+                    <div class="header-brand-icons flex shrink-0 items-center gap-2 pt-1" aria-hidden="true">
+                        <span class="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600/90 to-violet-700/90 border border-indigo-400/30 text-lg sm:text-xl">📊</span>
+                        <span class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-slate-800/90 border border-amber-500/25 text-base sm:text-lg">💹</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h1 class="text-4xl font-black italic tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-indigo-400 to-emerald-400">資產管理</h1>
+                        <p class="header-subtitle text-slate-500 text-xs font-bold tracking-widest">資產管理介面</p>
+                    </div>
+                </div>
             </div>
             <div class="flex flex-wrap gap-3">
                 <button onclick="togglePrivacy()" id="privacy-btn" class="bg-slate-800 hover:bg-slate-700 px-6 py-2.5 rounded-xl text-xs font-bold border border-slate-700 text-amber-400">👁️ 顯示數值</button>
