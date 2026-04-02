@@ -73,9 +73,13 @@
         @media (max-width: 640px) {
             input, select, textarea { font-size: 16px !important; }
         }
+        /* 勿與 overflow-hidden 寫在同一層：Tailwind 會蓋掉橫向捲動，手機右欄會被裁切 */
         .table-scroll {
             overflow-x: auto;
+            overflow-y: visible;
             -webkit-overflow-scrolling: touch;
+            width: 100%;
+            overscroll-behavior-x: contain;
         }
     </style>
 </head>
@@ -200,13 +204,15 @@
                     <button id="stock-cancel" onclick="clearStockForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                 </div>
             </div>
-            <div class="card overflow-hidden p-0 table-scroll">
+            <div class="card overflow-hidden p-0">
+                <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[640px]">
                     <thead class="bg-slate-800/50 text-slate-500 font-bold">
                         <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">市場現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
                     <tbody id="stock-list" class="divide-y divide-slate-800"></tbody>
                 </table>
+                </div>
             </div>
             </div>
             <div id="stock-panel-sell" class="hidden">
@@ -226,13 +232,15 @@
                         <button type="button" id="stock-sell-cancel" onclick="clearStockSellForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8 table-scroll">
+                <div class="card overflow-hidden p-0 mb-8">
+                    <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="bg-slate-800/50 text-slate-500 font-bold">
                             <tr><th class="p-4">賣出日</th><th class="p-4">標的</th><th class="p-4 text-right">數量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
                         </thead>
                         <tbody id="stock-sell-list" class="divide-y divide-slate-800"></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -257,13 +265,15 @@
                     <button id="gold-cancel" onclick="clearGoldForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                 </div>
             </div>
-            <div class="card overflow-hidden p-0 table-scroll">
+            <div class="card overflow-hidden p-0">
+                <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[640px]">
                     <thead class="bg-slate-800/50 text-slate-500 font-bold">
                         <tr><th class="p-5">購買日期</th><th class="p-5">名稱</th><th class="p-5 text-right">重量</th><th class="p-5 text-right">購入成本</th><th class="p-5 text-right">預估現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
                     <tbody id="gold-list" class="divide-y divide-slate-800"></tbody>
                 </table>
+                </div>
             </div>
             </div>
             <div id="gold-panel-sell" class="hidden">
@@ -283,13 +293,15 @@
                         <button type="button" id="gold-sell-cancel" onclick="clearGoldSellForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8 table-scroll">
+                <div class="card overflow-hidden p-0 mb-8">
+                    <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="bg-slate-800/50 text-slate-500 font-bold">
                             <tr><th class="p-4">賣出日</th><th class="p-4">備註</th><th class="p-4 text-right">重量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
                         </thead>
                         <tbody id="gold-sell-list" class="divide-y divide-slate-800"></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -315,13 +327,15 @@
                     <button type="button" id="coll-cancel" onclick="clearCollForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                 </div>
             </div>
-            <div class="card overflow-hidden p-0 table-scroll">
+            <div class="card overflow-hidden p-0">
+                <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[640px]">
                     <thead class="bg-slate-800/50 text-slate-500 font-bold">
                         <tr><th class="p-5">日期</th><th class="p-5">名稱</th><th class="p-5 text-right">數量</th><th class="p-5 text-right">購入成本</th><th class="p-5 text-right">估計現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
                     <tbody id="coll-list" class="divide-y divide-slate-800"></tbody>
                 </table>
+                </div>
             </div>
             </div>
             <div id="coll-panel-sell" class="hidden">
@@ -341,13 +355,15 @@
                         <button type="button" id="coll-sell-cancel" onclick="clearCollSellForm()" class="hidden bg-slate-700 px-8 rounded-xl font-bold">取消</button>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8 table-scroll">
+                <div class="card overflow-hidden p-0 mb-8">
+                    <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="bg-slate-800/50 text-slate-500 font-bold">
                             <tr><th class="p-4">賣出日</th><th class="p-4">備註</th><th class="p-4 text-right">數量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
                         </thead>
                         <tbody id="coll-sell-list" class="divide-y divide-slate-800"></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
