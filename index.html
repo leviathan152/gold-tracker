@@ -773,12 +773,14 @@
 
             const labels = [], sData = [], gData = [], cData = [], tData = [];
             let curS = 0, curG = 0, curC = 0;
+            const incS = !!inc.stockWorth, incG = !!inc.goldWorth, incC = !!inc.collWorth;
             timeline.forEach(h => {
                 labels.push(h.date);
-                if (h.type === 's') curS += h.cost;
-                else if (h.type === 'g') curG += h.cost;
-                else curC += h.cost;
-                sData.push(curS); gData.push(curG); cData.push(curC); tData.push(curS + curG + curC);
+                if (h.type === 's') { if (incS) curS += h.cost; }
+                else if (h.type === 'g') { if (incG) curG += h.cost; }
+                else { if (incC) curC += h.cost; }
+                sData.push(curS); gData.push(curG); cData.push(curC);
+                tData.push(curS + curG + curC);
             });
 
             const fmtMoney = (n) => 'NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
@@ -790,65 +792,72 @@
 
             const ctxT = document.getElementById('trendChart').getContext('2d');
             if(trendChartObj) trendChartObj.destroy();
+            const trendDatasets = [
+                {
+                    label: '合計（累計投入）',
+                    data: tData,
+                    borderColor: '#34d399',
+                    borderWidth: 2.5,
+                    tension: 0.35,
+                    fill: true,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHoverBorderWidth: 2,
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#34d399',
+                    backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(52, 211, 153, 0.28)', 'rgba(52, 211, 153, 0)')
+                }
+            ];
+            if (incS) {
+                trendDatasets.push({
+                    label: '股票（累計投入）',
+                    data: sData,
+                    borderColor: '#60a5fa',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHoverBorderWidth: 2,
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#60a5fa'
+                });
+            }
+            if (incG) {
+                trendDatasets.push({
+                    label: '黃金（累計投入）',
+                    data: gData,
+                    borderColor: '#fbbf24',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHoverBorderWidth: 2,
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fbbf24'
+                });
+            }
+            if (incC) {
+                trendDatasets.push({
+                    label: '收藏（累計投入）',
+                    data: cData,
+                    borderColor: '#a78bfa',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHoverBorderWidth: 2,
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#a78bfa'
+                });
+            }
             trendChartObj = new Chart(ctxT, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [
-                        {
-                            label: '合計（累計投入）',
-                            data: tData,
-                            borderColor: '#34d399',
-                            borderWidth: 2.5,
-                            tension: 0.35,
-                            fill: true,
-                            pointRadius: 0,
-                            pointHoverRadius: 6,
-                            pointHoverBorderWidth: 2,
-                            pointHoverBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#34d399',
-                            backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(52, 211, 153, 0.28)', 'rgba(52, 211, 153, 0)')
-                        },
-                        {
-                            label: '股票（累計投入）',
-                            data: sData,
-                            borderColor: '#60a5fa',
-                            borderWidth: 2,
-                            tension: 0.35,
-                            fill: false,
-                            pointRadius: 0,
-                            pointHoverRadius: 5,
-                            pointHoverBorderWidth: 2,
-                            pointHoverBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#60a5fa'
-                        },
-                        {
-                            label: '黃金（累計投入）',
-                            data: gData,
-                            borderColor: '#fbbf24',
-                            borderWidth: 2,
-                            tension: 0.35,
-                            fill: false,
-                            pointRadius: 0,
-                            pointHoverRadius: 5,
-                            pointHoverBorderWidth: 2,
-                            pointHoverBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fbbf24'
-                        },
-                        {
-                            label: '收藏（累計投入）',
-                            data: cData,
-                            borderColor: '#a78bfa',
-                            borderWidth: 2,
-                            tension: 0.35,
-                            fill: false,
-                            pointRadius: 0,
-                            pointHoverRadius: 5,
-                            pointHoverBorderWidth: 2,
-                            pointHoverBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#a78bfa'
-                        }
-                    ]
+                    datasets: trendDatasets
                 },
                 options: {
                     responsive: true,
