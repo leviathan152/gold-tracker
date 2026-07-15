@@ -589,8 +589,8 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">淨投入成本</span><span id="stock-total-cost" class="text-lg font-bold">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">資產現值</span><span id="stock-worth" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總報酬率</span><span id="stock-perf" class="text-lg font-bold" title="含息＋已實現">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="XIRR：依實際投入／回收日期計算的年化報酬">年化報酬率</span><span id="stock-xirr" class="text-sm font-bold c-stock">--</span></div>
+                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><span id="stock-perf" class="text-lg font-bold">--</span></div>
+                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="stock-xirr" class="text-sm font-bold c-stock">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">累計股息金額</span><span id="stock-total-dividend" class="text-sm font-bold c-sage">--</span></div>
                     <div class="flex justify-between items-end border-t pt-2" style="border-color: var(--line)"><span class="text-xs c-sell">已實現損益</span><span id="stock-realized" class="text-sm font-bold c-sell">--</span></div>
                 </div>
@@ -600,8 +600,8 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">總投入成本</span><span id="gold-total-cost" class="text-lg font-bold">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">資產現值</span><span id="gold-worth" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總報酬率</span><span id="gold-perf" class="text-lg font-bold" title="含已實現">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="XIRR：依實際投入／回收日期計算的年化報酬">年化報酬率</span><span id="gold-xirr" class="text-sm font-bold c-gold">--</span></div>
+                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><span id="gold-perf" class="text-lg font-bold">--</span></div>
+                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="gold-xirr" class="text-sm font-bold c-gold">--</span></div>
                     <div class="flex justify-between items-end font-mono"><span class="text-xs text-muted">總持倉重量</span><span id="gold-total-weight" class="text-sm c-gold">--</span></div>
                     <div class="flex justify-between items-end border-t pt-2" style="border-color: var(--line)"><span class="text-xs c-sell">已實現損益</span><span id="gold-realized" class="text-sm font-bold c-sell">--</span></div>
                 </div>
@@ -613,8 +613,8 @@
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">總累計股利</span><span id="total-all-dividend" class="text-lg font-bold c-sage">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">總資產現值</span><span id="total-all-worth" class="text-lg font-bold c-sage">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">累計已實現</span><span id="total-realized" class="text-sm font-bold c-sell">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總報酬率</span><span id="total-all-perf" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="XIRR：依實際投入／回收日期計算的年化報酬">年化報酬率</span><span id="total-xirr" class="text-sm font-bold c-sage">--</span></div>
+                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間）">總報酬率</span><span id="total-all-perf" class="text-lg font-bold">--</span></div>
+                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="total-xirr" class="text-sm font-bold c-sage">--</span></div>
                 </div>
             </div>
         </section>
@@ -865,7 +865,7 @@
 
                 <div class="border-t pt-6" style="border-color: var(--line)">
                     <h3 class="text-[10px] font-bold tracking-widest c-sage mb-3">總覽計入設定</h3>
-                    <p class="text-xs text-muted mb-4">決定各類資產是否計入首頁「總覽」的總資產現值，以及總成本／總報酬率。總報酬率分母＝持倉淨現金成本（股票會扣除再投入股利）＋已賣出部位之買入成本。</p>
+                    <p class="text-xs text-muted mb-4">決定各類資產是否計入首頁「總覽」的總資產現值，以及總成本／總報酬率。總報酬率以「口袋淨現金投入」為分母（再投入股利不重複算本金），含已實現損益，不含股利。</p>
                     <div class="space-y-4 text-xs">
                         <div class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
                             <div class="font-bold c-stock">股票</div>
@@ -1035,11 +1035,25 @@
         function sellRatePct(r) { const c = num(r.buyCost); return c > 0 ? (sellProfit(r) / c * 100) : 0; }
         function sumSellBuyCost(sells) { return sells.reduce((a, r) => a + num(r.buyCost), 0); }
         function sumSellProfit(sells) { return sells.reduce((a, r) => a + sellProfit(r), 0); }
-        function totalPerfPct(worth, holdCost, dividend, realized, soldBuyCost) {
-            const c = num(holdCost), d = num(dividend);
-            const basis = (c - d) + num(soldBuyCost);
+        /** 口袋實際掏出的持倉成本：買入＝成本；再投入≈0；現金股利＝0 */
+        function netHoldingCashCost(r) {
+            const t = r.type || 'buy';
+            if (t === 'cash_div') return 0;
+            if (t === 'dividend') return Math.max(0, num(r.cost) - num(r.dividend));
+            return num(r.cost);
+        }
+        function isCashDivRec(r) { return (r.type || '') === 'cash_div'; }
+        function isDripRec(r) { return (r.type || '') === 'dividend'; }
+        /**
+         * 總報酬率（全程，非年化；不含股利）
+         * 分子＝現值＋已實現損益 − 現有部位淨現金成本
+         * 分母＝現有淨現金成本＋已賣出淨現金成本（再投入不算口袋本金）
+         */
+        function totalPerfPct(worth, holdNetCash, realized, soldNetCash) {
+            const basis = num(holdNetCash) + num(soldNetCash);
             if (basis <= 0) return 0;
-            return ((num(worth) + d + num(realized) - c) / basis) * 100;
+            const gain = num(worth) + num(realized) - num(holdNetCash);
+            return (gain / basis) * 100;
         }
         function stockTypeLabel(t) {
             if (t === 'cash_div') return '現金股利';
@@ -1219,6 +1233,8 @@
             if (cfs.length < 2) return null;
             const sorted = cfs.slice().sort((a, b) => parseXirrDate(a.date) - parseXirrDate(b.date));
             const t0 = parseXirrDate(sorted[0].date).getTime();
+            const t1 = parseXirrDate(sorted[sorted.length - 1].date).getTime();
+            const spanDays = (t1 - t0) / (24 * 3600 * 1000);
             const years = sorted.map(c => (parseXirrDate(c.date).getTime() - t0) / (365.25 * 24 * 3600 * 1000));
             const amounts = sorted.map(c => c.amount);
             const hasPos = amounts.some(a => a > 0), hasNeg = amounts.some(a => a < 0);
@@ -1239,25 +1255,30 @@
             let rate = 0.1;
             for (let i = 0; i < 80; i++) {
                 const f = npv(rate), df = dnpv(rate);
-                if (Math.abs(f) < 1e-7) return rate;
+                if (Math.abs(f) < 1e-7) return { rate, spanDays };
                 if (Math.abs(df) < 1e-12) break;
                 const next = rate - f / df;
                 if (!isFinite(next) || next <= -0.9999) break;
-                if (Math.abs(next - rate) < 1e-8) return next;
+                if (Math.abs(next - rate) < 1e-8) return { rate: next, spanDays };
                 rate = next;
             }
             let lo = -0.99, hi = 10, flo = npv(lo);
             for (let i = 0; i < 100; i++) {
                 const mid = (lo + hi) / 2, fm = npv(mid);
-                if (Math.abs(fm) < 1e-7) return mid;
+                if (Math.abs(fm) < 1e-7) return { rate: mid, spanDays };
                 if (flo * fm <= 0) { hi = mid; } else { lo = mid; flo = fm; }
             }
             return null;
         }
-        function fXirr(rate) {
+        function fXirr(result) {
+            if (result == null) return '--';
+            const rate = typeof result === 'number' ? result : result.rate;
+            const spanDays = typeof result === 'number' ? null : result.spanDays;
             if (rate == null || !isFinite(rate)) return '--';
             if (isPrivacyMode) return '****';
-            return (rate * 100).toFixed(2) + '%';
+            const pct = (rate * 100).toFixed(2) + '%';
+            if (spanDays != null && spanDays < 30) return pct + '（短）';
+            return pct;
         }
 
         function buildStockCashflows(terminalWorth) {
@@ -1318,7 +1339,8 @@
                 if (sh <= 0) continue;
                 const take = Math.min(sh, need);
                 const ratio = take / sh;
-                costTaken += num(r.cost) * ratio;
+                // 再投入的「成本」≈股利，不算口袋本金；賣出成本取淨現金成本
+                costTaken += netHoldingCashCost(r) * ratio;
                 r.shares = sh - take;
                 r.cost = num(r.cost) * (1 - ratio);
                 r.dividend = num(r.dividend) * (1 - ratio);
@@ -1411,15 +1433,17 @@
             stockRecs.forEach(r => {
                 const c = String(r.code || '').toUpperCase();
                 if (!c) return;
-                if (!map[c]) map[c] = { code: c, shares: 0, cost: 0, dividend: 0, realized: 0, soldCost: 0 };
+                if (!map[c]) map[c] = { code: c, shares: 0, cost: 0, dividend: 0, cashDiv: 0, netCost: 0, realized: 0, soldCost: 0 };
                 map[c].shares += num(r.shares);
                 map[c].cost += num(r.cost);
                 map[c].dividend += num(r.dividend);
+                map[c].netCost += netHoldingCashCost(r);
+                if (isCashDivRec(r)) map[c].cashDiv += num(r.dividend);
             });
             stockSells.forEach(r => {
                 const c = String(r.code || '').toUpperCase();
                 if (!c) return;
-                if (!map[c]) map[c] = { code: c, shares: 0, cost: 0, dividend: 0, realized: 0, soldCost: 0 };
+                if (!map[c]) map[c] = { code: c, shares: 0, cost: 0, dividend: 0, cashDiv: 0, netCost: 0, realized: 0, soldCost: 0 };
                 map[c].realized += sellProfit(r);
                 map[c].soldCost += num(r.buyCost);
             });
@@ -1620,12 +1644,11 @@
             aggregateByCode().forEach(row => {
                 const nowP = marketPrices[row.code] || 0;
                 const worth = nowP * row.shares;
-                const perf = totalPerfPct(worth, row.cost, row.dividend, row.realized, row.soldCost);
-                const net = row.cost - row.dividend;
+                const perf = totalPerfPct(worth, row.netCost, row.realized, row.soldCost);
                 sumH += `<tr class="row-hover">
                     <td class="p-4 font-bold c-stock">${row.code}</td>
                     <td class="p-4 text-right">${isPrivacyMode ? '***' : row.shares.toLocaleString()}</td>
-                    <td class="p-4 text-right">${fNum(net)}</td>
+                    <td class="p-4 text-right">${fNum(row.netCost)}</td>
                     <td class="p-4 text-right">${fNum(row.dividend)}</td>
                     <td class="p-4 text-right">${fNum(worth)}</td>
                     <td class="p-4 text-right ${row.realized>=0?'c-gain':'c-loss'}">${fNum(row.realized)}</td>
@@ -1681,33 +1704,44 @@
             const sSoldCost = sumSellBuyCost(stockSells);
             const gSoldCost = sumSellBuyCost(goldSells);
             const cSoldCost = sumSellBuyCost(collSells);
-            const sNet = sC - sD;
-            document.getElementById('stock-total-cost').innerText = fNum(sNet + sSoldCost);
+            const sHoldNet = stockRecs.reduce((a, r) => a + netHoldingCashCost(r), 0);
+            document.getElementById('stock-total-cost').innerText = fNum(sHoldNet + sSoldCost);
             document.getElementById('stock-worth').innerText = fNum(sV);
-            document.getElementById('stock-perf').innerText = fNum(totalPerfPct(sV, sC, sD, sSellSum, sSoldCost), false);
+            document.getElementById('stock-perf').innerText = fNum(totalPerfPct(sV, sHoldNet, sSellSum, sSoldCost), false);
             document.getElementById('stock-xirr').innerText = fXirr(xirr(buildStockCashflows(sV)));
             document.getElementById('stock-total-dividend').innerText = fNum(sD);
             document.getElementById('stock-realized').innerText = fNum(sSellSum);
 
             document.getElementById('gold-total-cost').innerText = fNum(gC + gSoldCost);
             document.getElementById('gold-worth').innerText = fNum(gV);
-            document.getElementById('gold-perf').innerText = fNum(totalPerfPct(gV, gC, 0, gSellSum, gSoldCost), false);
+            document.getElementById('gold-perf').innerText = fNum(totalPerfPct(gV, gC, gSellSum, gSoldCost), false);
             document.getElementById('gold-xirr').innerText = fXirr(xirr(buildAssetCashflows(goldRecs, goldSells, gV)));
             document.getElementById('gold-total-weight').innerText = isPrivacyMode ? "****" : `${gW.toFixed(2)} 公克`;
             document.getElementById('gold-realized').innerText = fNum(gSellSum);
 
             let tV = (inc.stockWorth ? sV : 0) + (inc.goldWorth ? gV : 0) + (inc.collWorth ? cV : 0);
-            let tC = (inc.stockPerf ? sC : 0) + (inc.goldPerf ? gC : 0) + (inc.collPerf ? cC : 0);
-            let tD = inc.stockPerf ? sD : 0;
-            let tReal = 0, tSoldCost = 0;
-            if (inc.stockPerf) { tReal += sSellSum; tSoldCost += sSoldCost; }
-            if (inc.goldPerf) { tReal += gSellSum; tSoldCost += gSoldCost; }
-            if (inc.collPerf) { tReal += cSellSum; tSoldCost += cSoldCost; }
-            const tBasis = (tC - tD) + tSoldCost;
-            const tPerf = totalPerfPct(tV, tC, tD, tReal, tSoldCost);
+            let tHoldNet = 0, tReal = 0, tSoldCost = 0, tDivAll = 0;
+            if (inc.stockPerf) {
+                tHoldNet += sHoldNet;
+                tReal += sSellSum;
+                tSoldCost += sSoldCost;
+                tDivAll += sD;
+            }
+            if (inc.goldPerf) {
+                tHoldNet += gC;
+                tReal += gSellSum;
+                tSoldCost += gSoldCost;
+            }
+            if (inc.collPerf) {
+                tHoldNet += cC;
+                tReal += cSellSum;
+                tSoldCost += cSoldCost;
+            }
+            const tBasis = tHoldNet + tSoldCost;
+            const tPerf = totalPerfPct(tV, tHoldNet, tReal, tSoldCost);
 
             document.getElementById('total-all-cost').innerText = fNum(tBasis);
-            document.getElementById('total-all-dividend').innerText = fNum(tD);
+            document.getElementById('total-all-dividend').innerText = fNum(tDivAll);
             document.getElementById('total-all-worth').innerText = fNum(tV);
             document.getElementById('total-realized').innerText = fNum(tReal);
             document.getElementById('total-all-perf').innerText = fNum(tPerf, false);
@@ -1997,7 +2031,7 @@
             let sUn = 0, gUn = 0;
             stockRecs.forEach(r => {
                 const nowP = marketPrices[r.code] || r.buyPrice || 0;
-                sUn += nowP * num(r.shares) - (num(r.cost) - num(r.dividend));
+                sUn += nowP * num(r.shares) - netHoldingCashCost(r);
             });
             goldRecs.forEach(r => {
                 gUn += goldToGrams(r.weight, r.unit) * goldTWD_g - num(r.cost);
