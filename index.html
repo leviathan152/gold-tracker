@@ -546,6 +546,33 @@
         input[type="date"], input[type="number"], input[type="password"] { color-scheme: light; }
         .card.overflow-hidden:hover,
         .modal-overlay-safe .card:hover { transform: none; }
+
+        .div-table thead th {
+            background: rgba(15, 23, 42, 0.045);
+            color: var(--muted);
+            font-weight: 700;
+            border: 1px solid var(--line);
+            white-space: nowrap;
+        }
+        .div-table tbody td {
+            border: 1px solid var(--line);
+            padding: 0.55rem 0.65rem;
+            vertical-align: middle;
+            color: var(--ink);
+        }
+        .div-table tbody tr:nth-child(even) td { background: rgba(14, 165, 233, 0.03); }
+        .div-table .div-year {
+            font-weight: 800;
+            color: var(--stock-deep);
+            text-align: center;
+            background: rgba(14, 165, 233, 0.06) !important;
+        }
+        .div-table .div-sum {
+            font-weight: 700;
+            color: var(--sage-deep);
+            background: rgba(16, 185, 129, 0.06) !important;
+        }
+        .div-table .div-dash { color: var(--faint); }
     </style>
 </head>
 <body>
@@ -591,7 +618,7 @@
                     <div class="flex justify-between items-end"><span class="text-xs text-muted">資產現值</span><span id="stock-worth" class="text-lg font-bold">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><span id="stock-perf" class="text-lg font-bold">--</span></div>
                     <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="stock-xirr" class="text-sm font-bold c-stock">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">累計股息金額</span><span id="stock-total-dividend" class="text-sm font-bold c-sage">--</span></div>
+                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總股數</span><span id="stock-total-shares" class="text-sm font-bold c-stock">--</span></div>
                     <div class="flex justify-between items-end border-t pt-2" style="border-color: var(--line)"><span class="text-xs c-sell">已實現損益</span><span id="stock-realized" class="text-sm font-bold c-sell">--</span></div>
                 </div>
             </div>
@@ -652,6 +679,7 @@
                 <button type="button" id="sub-stock-hold" onclick="switchStockSub('hold')" class="px-4 py-2 rounded-xl text-xs font-bold sub-on-stock">持倉登錄</button>
                 <button type="button" id="sub-stock-sell" onclick="switchStockSub('sell')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
                 <button type="button" id="sub-stock-sum" onclick="switchStockSub('sum')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">標的彙總</button>
+                <button type="button" id="sub-stock-div" onclick="switchStockSub('div')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">股利年表</button>
             </div>
             <div id="stock-panel-hold">
             <div id="stock-input-card" class="card mb-8">
@@ -739,6 +767,82 @@
                         <tbody id="stock-sum-list" class="divide-y"></tbody>
                     </table>
                     </div>
+                </div>
+            </div>
+            <div id="stock-panel-div" class="hidden">
+                <div class="card mb-4">
+                    <p class="stat-label text-[10px] mb-3">查詢公開市場股利政策（現金／股票股利、除息日、年殖利率等）</p>
+                    <div class="flex flex-col sm:flex-row sm:items-end gap-3 flex-wrap">
+                        <div class="flex flex-col gap-1 min-w-[8rem] flex-1 sm:flex-initial sm:max-w-[14rem]">
+                            <label class="stat-label text-[10px]" for="div-code">代號</label>
+                            <div class="flex gap-2 items-stretch">
+                                <select id="div-code" class="w-full flex-1">
+                                    <option value="">選擇代號</option>
+                                </select>
+                                <button type="button" onclick="promptAddStockCode('div-code')" class="btn-surface px-3 rounded-xl text-sm font-bold shrink-0" title="新增並記錄代號">＋</button>
+                            </div>
+                        </div>
+                        <button type="button" id="div-fetch-btn" onclick="loadDividendHistory()" class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold sm:self-end shrink-0">查詢股利</button>
+                        <span id="div-status" class="text-[11px] text-muted sm:self-end pb-1"></span>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                        <div>
+                            <h3 class="stat-label c-sage mb-1">持倉當期可領股息</h3>
+                            <p class="text-[10px] text-muted">依目前持有股數 × 當期現金股利估算（即將除息／待發放優先）</p>
+                        </div>
+                        <button type="button" id="div-expect-btn" onclick="calcHoldingPeriodDividends()" class="btn-surface px-5 py-2.5 rounded-xl text-xs font-bold c-sage shrink-0">計算當期股息</button>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mb-3 text-sm">
+                        <div><span class="text-xs text-muted mr-2">預估合計</span><span id="div-expect-total" class="font-bold c-sage text-lg">--</span></div>
+                        <div><span class="text-xs text-muted mr-2">標的數</span><span id="div-expect-count" class="font-bold">--</span></div>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="w-full text-xs text-left min-w-[720px]">
+                            <thead class="thead-bar font-bold">
+                                <tr>
+                                    <th class="p-3">代號</th>
+                                    <th class="p-3 text-right">持有股數</th>
+                                    <th class="p-3 text-right">每股現金股利</th>
+                                    <th class="p-3">除息日</th>
+                                    <th class="p-3">發放日</th>
+                                    <th class="p-3">狀態</th>
+                                    <th class="p-3 text-right">預估可領</th>
+                                </tr>
+                            </thead>
+                            <tbody id="div-expect-list" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                    <p id="div-expect-empty" class="pt-3 text-[11px] text-faint">按「計算當期股息」後，會依持倉自動估算各標的可領金額。</p>
+                </div>
+                <div class="card overflow-hidden p-0 mb-8">
+                    <div class="table-scroll">
+                    <table class="div-table w-full text-[11px] text-left min-w-[980px]">
+                        <thead>
+                            <tr>
+                                <th class="p-3 align-middle" rowspan="2">除權息年度</th>
+                                <th class="p-2 text-center" colspan="7">現金股利（元）</th>
+                                <th class="p-2 text-center" colspan="4">股票股利（股）</th>
+                            </tr>
+                            <tr>
+                                <th class="p-2 text-right">股利</th>
+                                <th class="p-2">除息日</th>
+                                <th class="p-2">發放日</th>
+                                <th class="p-2 text-right">除息前股價</th>
+                                <th class="p-2 text-right">填息天數</th>
+                                <th class="p-2 text-right">年股利</th>
+                                <th class="p-2 text-right">年殖利率(%)</th>
+                                <th class="p-2 text-right">股利</th>
+                                <th class="p-2">除權日</th>
+                                <th class="p-2 text-right">除權前股價</th>
+                                <th class="p-2 text-right">填權天數</th>
+                            </tr>
+                        </thead>
+                        <tbody id="div-history-list"></tbody>
+                    </table>
+                    </div>
+                    <p id="div-empty" class="p-8 text-center text-faint text-xs">選擇代號後按「查詢股利」載入年表。</p>
                 </div>
             </div>
         </div>
@@ -976,6 +1080,7 @@
         const K_STK = 'WV20_STK', K_GLD = 'WV20_GLD', K_PRC = 'WV20_PRC', K_PRC_META = 'WV20_PRC_META', K_PWD = 'WV20_PWD', K_PRIV = 'WV20_PRIV';
         const K_COLL = 'WV20_COLL', K_STK_SELL = 'WV20_STK_SELL', K_GLD_SELL = 'WV20_GLD_SELL', K_COLL_SELL = 'WV20_COLL_SELL', K_INC = 'WV20_INC';
         const K_ALLOC = 'WV20_ALLOC', K_SYNC = 'WV20_SYNC', K_CODES = 'WV20_CODES';
+        const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE';
         const defaultInc = { stockWorth: true, stockPerf: true, goldWorth: true, goldPerf: true, collWorth: false, collPerf: false };
         const defaultAlloc = { stock: 50, gold: 50, coll: 0 };
         const defaultSync = { url: '', token: '' };
@@ -1107,10 +1212,12 @@
             const sEl = document.getElementById('stock-code');
             const sellEl = document.getElementById('stock-sell-code');
             const esEl = document.getElementById('es-stock-code');
+            const divEl = document.getElementById('div-code');
             fillOneCodeSelect('market-code', p.market != null ? p.market : (mEl ? mEl.value : ''));
             fillOneCodeSelect('stock-code', p.stock != null ? p.stock : (sEl ? sEl.value : ''));
             fillOneCodeSelect('stock-sell-code', p.sell != null ? p.sell : (sellEl ? sellEl.value : ''));
             fillOneCodeSelect('es-stock-code', p.es != null ? p.es : (esEl ? esEl.value : ''));
+            fillOneCodeSelect('div-code', p.div != null ? p.div : (divEl && divEl.value ? divEl.value : lastDivCode));
         }
         function promptAddStockCode(targetId) {
             const raw = prompt('請輸入要新增並記錄的股票代號（例如 2330、00878）：');
@@ -1121,7 +1228,8 @@
                 market: targetId === 'market-code' ? c : undefined,
                 stock: targetId === 'stock-code' ? c : undefined,
                 sell: targetId === 'stock-sell-code' ? c : undefined,
-                es: targetId === 'es-stock-code' ? c : undefined
+                es: targetId === 'es-stock-code' ? c : undefined,
+                div: targetId === 'div-code' ? c : undefined
             });
             const el = document.getElementById(targetId);
             if (el) el.value = c;
@@ -1709,7 +1817,7 @@
             document.getElementById('stock-worth').innerText = fNum(sV);
             document.getElementById('stock-perf').innerText = fNum(totalPerfPct(sV, sHoldNet, sSellSum, sSoldCost), false);
             document.getElementById('stock-xirr').innerText = fXirr(xirr(buildStockCashflows(sV)));
-            document.getElementById('stock-total-dividend').innerText = fNum(sD);
+            document.getElementById('stock-total-shares').innerText = isPrivacyMode ? '****' : sShares.toLocaleString('zh-TW') + ' 股';
             document.getElementById('stock-realized').innerText = fNum(sSellSum);
 
             document.getElementById('gold-total-cost').innerText = fNum(gC + gSoldCost);
@@ -1882,24 +1990,25 @@
                 pointHoverBorderColor: '#ffffff',
                 pointStyle: 'line'
             };
+            // 高對比：墨黑／綠／藍系／橘系分開；現值虛線、成本點線
             const trendDatasets = [
-                {
-                    ...lineBase,
-                    label: '合計（累計投入）',
-                    data: tData,
-                    borderColor: '#10b981',
-                    borderWidth: 2.5,
-                    fill: true,
-                    pointHoverBackgroundColor: '#10b981',
-                    backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(16, 185, 129, 0.18)', 'rgba(16, 185, 129, 0)')
-                },
                 {
                     ...lineBase,
                     label: '合計（總現值）',
                     data: worthData,
-                    borderColor: '#06b6d4',
+                    borderColor: '#0f172a',
+                    borderWidth: 3,
+                    pointHoverBackgroundColor: '#0f172a'
+                },
+                {
+                    ...lineBase,
+                    label: '合計（累計投入）',
+                    data: tData,
+                    borderColor: '#16a34a',
                     borderWidth: 2.5,
-                    pointHoverBackgroundColor: '#06b6d4'
+                    fill: true,
+                    pointHoverBackgroundColor: '#16a34a',
+                    backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(22, 163, 74, 0.16)', 'rgba(22, 163, 74, 0)')
                 }
             ];
             if (incS) {
@@ -1907,10 +2016,19 @@
                     ...lineBase,
                     label: '股票（現值）',
                     data: sWorthData,
-                    borderColor: '#0ea5e9',
-                    borderWidth: 2.25,
-                    borderDash: [6, 4],
-                    pointHoverBackgroundColor: '#0ea5e9'
+                    borderColor: '#2563eb',
+                    borderWidth: 2.4,
+                    borderDash: [8, 4],
+                    pointHoverBackgroundColor: '#2563eb'
+                });
+                trendDatasets.push({
+                    ...lineBase,
+                    label: '股票（成本）',
+                    data: sData,
+                    borderColor: '#1e3a8a',
+                    borderWidth: 2.1,
+                    borderDash: [2, 3],
+                    pointHoverBackgroundColor: '#1e3a8a'
                 });
             }
             if (incG) {
@@ -1918,10 +2036,19 @@
                     ...lineBase,
                     label: '黃金（現值）',
                     data: gWorthData,
-                    borderColor: '#f59e0b',
-                    borderWidth: 2.25,
-                    borderDash: [6, 4],
-                    pointHoverBackgroundColor: '#f59e0b'
+                    borderColor: '#ea580c',
+                    borderWidth: 2.4,
+                    borderDash: [8, 4],
+                    pointHoverBackgroundColor: '#ea580c'
+                });
+                trendDatasets.push({
+                    ...lineBase,
+                    label: '黃金（成本）',
+                    data: gData,
+                    borderColor: '#92400e',
+                    borderWidth: 2.1,
+                    borderDash: [2, 3],
+                    pointHoverBackgroundColor: '#92400e'
                 });
             }
             trendChartObj = new Chart(ctxT, {
@@ -2686,11 +2813,27 @@
             document.getElementById('stock-panel-hold').classList.toggle('hidden', mode !== 'hold');
             document.getElementById('stock-panel-sell').classList.toggle('hidden', mode !== 'sell');
             document.getElementById('stock-panel-sum').classList.toggle('hidden', mode !== 'sum');
+            document.getElementById('stock-panel-div').classList.toggle('hidden', mode !== 'div');
             const on = 'px-4 py-2 rounded-xl text-xs font-bold sub-on-stock';
             const off = 'px-4 py-2 rounded-xl text-xs font-bold sub-off';
             document.getElementById('sub-stock-hold').className = mode === 'hold' ? on : off;
             document.getElementById('sub-stock-sell').className = mode === 'sell' ? on : off;
             document.getElementById('sub-stock-sum').className = mode === 'sum' ? on : off;
+            document.getElementById('sub-stock-div').className = mode === 'div' ? on : off;
+            if (mode === 'div') {
+                refreshCodeSelects();
+                const divEl = document.getElementById('div-code');
+                const prefer = lastDivCode ||
+                    (document.getElementById('stock-code') || {}).value ||
+                    (document.getElementById('market-code') || {}).value;
+                if (divEl && prefer) {
+                    rememberStockCode(prefer);
+                    refreshCodeSelects({ div: prefer });
+                    divEl.value = prefer;
+                }
+                restoreDividendPanel();
+                renderHoldingPeriodDividendsFromCache();
+            }
         }
         function switchGoldSub(mode) {
             document.getElementById('gold-panel-hold').classList.toggle('hidden', mode !== 'hold');
@@ -2733,6 +2876,8 @@
             localStorage.setItem(K_ALLOC, JSON.stringify(allocTargets));
             localStorage.setItem(K_SYNC, JSON.stringify(syncSettings));
             localStorage.setItem(K_CODES, JSON.stringify(stockCodes));
+            if (lastDivCode) localStorage.setItem(K_DIV_LAST, lastDivCode);
+            try { localStorage.setItem(K_DIV_CACHE, JSON.stringify(divHistoryCache)); } catch (e) { /* quota */ }
         }
 
         async function fetchViaProxy(url) {
@@ -2817,12 +2962,367 @@
             return null;
         }
 
+        const divHistoryCache = (function() {
+            try {
+                const o = JSON.parse(localStorage.getItem(K_DIV_CACHE) || '{}');
+                return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+            } catch (e) { return {}; }
+        })();
+        let lastDivCode = (function() {
+            try {
+                const c = String(localStorage.getItem(K_DIV_LAST) || '').toUpperCase().trim();
+                return c || '';
+            } catch (e) { return ''; }
+        })();
+        function persistDividendState() {
+            if (lastDivCode) localStorage.setItem(K_DIV_LAST, lastDivCode);
+            else localStorage.removeItem(K_DIV_LAST);
+            try { localStorage.setItem(K_DIV_CACHE, JSON.stringify(divHistoryCache)); } catch (e) { console.warn('股利快取寫入失敗', e); }
+        }
+        function restoreDividendPanel() {
+            const divEl = document.getElementById('div-code');
+            const status = document.getElementById('div-status');
+            const code = stripTwStockCode((divEl && divEl.value) || lastDivCode);
+            if (!code) return;
+            if (divEl) divEl.value = code;
+            if (divHistoryCache[code]) {
+                renderDividendTable(divHistoryCache[code]);
+                if (status) status.textContent = code + '（已還原）';
+            }
+        }
+        function fmtDivDate(s) {
+            if (!s) return '';
+            const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            return m ? (m[1] + '/' + m[2] + '/' + m[3]) : String(s);
+        }
+        function dashCell(v) {
+            if (v == null || v === '' || v === '--') return '<span class="div-dash">--</span>';
+            return v;
+        }
+        async function fetchFinMindDataset(dataset, code, startDate) {
+            const c = stripTwStockCode(code);
+            const url = 'https://api.finmindtrade.com/api/v4/data?dataset=' + encodeURIComponent(dataset) +
+                '&data_id=' + encodeURIComponent(c) + '&start_date=' + encodeURIComponent(startDate);
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            if (!data || Number(data.status) !== 200) throw new Error((data && data.msg) || 'FinMind 錯誤');
+            return Array.isArray(data.data) ? data.data : [];
+        }
+        function calcFillDays(priceMap, exDate, beforePrice, maxDays) {
+            if (!exDate || !(beforePrice > 0) || !priceMap) return null;
+            const dates = Object.keys(priceMap).sort();
+            const startIdx = dates.findIndex(d => d > exDate);
+            if (startIdx < 0) return null;
+            const limit = maxDays || 250;
+            for (let i = startIdx, days = 1; i < dates.length && days <= limit; i++, days++) {
+                if (priceMap[dates[i]] >= beforePrice) return days;
+            }
+            return null;
+        }
+        function buildDividendRows(policyRows, resultRows, priceMap) {
+            const resultByDate = {};
+            (resultRows || []).forEach(r => {
+                if (r && r.date) resultByDate[r.date] = r;
+            });
+            const events = [];
+            (policyRows || []).forEach(r => {
+                const cash = num(r.CashEarningsDistribution) + num(r.CashStatutorySurplus);
+                const stock = num(r.StockEarningsDistribution) + num(r.StockStatutorySurplus);
+                const cashEx = r.CashExDividendTradingDate || '';
+                const stockEx = r.StockExDividendTradingDate || '';
+                if (!(cash > 0) && !(stock > 0) && !cashEx && !stockEx) return;
+                const keyDate = cashEx || stockEx || r.date || '';
+                const y = keyDate ? Number(String(keyDate).slice(0, 4)) : 0;
+                if (!y) return;
+                const cashRes = cashEx ? resultByDate[cashEx] : null;
+                const stockRes = stockEx ? resultByDate[stockEx] : null;
+                const beforeCash = cashRes && cashRes.before_price != null ? Number(cashRes.before_price) : null;
+                const beforeStock = stockRes && stockRes.before_price != null ? Number(stockRes.before_price) : null;
+                events.push({
+                    year: y,
+                    cash,
+                    cashEx,
+                    cashPay: r.CashDividendPaymentDate || '',
+                    beforeCash: isFinite(beforeCash) && beforeCash > 0 ? beforeCash : null,
+                    fillCash: calcFillDays(priceMap, cashEx, beforeCash, 250),
+                    stock,
+                    stockEx,
+                    beforeStock: isFinite(beforeStock) && beforeStock > 0 ? beforeStock : null,
+                    fillStock: calcFillDays(priceMap, stockEx, beforeStock, 250)
+                });
+            });
+            events.sort((a, b) => {
+                if (b.year !== a.year) return b.year - a.year;
+                return String(b.cashEx || b.stockEx).localeCompare(String(a.cashEx || a.stockEx));
+            });
+            const byYear = {};
+            events.forEach(e => {
+                if (!byYear[e.year]) byYear[e.year] = [];
+                byYear[e.year].push(e);
+            });
+            const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+            return years.map(y => {
+                const rows = byYear[y];
+                const annualCash = rows.reduce((s, r) => s + (r.cash || 0), 0);
+                const befores = rows.map(r => r.beforeCash).filter(v => v != null && v > 0);
+                const avgBefore = befores.length ? (befores.reduce((a, b) => a + b, 0) / befores.length) : null;
+                const yieldPct = (annualCash > 0 && avgBefore > 0) ? (annualCash / avgBefore * 100) : null;
+                return { year: y, rows, annualCash, yieldPct };
+            });
+        }
+        function renderDividendTable(groups) {
+            const tbody = document.getElementById('div-history-list');
+            const empty = document.getElementById('div-empty');
+            if (!groups || !groups.length) {
+                tbody.innerHTML = '';
+                if (empty) { empty.classList.remove('hidden'); empty.textContent = '查無股利資料。'; }
+                return;
+            }
+            if (empty) empty.classList.add('hidden');
+            let html = '';
+            groups.forEach(g => {
+                const n = g.rows.length;
+                g.rows.forEach((r, i) => {
+                    html += '<tr>';
+                    if (i === 0) {
+                        html += '<td class="div-year" rowspan="' + n + '">' + g.year + '</td>';
+                    }
+                    html += '<td class="text-right">' + (r.cash > 0 ? r.cash.toFixed(2) : dashCell('--')) + '</td>';
+                    html += '<td>' + dashCell(fmtDivDate(r.cashEx) || '--') + '</td>';
+                    html += '<td>' + dashCell(fmtDivDate(r.cashPay) || '--') + '</td>';
+                    html += '<td class="text-right">' + (r.beforeCash != null ? r.beforeCash.toFixed(2) : dashCell('--')) + '</td>';
+                    html += '<td class="text-right">' + (r.fillCash != null ? r.fillCash : dashCell('--')) + '</td>';
+                    if (i === 0) {
+                        html += '<td class="text-right div-sum" rowspan="' + n + '">' + (g.annualCash > 0 ? g.annualCash.toFixed(2) : dashCell('--')) + '</td>';
+                        html += '<td class="text-right div-sum" rowspan="' + n + '">' + (g.yieldPct != null ? g.yieldPct.toFixed(2) : dashCell('--')) + '</td>';
+                    }
+                    html += '<td class="text-right">' + (r.stock > 0 ? r.stock.toFixed(4) : dashCell('--')) + '</td>';
+                    html += '<td>' + dashCell(fmtDivDate(r.stockEx) || '--') + '</td>';
+                    html += '<td class="text-right">' + (r.beforeStock != null ? r.beforeStock.toFixed(2) : dashCell('--')) + '</td>';
+                    html += '<td class="text-right">' + (r.fillStock != null ? r.fillStock : dashCell('--')) + '</td>';
+                    html += '</tr>';
+                });
+            });
+            tbody.innerHTML = html;
+        }
+        async function loadDividendHistory(forceRefresh) {
+            const codeEl = document.getElementById('div-code');
+            const status = document.getElementById('div-status');
+            const btn = document.getElementById('div-fetch-btn');
+            const code = stripTwStockCode(codeEl && codeEl.value);
+            if (!code) { alert('請先選擇代號。'); return; }
+            if (!looksLikeTwStock(code)) { alert('目前股利年表支援台股代號（例如 2330、00878）。'); return; }
+            rememberStockCode(code);
+            lastDivCode = code;
+            persistDividendState();
+            if (!forceRefresh && divHistoryCache[code]) {
+                renderDividendTable(divHistoryCache[code]);
+                if (status) status.textContent = code + '（已儲存）';
+                return;
+            }
+            if (btn) { btn.disabled = true; btn.textContent = '查詢中…'; }
+            if (status) status.textContent = '載入中…';
+            try {
+                const start = String(new Date().getFullYear() - 8) + '-01-01';
+                const [policy, results, prices] = await Promise.all([
+                    fetchFinMindDataset('TaiwanStockDividend', code, start),
+                    fetchFinMindDataset('TaiwanStockDividendResult', code, start),
+                    fetchFinMindDataset('TaiwanStockPrice', code, start)
+                ]);
+                const priceMap = {};
+                (prices || []).forEach(p => {
+                    if (p && p.date && p.close != null) priceMap[p.date] = Number(p.close);
+                });
+                const groups = buildDividendRows(policy, results, priceMap);
+                divHistoryCache[code] = groups;
+                persistDividendState();
+                renderDividendTable(groups);
+                renderHoldingPeriodDividendsFromCache();
+                if (status) status.textContent = code + ' · 共 ' + groups.reduce((s, g) => s + g.rows.length, 0) + ' 筆';
+            } catch (e) {
+                console.error(e);
+                if (status) status.textContent = '查詢失敗';
+                alert('股利資料載入失敗：' + (e && e.message ? e.message : e));
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = '查詢股利'; }
+            }
+        }
+
+        function todayISO() { return new Date().toISOString().slice(0, 10); }
+        function getHoldingSharesByCode() {
+            const map = {};
+            stockRecs.forEach(r => {
+                const c = String(r.code || '').toUpperCase().trim();
+                if (!c) return;
+                map[c] = (map[c] || 0) + num(r.shares);
+            });
+            return Object.keys(map)
+                .filter(c => map[c] > 1e-9)
+                .sort((a, b) => a.localeCompare(b, 'zh-TW'))
+                .map(code => ({ code, shares: map[code] }));
+        }
+        function flattenDivEvents(groups) {
+            const out = [];
+            (groups || []).forEach(g => (g.rows || []).forEach(r => out.push(r)));
+            return out;
+        }
+        function pickCurrentCashDiv(events) {
+            const today = todayISO();
+            const y = today.slice(0, 4);
+            const withCash = (events || []).filter(e => num(e.cash) > 0 && e.cashEx);
+            if (!withCash.length) return null;
+            const upcoming = withCash.filter(e => e.cashEx >= today).sort((a, b) => String(a.cashEx).localeCompare(String(b.cashEx)));
+            if (upcoming.length) return { ...upcoming[0], reason: '即將除息' };
+            const awaiting = withCash.filter(e => e.cashPay && e.cashPay >= today).sort((a, b) => String(a.cashPay).localeCompare(String(b.cashPay)));
+            if (awaiting.length) return { ...awaiting[0], reason: '待發放' };
+            const thisYear = withCash.filter(e => String(e.cashEx).startsWith(y)).sort((a, b) => String(b.cashEx).localeCompare(String(a.cashEx)));
+            if (thisYear.length) return { ...thisYear[0], reason: '本年度最近一期' };
+            const latest = withCash.slice().sort((a, b) => String(b.cashEx).localeCompare(String(a.cashEx)));
+            return { ...latest[0], reason: '最近一期（參考）' };
+        }
+        function policyToLightEvents(policyRows) {
+            const events = [];
+            (policyRows || []).forEach(r => {
+                const cash = num(r.CashEarningsDistribution) + num(r.CashStatutorySurplus);
+                const cashEx = r.CashExDividendTradingDate || '';
+                if (!(cash > 0) || !cashEx) return;
+                events.push({
+                    cash,
+                    cashEx,
+                    cashPay: r.CashDividendPaymentDate || ''
+                });
+            });
+            return events;
+        }
+        async function ensureDivEventsForCode(code) {
+            const c = stripTwStockCode(code);
+            if (divHistoryCache[c]) return flattenDivEvents(divHistoryCache[c]);
+            const start = String(new Date().getFullYear() - 3) + '-01-01';
+            const policy = await fetchFinMindDataset('TaiwanStockDividend', c, start);
+            return policyToLightEvents(policy);
+        }
+        function renderExpectDividendRows(rows) {
+            const tbody = document.getElementById('div-expect-list');
+            const empty = document.getElementById('div-expect-empty');
+            const totalEl = document.getElementById('div-expect-total');
+            const countEl = document.getElementById('div-expect-count');
+            if (!tbody) return;
+            if (!rows || !rows.length) {
+                tbody.innerHTML = '';
+                if (empty) { empty.classList.remove('hidden'); empty.textContent = '目前沒有可估算的持倉，或尚無股利資料。'; }
+                if (totalEl) totalEl.textContent = isPrivacyMode ? '****' : 'NT$0';
+                if (countEl) countEl.textContent = '0';
+                return;
+            }
+            if (empty) empty.classList.add('hidden');
+            let total = 0;
+            let html = '';
+            rows.forEach(r => {
+                total += r.amount || 0;
+                const cashTxt = r.cashPerShare != null ? Number(r.cashPerShare).toFixed(4) : '--';
+                const amtTxt = r.amount != null ? fNum(r.amount) : '--';
+                html += `<tr class="row-hover">
+                    <td class="p-3 font-bold c-stock">${r.code}</td>
+                    <td class="p-3 text-right">${isPrivacyMode ? '***' : Number(r.shares).toLocaleString('zh-TW')}</td>
+                    <td class="p-3 text-right">${isPrivacyMode ? '***' : cashTxt}</td>
+                    <td class="p-3">${dashCell(fmtDivDate(r.cashEx) || '--')}</td>
+                    <td class="p-3">${dashCell(fmtDivDate(r.cashPay) || '--')}</td>
+                    <td class="p-3 text-muted">${r.reason || '--'}</td>
+                    <td class="p-3 text-right font-bold c-sage">${amtTxt}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+            if (totalEl) totalEl.textContent = fNum(total);
+            if (countEl) countEl.textContent = String(rows.length);
+        }
+        function renderHoldingPeriodDividendsFromCache() {
+            const holdings = getHoldingSharesByCode();
+            if (!holdings.length) {
+                renderExpectDividendRows([]);
+                return;
+            }
+            const rows = [];
+            let missing = 0;
+            holdings.forEach(h => {
+                if (!divHistoryCache[h.code]) { missing++; return; }
+                const pick = pickCurrentCashDiv(flattenDivEvents(divHistoryCache[h.code]));
+                if (!pick) return;
+                rows.push({
+                    code: h.code,
+                    shares: h.shares,
+                    cashPerShare: pick.cash,
+                    cashEx: pick.cashEx,
+                    cashPay: pick.cashPay,
+                    reason: pick.reason,
+                    amount: h.shares * pick.cash
+                });
+            });
+            if (rows.length) renderExpectDividendRows(rows);
+            else if (missing) {
+                const empty = document.getElementById('div-expect-empty');
+                if (empty) {
+                    empty.classList.remove('hidden');
+                    empty.textContent = '尚無快取股利資料，請按「計算當期股息」自動抓取持倉標的。';
+                }
+            }
+        }
+        async function calcHoldingPeriodDividends() {
+            const holdings = getHoldingSharesByCode().filter(h => looksLikeTwStock(h.code));
+            if (!holdings.length) {
+                alert('目前沒有台股持倉可計算。請先在「持倉登錄」加入股票。');
+                renderExpectDividendRows([]);
+                return;
+            }
+            const btn = document.getElementById('div-expect-btn');
+            const empty = document.getElementById('div-expect-empty');
+            if (btn) { btn.disabled = true; btn.textContent = '計算中…'; }
+            if (empty) { empty.classList.remove('hidden'); empty.textContent = '正在依持倉抓取當期股利…'; }
+            const rows = [];
+            const fails = [];
+            try {
+                for (let i = 0; i < holdings.length; i++) {
+                    const h = holdings[i];
+                    try {
+                        const events = await ensureDivEventsForCode(h.code);
+                        const pick = pickCurrentCashDiv(events);
+                        if (!pick) {
+                            fails.push(h.code + '（無現金股利資料）');
+                            continue;
+                        }
+                        rows.push({
+                            code: h.code,
+                            shares: h.shares,
+                            cashPerShare: pick.cash,
+                            cashEx: pick.cashEx,
+                            cashPay: pick.cashPay,
+                            reason: pick.reason,
+                            amount: h.shares * pick.cash
+                        });
+                    } catch (e) {
+                        console.warn(h.code, e);
+                        fails.push(h.code);
+                    }
+                    if (i < holdings.length - 1) await new Promise(r => setTimeout(r, 200));
+                }
+                rows.sort((a, b) => (b.amount || 0) - (a.amount || 0));
+                renderExpectDividendRows(rows);
+                if (fails.length && empty) {
+                    empty.classList.remove('hidden');
+                    empty.textContent = '部分標的無法取得：' + fails.join('、');
+                }
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = '計算當期股息'; }
+            }
+        }
+
         syncIncludeToUI();
         syncAllocToUI();
         syncRemoteToUI();
         if (document.getElementById('report-period')) {
             document.getElementById('report-period').value = new Date().toISOString().slice(0, 7);
         }
+        if (lastDivCode) rememberStockCode(lastDivCode);
         updateUI();
         fetchAllPrices();
     </script>
