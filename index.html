@@ -4,40 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>資產管理</title>
+    <meta name="theme-color" content="#0b1220">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap');
 
         :root {
-            --ink: #0f172a;
-            --ink-soft: #334155;
-            --muted: #64748b;
-            --faint: #94a3b8;
-            --paper: rgba(255, 255, 255, 0.82);
-            --paper-strong: rgba(255, 255, 255, 0.96);
-            --line: rgba(15, 23, 42, 0.08);
-            --line-strong: rgba(15, 23, 42, 0.14);
-            --stock: #0ea5e9;
-            --stock-deep: #0284c7;
-            --stock-soft: rgba(14, 165, 233, 0.12);
-            --gold: #f59e0b;
-            --gold-deep: #d97706;
-            --gold-soft: rgba(245, 158, 11, 0.14);
-            --coll: #f43f5e;
-            --coll-deep: #e11d48;
-            --coll-soft: rgba(244, 63, 94, 0.11);
-            --sage: #10b981;
-            --sage-deep: #059669;
-            --sage-soft: rgba(16, 185, 129, 0.12);
-            --sell: #06b6d4;
-            --sell-deep: #0891b2;
-            --sell-soft: rgba(6, 182, 212, 0.12);
-            --gain: #059669;
-            --loss: #e11d48;
-            --shadow: 0 16px 40px -28px rgba(15, 23, 42, 0.35);
-            --radius: 18px;
+            --ink: #0b1220;
+            --ink-soft: #2a3648;
+            --muted: #5b6b7f;
+            --faint: #8b9aab;
+            --paper: rgba(255, 255, 255, 0.78);
+            --paper-strong: rgba(255, 255, 255, 0.94);
+            --line: rgba(11, 18, 32, 0.07);
+            --line-strong: rgba(11, 18, 32, 0.12);
+            --stock: #0891b2;
+            --stock-deep: #0e7490;
+            --stock-soft: rgba(8, 145, 178, 0.11);
+            --gold: #d97706;
+            --gold-deep: #b45309;
+            --gold-soft: rgba(217, 119, 6, 0.12);
+            --coll: #e11d48;
+            --coll-deep: #be123c;
+            --coll-soft: rgba(225, 29, 72, 0.1);
+            --sage: #059669;
+            --sage-deep: #047857;
+            --sage-soft: rgba(5, 150, 105, 0.11);
+            --sell: #0d9488;
+            --sell-deep: #0f766e;
+            --sell-soft: rgba(13, 148, 136, 0.11);
+            --gain: #047857;
+            --loss: #be123c;
+            --shadow: 0 20px 50px -32px rgba(11, 18, 32, 0.42);
+            --radius: 20px;
+            --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         html {
@@ -56,11 +57,10 @@
             padding-top: max(1rem, env(safe-area-inset-top, 0px));
             padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
             background:
-                radial-gradient(ellipse 70% 50% at 0% 0%, rgba(14, 165, 233, 0.16), transparent 55%),
-                radial-gradient(ellipse 55% 45% at 100% 0%, rgba(244, 63, 94, 0.10), transparent 50%),
-                radial-gradient(ellipse 50% 40% at 85% 100%, rgba(16, 185, 129, 0.12), transparent 55%),
-                radial-gradient(ellipse 45% 35% at 10% 90%, rgba(245, 158, 11, 0.10), transparent 50%),
-                linear-gradient(160deg, #f1f5f9 0%, #eef2ff 38%, #f8fafc 72%, #ecfeff 100%);
+                radial-gradient(ellipse 65% 48% at 8% -5%, rgba(8, 145, 178, 0.14), transparent 52%),
+                radial-gradient(ellipse 50% 42% at 96% 4%, rgba(217, 119, 6, 0.1), transparent 48%),
+                radial-gradient(ellipse 48% 38% at 78% 100%, rgba(5, 150, 105, 0.1), transparent 52%),
+                linear-gradient(165deg, #eef3f7 0%, #f4f7fa 42%, #eef6f4 78%, #f7fafc 100%);
             background-attachment: fixed;
             position: relative;
             overflow-x: hidden;
@@ -72,7 +72,7 @@
             inset: 0;
             pointer-events: none;
             z-index: 0;
-            opacity: 0.22;
+            opacity: 0.18;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
             mix-blend-mode: soft-light;
         }
@@ -80,17 +80,17 @@
         body::after {
             content: '';
             position: fixed;
-            width: 42vw;
-            height: 42vw;
-            max-width: 520px;
-            max-height: 520px;
-            top: 12%;
-            right: -8%;
+            width: 44vw;
+            height: 44vw;
+            max-width: 540px;
+            max-height: 540px;
+            top: 8%;
+            right: -10%;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(14, 165, 233, 0.12), transparent 68%);
+            background: radial-gradient(circle, rgba(8, 145, 178, 0.11), transparent 70%);
             pointer-events: none;
             z-index: 0;
-            animation: drift 18s ease-in-out infinite alternate;
+            animation: drift 20s var(--ease-out) infinite alternate;
         }
 
         @keyframes drift {
@@ -124,13 +124,13 @@
             border-radius: var(--radius);
             padding: 1.5rem;
             box-shadow: var(--shadow);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+            backdrop-filter: blur(18px) saturate(1.15);
+            -webkit-backdrop-filter: blur(18px) saturate(1.15);
+            transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out), border-color 0.3s ease;
         }
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 22px 48px -22px rgba(15, 23, 42, 0.28);
+            transform: translateY(-3px);
+            box-shadow: 0 28px 56px -28px rgba(11, 18, 32, 0.32);
             border-color: var(--line-strong);
         }
 
@@ -191,6 +191,113 @@
             -webkit-appearance: none;
             appearance: none;
         }
+        input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 0;
+            height: 0;
+            padding: 0 !important;
+            margin: 0;
+            border: 0 !important;
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .setting-switch {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.7rem 0.8rem;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.72);
+            transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+            user-select: none;
+        }
+        .setting-switch:hover {
+            border-color: var(--line-strong);
+            transform: translateY(-1px);
+        }
+        .setting-switch:has(input:checked) {
+            border-color: rgba(5, 150, 105, 0.45);
+            background: linear-gradient(135deg, rgba(5,150,105,0.12), rgba(255,255,255,0.9));
+            box-shadow: 0 8px 20px -16px rgba(5, 150, 105, 0.55);
+        }
+        .setting-switch:has(input:checked) .setting-switch-label {
+            color: var(--sage-deep);
+            font-weight: 700;
+        }
+        .setting-switch-ui {
+            position: relative;
+            width: 2.6rem;
+            height: 1.45rem;
+            flex-shrink: 0;
+            border-radius: 999px;
+            background: rgba(11, 18, 32, 0.14);
+            transition: background 0.25s;
+        }
+        .setting-switch-ui::after {
+            content: '';
+            position: absolute;
+            top: 0.16rem;
+            left: 0.16rem;
+            width: 1.1rem;
+            height: 1.1rem;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(11,18,32,0.2);
+            transition: transform 0.25s var(--ease-out);
+        }
+        .setting-switch:has(input:checked) .setting-switch-ui {
+            background: var(--sage);
+        }
+        .setting-switch:has(input:checked) .setting-switch-ui::after {
+            transform: translateX(1.15rem);
+        }
+        .setting-switch-label {
+            flex: 1;
+            font-size: 0.78rem;
+            color: var(--ink-soft);
+            line-height: 1.35;
+            transition: color 0.2s;
+        }
+        .setting-switch-state {
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--faint);
+            min-width: 2.2rem;
+            text-align: right;
+        }
+        .setting-switch:has(input:checked) .setting-switch-state {
+            color: var(--sage-deep);
+        }
+        .setting-switch.is-flash {
+            animation: switch-flash 0.45s var(--ease-out);
+        }
+        @keyframes switch-flash {
+            0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.35); }
+            100% { box-shadow: 0 0 0 0 transparent; }
+        }
+        .privacy-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .privacy-status-pill.is-on {
+            background: rgba(217, 119, 6, 0.14);
+            color: var(--gold-deep);
+        }
+        .privacy-status-pill.is-off {
+            background: rgba(5, 150, 105, 0.12);
+            color: var(--sage-deep);
+        }
         input[type="text"],
         input[type="number"],
         input[type="date"],
@@ -232,8 +339,19 @@
         }
 
         .tab-active {
-            color: var(--stock-deep);
+            color: var(--ink);
             border-bottom: 3px solid var(--stock);
+            position: relative;
+        }
+        .tabs-row button {
+            transition: color 0.25s, border-color 0.25s;
+        }
+        .tabs-row button:hover { color: var(--ink-soft); }
+
+        .panel-soft {
+            background: linear-gradient(160deg, rgba(255,255,255,0.72), rgba(8,145,178,0.06));
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
         }
         .editing-mode {
             border: 2px solid var(--gold) !important;
@@ -300,7 +418,7 @@
         .chip {
             background: var(--stock-soft);
             color: var(--stock-deep);
-            border: 1px solid rgba(14, 165, 233, 0.25);
+            border: 1px solid rgba(8, 145, 178, 0.25);
             border-radius: 999px;
             padding: 0.25rem 0.75rem;
             font-size: 10px;
@@ -308,12 +426,6 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-        }
-
-        .panel-soft {
-            background: linear-gradient(160deg, rgba(255,255,255,0.7), rgba(14,165,233,0.07));
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
         }
 
         .price-history {
@@ -416,27 +528,337 @@
             color: var(--muted);
         }
 
-        .chart-container { position: relative; height: 360px; width: 100%; }
+        .chart-container {
+            position: relative;
+            height: 360px;
+            width: 100%;
+            cursor: crosshair;
+        }
+        .chart-panel-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.85rem 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .chart-range {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.2rem;
+            border-radius: 999px;
+            background: rgba(11, 18, 32, 0.045);
+            border: 1px solid var(--line);
+        }
+        .chart-range-btn {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            padding: 0.4rem 0.7rem;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+            font-family: inherit;
+        }
+        .chart-range-btn:hover { color: var(--ink); }
+        .chart-range-btn.is-active {
+            background: var(--ink);
+            color: #fff;
+            box-shadow: 0 8px 18px -12px rgba(11, 18, 32, 0.55);
+        }
+        .chart-readout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+            gap: 0.55rem 1rem;
+            margin-bottom: 0.85rem;
+            padding: 0.75rem 0.9rem;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.72), rgba(8,145,178,0.06));
+            border: 1px solid var(--line);
+            min-height: 3.1rem;
+            transition: opacity 0.25s;
+        }
+        .chart-readout-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            min-width: 0;
+        }
+        .chart-readout-item .k {
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--faint);
+        }
+        .chart-readout-item .v {
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chart-readout-hint {
+            grid-column: 1 / -1;
+            font-size: 0.68rem;
+            color: var(--muted);
+            letter-spacing: 0.02em;
+        }
+        .chart-hint {
+            font-size: 0.62rem;
+            color: var(--faint);
+            letter-spacing: 0.04em;
+            margin-top: 0.65rem;
+        }
+        .alloc-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 100%;
+        }
+        .alloc-panel-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 1.1rem;
+        }
+        .alloc-stage {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem 0 0.75rem;
+            flex: 1;
+        }
+        .alloc-halo {
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), transparent 42%),
+                radial-gradient(circle at 50% 50%, rgba(8, 145, 178, 0.1), transparent 68%),
+                radial-gradient(circle at 70% 65%, rgba(217, 119, 6, 0.12), transparent 62%);
+            filter: blur(1px);
+            pointer-events: none;
+            animation: alloc-breathe 5.5s var(--ease-out) infinite alternate;
+        }
+        @keyframes alloc-breathe {
+            from { transform: scale(0.96); opacity: 0.7; }
+            to { transform: scale(1.05); opacity: 1; }
+        }
+        .alloc-ring-track {
+            position: absolute;
+            width: 208px;
+            height: 208px;
+            border-radius: 50%;
+            border: 1px solid rgba(11, 18, 32, 0.06);
+            box-shadow:
+                inset 0 0 0 14px rgba(255,255,255,0.35),
+                0 18px 40px -28px rgba(11, 18, 32, 0.35);
+            pointer-events: none;
+        }
         .alloc-chart-wrap {
             position: relative;
-            width: 180px;
-            height: 180px;
+            width: 220px;
+            height: 220px;
             max-width: 100%;
             flex-shrink: 0;
             overflow: visible;
+            cursor: pointer;
+            z-index: 1;
+            transition: transform 0.45s var(--ease-out);
         }
+        .alloc-chart-wrap:hover { transform: scale(1.03); }
+        .alloc-chart-wrap.is-focused { transform: scale(1.04); }
         .alloc-chart-wrap canvas {
             display: block;
             width: 100% !important;
             height: 100% !important;
+            filter: drop-shadow(0 10px 18px rgba(11, 18, 32, 0.12));
         }
         .alloc-chart-center {
             position: absolute;
-            inset: 0;
+            inset: 12%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            transition: opacity 0.25s, transform 0.35s var(--ease-out);
+            pointer-events: none;
+            text-align: center;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 50% 40%, rgba(255,255,255,0.96), rgba(255,255,255,0.72) 70%, rgba(248,250,252,0.55));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+            padding: 0.45rem 0.55rem;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .alloc-chart-center.is-pulse {
+            animation: alloc-center-pulse 0.45s var(--ease-out);
+        }
+        @keyframes alloc-center-pulse {
+            0% { transform: scale(0.94); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .alloc-center-kicker {
+            font-size: 0.55rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--faint);
+            margin-bottom: 0.15rem;
+            flex-shrink: 0;
+        }
+        .alloc-center-value {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            font-variant-numeric: tabular-nums;
+            color: var(--ink);
+            line-height: 1.15;
+            max-width: 100%;
+            width: 100%;
+            overflow: visible;
+            white-space: nowrap;
+            padding: 0;
+            text-align: center;
+        }
+        .alloc-center-sub {
+            margin-top: 0.22rem;
+            font-size: 0.58rem;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: 0.02em;
+            min-height: 0.85rem;
+            max-width: 100%;
+            overflow: visible;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .alloc-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            width: 100%;
+            margin-top: 0.35rem;
+        }
+        .alloc-legend-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 0.35rem 0.75rem;
+            align-items: center;
+            padding: 0.7rem 0.8rem;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.55));
+            cursor: pointer;
+            transition: border-color 0.25s, transform 0.25s var(--ease-out), box-shadow 0.25s, background 0.25s;
+            text-align: left;
+            font: inherit;
+            width: 100%;
+            color: inherit;
+        }
+        .alloc-legend-row:hover {
+            transform: translateY(-1px);
+            border-color: var(--line-strong);
+            box-shadow: 0 12px 24px -20px rgba(11, 18, 32, 0.4);
+        }
+        .alloc-legend-row.is-active {
+            border-color: transparent;
+            box-shadow: 0 14px 28px -18px rgba(11, 18, 32, 0.35);
+        }
+        .alloc-legend-row.is-active[data-key="stock"] {
+            background: linear-gradient(135deg, rgba(8,145,178,0.14), rgba(255,255,255,0.9));
+            box-shadow: 0 14px 28px -18px rgba(8, 145, 178, 0.45);
+        }
+        .alloc-legend-row.is-active[data-key="gold"] {
+            background: linear-gradient(135deg, rgba(217,119,6,0.16), rgba(255,255,255,0.9));
+            box-shadow: 0 14px 28px -18px rgba(217, 119, 6, 0.4);
+        }
+        .alloc-legend-row.is-dim {
+            opacity: 0.45;
+        }
+        .alloc-legend-top {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            min-width: 0;
+        }
+        .alloc-legend-swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.7);
+        }
+        .alloc-legend-name {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+        .alloc-legend-pct {
+            font-size: 0.95rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+        }
+        .alloc-legend-meta {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .alloc-bar {
+            height: 5px;
+            border-radius: 999px;
+            background: rgba(11, 18, 32, 0.06);
+            overflow: hidden;
+            position: relative;
+        }
+        .alloc-bar > i {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            width: 0;
+            transition: width 0.7s var(--ease-out);
+        }
+        .alloc-bar-target {
+            position: absolute;
+            top: -3px;
+            bottom: -3px;
+            width: 2px;
+            margin-left: -1px;
+            background: var(--ink);
+            opacity: 0.35;
+            border-radius: 2px;
+            transition: left 0.7s var(--ease-out);
+        }
+        .alloc-legend-foot {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            font-size: 0.6rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+        .alloc-empty {
+            text-align: center;
+            padding: 1.2rem 0.75rem;
+            border-radius: 14px;
+            border: 1px dashed var(--line);
+            color: var(--faint);
+            font-size: 0.72rem;
+            background: rgba(11, 18, 32, 0.02);
         }
         .alloc-dot {
             width: 8px;
@@ -449,35 +871,122 @@
 
         .site-header {
             border-bottom: 1px solid var(--line);
-            margin-bottom: 2.5rem;
-            padding-bottom: 1.5rem;
+            margin-bottom: 2.25rem;
+            padding-bottom: 1.35rem;
         }
 
         .header-brand h1 {
             font-family: 'Syne', 'Outfit', 'Noto Sans TC', sans-serif;
             font-weight: 800;
             font-style: normal;
-            line-height: 1.2;
+            line-height: 1.15;
             padding-top: 0.04em;
             padding-bottom: 0.08em;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.04em;
             display: block;
             overflow: visible;
-            background: linear-gradient(110deg, #0f172a 0%, #0284c7 42%, #10b981 72%, #f59e0b 100%);
+            background: linear-gradient(115deg, #0b1220 0%, #0e7490 38%, #047857 68%, #b45309 100%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
             -webkit-box-decoration-break: clone;
         }
         .header-brand .header-subtitle {
-            margin-top: 0.45rem;
+            margin-top: 0.4rem;
             line-height: 1.5;
             display: block;
             color: var(--muted);
             font-family: 'Outfit', 'Noto Sans TC', sans-serif;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 600;
-            letter-spacing: 0.22em;
+            letter-spacing: 0.24em;
+        }
+        .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            align-items: center;
+        }
+
+        /* Settings accordion */
+        .settings-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+        .settings-fold {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.55);
+            overflow: hidden;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .settings-fold[open] {
+            border-color: var(--line-strong);
+            box-shadow: 0 12px 28px -22px rgba(11, 18, 32, 0.35);
+            background: rgba(255, 255, 255, 0.82);
+        }
+        .settings-fold > summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.95rem 1.05rem;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .settings-fold > summary::-webkit-details-marker { display: none; }
+        .settings-fold > summary::marker { content: ''; }
+        .settings-fold > summary:hover { background: rgba(11, 18, 32, 0.03); }
+        .settings-fold-title {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 0;
+        }
+        .settings-fold-title .t {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .settings-fold-title .d {
+            font-size: 0.68rem;
+            color: var(--muted);
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            line-height: 1.35;
+        }
+        .settings-fold-chevron {
+            width: 1.55rem;
+            height: 1.55rem;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            background: rgba(11, 18, 32, 0.05);
+            color: var(--muted);
+            font-size: 0.7rem;
+            transition: transform 0.3s var(--ease-out), background 0.2s, color 0.2s;
+        }
+        .settings-fold[open] > summary .settings-fold-chevron {
+            transform: rotate(180deg);
+            background: var(--ink);
+            color: #fff;
+        }
+        .settings-fold-body {
+            padding: 0 1.05rem 1.15rem;
+            border-top: 1px solid var(--line);
+            animation: fold-in 0.28s var(--ease-out);
+        }
+        @keyframes fold-in {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .settings-modal-panel {
+            max-width: 32rem;
         }
 
         .live-dot {
@@ -530,15 +1039,21 @@
 
         .tabs-row {
             border-bottom: 1px solid var(--line);
+            gap: 0.25rem;
+        }
+        .tabs-row button {
+            padding-left: 0.15rem;
+            padding-right: 0.15rem;
+            margin-right: 1.25rem;
         }
 
         .section-rise {
-            animation: rise-in 0.55s ease-out both;
+            animation: rise-in 0.55s var(--ease-out) both;
         }
         .section-rise:nth-child(2) { animation-delay: 0.06s; }
         .section-rise:nth-child(3) { animation-delay: 0.12s; }
 
-        .row-hover:hover { background: rgba(15, 23, 42, 0.04); }
+        .row-hover:hover { background: rgba(11, 18, 32, 0.035); }
         tbody.divide-y > tr { border-color: var(--line); }
         table { border-collapse: collapse; }
         th, td { border-color: var(--line); }
@@ -548,7 +1063,7 @@
         .modal-overlay-safe .card:hover { transform: none; }
 
         .div-table thead th {
-            background: rgba(15, 23, 42, 0.045);
+            background: rgba(11, 18, 32, 0.045);
             color: var(--muted);
             font-weight: 700;
             border: 1px solid var(--line);
@@ -560,19 +1075,37 @@
             vertical-align: middle;
             color: var(--ink);
         }
-        .div-table tbody tr:nth-child(even) td { background: rgba(14, 165, 233, 0.03); }
+        .div-table tbody tr:nth-child(even) td { background: rgba(8, 145, 178, 0.035); }
         .div-table .div-year {
             font-weight: 800;
             color: var(--stock-deep);
             text-align: center;
-            background: rgba(14, 165, 233, 0.06) !important;
+            background: rgba(8, 145, 178, 0.06) !important;
         }
         .div-table .div-sum {
             font-weight: 700;
             color: var(--sage-deep);
-            background: rgba(16, 185, 129, 0.06) !important;
+            background: rgba(5, 150, 105, 0.06) !important;
         }
         .div-table .div-dash { color: var(--faint); }
+
+        @media (max-width: 640px) {
+            .chart-container { height: 280px; }
+            .chart-range { width: 100%; justify-content: space-between; }
+            .chart-range-btn { flex: 1; text-align: center; padding-left: 0.35rem; padding-right: 0.35rem; }
+            .settings-fold > summary { padding: 0.85rem 0.9rem; }
+        }
+
+        /* extras */
+        .rebalance-card {
+            margin-top: 0.75rem;
+            padding: 0.85rem 0.9rem;
+            border-radius: 14px;
+            border: 1px dashed var(--line-strong);
+            background: linear-gradient(160deg, rgba(255,255,255,0.7), rgba(5,150,105,0.06));
+        }
+        .rebalance-row { line-height: 1.4; }
+        .spark-svg { display: block; }
     </style>
 </head>
 <body>
@@ -582,31 +1115,54 @@
                 <h1 class="text-4xl md:text-5xl tracking-tight">資產管理</h1>
                 <p class="header-subtitle">ASSET TRACKER</p>
             </div>
-            <div class="flex flex-wrap gap-3">
-                <button onclick="togglePrivacy()" id="privacy-btn" class="btn-surface px-6 py-2.5 rounded-xl text-xs font-bold c-gold">顯示數值</button>
+            <div class="header-actions">
                 <input type="file" id="import-file" onchange="importData(event)" accept=".json,.JSON,.txt,.jason,application/json,text/plain">
-                <button type="button" onclick="openSettingsModal()" class="btn-surface px-6 py-2.5 rounded-xl text-xs font-bold">設定</button>
-                <button onclick="fetchAllPrices()" class="btn-primary px-6 py-2.5 rounded-xl text-xs font-bold">刷新即時資料</button>
+                <button type="button" onclick="openSettingsModal()" class="btn-surface px-5 py-2.5 rounded-xl text-xs font-bold">設定</button>
+                <button onclick="fetchAllPrices()" class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold">刷新即時資料</button>
             </div>
         </header>
 
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 section-rise">
             <div class="card lg:col-span-2">
-                <h3 class="stat-label mb-6 flex items-center gap-2"><span class="live-dot"></span> 資產成長趨勢</h3>
+                <div class="chart-panel-head">
+                    <div>
+                        <h3 class="stat-label flex items-center gap-2"><span class="live-dot"></span> 資產成長趨勢</h3>
+                    </div>
+                    <div class="chart-range" role="group" aria-label="圖表期間">
+                        <button type="button" class="chart-range-btn is-active" data-range="all" onclick="setTrendRange('all')">全部</button>
+                        <button type="button" class="chart-range-btn" data-range="1y" onclick="setTrendRange('1y')">1年</button>
+                        <button type="button" class="chart-range-btn" data-range="6m" onclick="setTrendRange('6m')">6月</button>
+                        <button type="button" class="chart-range-btn" data-range="3m" onclick="setTrendRange('3m')">3月</button>
+                        <button type="button" class="chart-range-btn" data-range="1m" onclick="setTrendRange('1m')">1月</button>
+                    </div>
+                </div>
+                <div id="trend-readout" class="chart-readout" aria-live="polite">
+                    <div class="chart-readout-hint" id="trend-readout-hint">將游標移到圖表上，即可檢視當日淨值、投入與漲跌；點圖例可開關系列。</div>
+                </div>
                 <div class="chart-container" id="chart-area">
                     <canvas id="trendChart"></canvas>
                 </div>
+                <p class="chart-hint">十字線跟隨游標 · 點擊圖例切換系列顯示</p>
             </div>
-            <div class="card flex flex-col items-center justify-center">
-                <h3 class="stat-label mb-4">資產配置</h3>
-                <div class="alloc-chart-wrap">
-                    <canvas id="allocationChart"></canvas>
-                    <div class="alloc-chart-center pointer-events-none">
-                        <span class="text-[10px] text-muted font-bold tracking-wider">淨值</span>
-                        <span id="center-total-worth" class="text-2xl font-bold tracking-tight text-ink">--</span>
+            <div class="card alloc-panel">
+                <div class="alloc-panel-head">
+                    <h3 class="stat-label mb-0">資產配置</h3>
+                    <span class="text-[10px] text-faint font-semibold tracking-wide">實際 vs 目標</span>
+                </div>
+                <div class="alloc-stage">
+                    <div class="alloc-halo" aria-hidden="true"></div>
+                    <div class="alloc-ring-track" aria-hidden="true"></div>
+                    <div class="alloc-chart-wrap" id="alloc-chart-wrap" title="點擊區塊或下方圖例檢視細節">
+                        <canvas id="allocationChart"></canvas>
+                        <div class="alloc-chart-center" id="alloc-center">
+                            <span class="alloc-center-kicker" id="alloc-center-label">淨值</span>
+                            <span id="center-total-worth" class="alloc-center-value">--</span>
+                            <span class="alloc-center-sub" id="alloc-center-sub"></span>
+                        </div>
                     </div>
                 </div>
-                <div id="alloc-target-panel" class="w-full mt-4 space-y-1.5 text-[11px]"></div>
+                <div id="alloc-target-panel" class="alloc-legend"></div>
+                <div id="rebalance-panel"></div>
             </div>
         </section>
 
@@ -760,9 +1316,9 @@
             <div id="stock-panel-sum" class="hidden">
                 <div class="card overflow-hidden p-0 mb-8">
                     <div class="table-scroll">
-                    <table class="w-full text-xs text-left min-w-[800px]">
+                    <table class="w-full text-xs text-left min-w-[900px]">
                         <thead class="thead-bar font-bold">
-                            <tr><th class="p-4">標的</th><th class="p-4 text-right">股數</th><th class="p-4 text-right">淨成本</th><th class="p-4 text-right">累計股利</th><th class="p-4 text-right">現值</th><th class="p-4 text-right">已實現</th><th class="p-4 text-right">報酬率</th></tr>
+                            <tr><th class="p-4">標的</th><th class="p-4 text-center">近況</th><th class="p-4 text-right">股數</th><th class="p-4 text-right">淨成本</th><th class="p-4 text-right">累計股利</th><th class="p-4 text-right">現值</th><th class="p-4 text-right">已實現</th><th class="p-4 text-right">報酬率</th></tr>
                         </thead>
                         <tbody id="stock-sum-list" class="divide-y"></tbody>
                     </table>
@@ -946,86 +1502,165 @@
     </div>
 
     <div id="settings-modal" class="fixed inset-0 z-[100] hidden flex-col items-stretch overflow-y-auto modal-overlay-safe" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" onclick="if(event.target===this)closeSettingsModal()">
-        <div class="card max-w-lg w-full p-6 mx-auto mt-2 modal-panel-bottom-space shrink-0" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-start gap-4 mb-6">
-                <h2 id="settings-modal-title" class="stat-label">系統設定</h2>
+        <div class="card settings-modal-panel w-full p-5 sm:p-6 mx-auto mt-2 modal-panel-bottom-space shrink-0" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-start gap-4 mb-5">
+                <div>
+                    <h2 id="settings-modal-title" class="stat-label mb-1">系統設定</h2>
+                    <p class="text-[11px] text-muted">點標題展開／收合各區塊，減少雜訊</p>
+                </div>
                 <button type="button" onclick="closeSettingsModal()" class="text-muted hover:text-ink text-xl leading-none px-1" aria-label="關閉">✕</button>
             </div>
 
-            <div class="space-y-6">
-                <section>
-                    <h3 class="text-[10px] font-bold tracking-widest c-stock mb-3">資料管理</h3>
-                    <p class="text-xs text-muted mb-3">從備份檔還原，或將股票、黃金與股價快取匯出至檔案（格式為 JSON）。副檔名須為 <code class="c-stock">.json</code>；若系統選不到檔案，請在檔案選擇視窗改選「所有檔案」，或使用下方貼上文字。</p>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <button type="button" onclick="document.getElementById('import-file').click()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold c-stock">選擇檔案匯入</button>
-                        <button type="button" onclick="exportAllData()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold">備份全部</button>
-                    </div>
-                    <div class="mt-4 pt-4 border-t" style="border-color: var(--line)">
-                        <label class="stat-label text-[10px] block mb-2">或貼上備份純文字（JSON 格式）</label>
-                        <textarea id="import-json-text" class="w-full" placeholder="貼上備份全文：須與匯出檔相同結構（含股票、黃金、賣出紀錄等）" spellcheck="false"></textarea>
-                        <button type="button" onclick="importFromPastedJson()" class="w-full mt-3 btn-surface py-3 rounded-xl text-xs font-bold c-sage">從文字匯入</button>
-                    </div>
-                </section>
-
-                <div class="border-t pt-6" style="border-color: var(--line)">
-                    <h3 class="text-[10px] font-bold tracking-widest c-sage mb-3">總覽計入設定</h3>
-                    <p class="text-xs text-muted mb-4">決定各類資產是否計入首頁「總覽」的總資產現值，以及總成本／總報酬率。總報酬率以「口袋淨現金投入」為分母（再投入股利不重複算本金），含已實現損益，不含股利。</p>
-                    <div class="space-y-4 text-xs">
-                        <div class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
-                            <div class="font-bold c-stock">股票</div>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="inc-stock-worth" class="rounded" onchange="saveIncludeFlags()"> 計入總資產現值</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="inc-stock-perf" class="rounded" onchange="saveIncludeFlags()"> 計入總成本與總報酬率</label>
+            <div class="settings-accordion">
+                <details class="settings-fold" open>
+                    <summary>
+                        <div class="settings-fold-title">
+                            <span class="t c-stock">資料管理</span>
+                            <span class="d">匯入備份、匯出 JSON</span>
                         </div>
-                        <div class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
-                            <div class="font-bold c-gold">黃金</div>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="inc-gold-worth" class="rounded" onchange="saveIncludeFlags()"> 計入總資產現值</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="inc-gold-perf" class="rounded" onchange="saveIncludeFlags()"> 計入總成本與總報酬率</label>
+                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                    </summary>
+                    <div class="settings-fold-body">
+                        <p class="text-xs text-muted mb-3">從備份檔還原，或將股票、黃金與股價快取匯出至檔案（格式為 JSON）。副檔名須為 <code class="c-stock">.json</code>；若系統選不到檔案，請改選「所有檔案」，或展開下方「貼上文字」。</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button type="button" onclick="document.getElementById('import-file').click()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold c-stock">選擇檔案匯入</button>
+                            <button type="button" onclick="exportAllData()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold">備份全部</button>
+                        </div>
+                        <details class="settings-fold mt-3" style="background: rgba(11,18,32,0.02)">
+                            <summary>
+                                <div class="settings-fold-title">
+                                    <span class="t" style="letter-spacing:0.08em">進階：貼上 JSON</span>
+                                    <span class="d">無法選檔時使用</span>
+                                </div>
+                                <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                            </summary>
+                            <div class="settings-fold-body">
+                                <label class="stat-label text-[10px] block mb-2">備份純文字（JSON）</label>
+                                <textarea id="import-json-text" class="w-full" placeholder="貼上備份全文：須與匯出檔相同結構" spellcheck="false"></textarea>
+                                <button type="button" onclick="importFromPastedJson()" class="w-full mt-3 btn-surface py-3 rounded-xl text-xs font-bold c-sage">從文字匯入</button>
+                            </div>
+                        </details>
+                    </div>
+                </details>
+
+                <details class="settings-fold">
+                    <summary>
+                        <div class="settings-fold-title">
+                            <span class="t c-sage">總覽計入設定</span>
+                            <span class="d">決定哪些資產計入首頁總覽</span>
+                        </div>
+                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                    </summary>
+                    <div class="settings-fold-body">
+                        <p class="text-xs text-muted mb-4">決定各類資產是否計入首頁「總覽」的總資產現值，以及總成本／總報酬率。開關為綠色＝已啟用。</p>
+                        <div class="space-y-3 text-xs">
+                            <div class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
+                                <div class="font-bold c-stock mb-1">股票</div>
+                                <label class="setting-switch">
+                                    <input type="checkbox" id="inc-stock-worth" onchange="saveIncludeFlags(this)">
+                                    <span class="setting-switch-ui" aria-hidden="true"></span>
+                                    <span class="setting-switch-label">計入總資產現值</span>
+                                    <span class="setting-switch-state" data-for="inc-stock-worth">關</span>
+                                </label>
+                                <label class="setting-switch">
+                                    <input type="checkbox" id="inc-stock-perf" onchange="saveIncludeFlags(this)">
+                                    <span class="setting-switch-ui" aria-hidden="true"></span>
+                                    <span class="setting-switch-label">計入總成本與總報酬率</span>
+                                    <span class="setting-switch-state" data-for="inc-stock-perf">關</span>
+                                </label>
+                            </div>
+                            <div class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
+                                <div class="font-bold c-gold mb-1">黃金</div>
+                                <label class="setting-switch">
+                                    <input type="checkbox" id="inc-gold-worth" onchange="saveIncludeFlags(this)">
+                                    <span class="setting-switch-ui" aria-hidden="true"></span>
+                                    <span class="setting-switch-label">計入總資產現值</span>
+                                    <span class="setting-switch-state" data-for="inc-gold-worth">關</span>
+                                </label>
+                                <label class="setting-switch">
+                                    <input type="checkbox" id="inc-gold-perf" onchange="saveIncludeFlags(this)">
+                                    <span class="setting-switch-ui" aria-hidden="true"></span>
+                                    <span class="setting-switch-label">計入總成本與總報酬率</span>
+                                    <span class="setting-switch-state" data-for="inc-gold-perf">關</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </details>
 
-                <div class="border-t pt-6" style="border-color: var(--line)">
-                    <h3 class="text-[10px] font-bold tracking-widest c-gold mb-3">資產配置目標（%）</h3>
-                    <p class="text-xs text-muted mb-3">兩項合計建議為 100；用於與現況對比。</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">股票</label><input type="number" id="alloc-stock" min="0" max="100" step="1"></div>
-                        <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">黃金</label><input type="number" id="alloc-gold" min="0" max="100" step="1"></div>
+                <details class="settings-fold">
+                    <summary>
+                        <div class="settings-fold-title">
+                            <span class="t c-gold">數值隱私</span>
+                            <span class="d">隱藏／顯示金額</span>
+                        </div>
+                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                    </summary>
+                    <div class="settings-fold-body">
+                        <div class="flex items-center justify-between gap-3 mb-3">
+                            <div>
+                                <div class="text-xs font-bold mb-1">目前狀態</div>
+                                <span id="privacy-status-pill" class="privacy-status-pill is-on">數值已隱藏</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-muted mb-3">隱藏後金額以 **** 顯示；要顯示需輸入管理密碼。</p>
+                        <button type="button" id="privacy-btn" onclick="togglePrivacy()" class="w-full btn-gold py-3 rounded-xl text-xs font-bold tracking-wide">顯示數值</button>
                     </div>
-                    <button type="button" onclick="saveAllocTargets()" class="w-full mt-3 btn-surface py-3 rounded-xl text-xs font-bold c-gold">儲存配置目標</button>
-                </div>
+                </details>
 
-                <div class="border-t pt-6" style="border-color: var(--line)">
-                    <h3 class="text-[10px] font-bold tracking-widest c-sell mb-3">多裝置同步</h3>
-                    <p class="text-xs text-muted mb-3">自訂可 PUT/GET JSON 的端點（如 Worker、JSONBin）。不含管理密碼。亦可產生壓縮同步碼在裝置間貼上。</p>
-                    <div class="space-y-3">
-                        <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">同步 URL</label><input type="url" id="sync-url" class="w-full" placeholder="https://..."></div>
-                        <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">Bearer Token（選填）</label><input type="password" id="sync-token" class="w-full" placeholder="選填" autocomplete="off"></div>
+                <details class="settings-fold">
+                    <summary>
+                        <div class="settings-fold-title">
+                            <span class="t c-gold">資產配置目標</span>
+                            <span class="d">股票／黃金目標占比（%）</span>
+                        </div>
+                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                    </summary>
+                    <div class="settings-fold-body">
+                        <p class="text-xs text-muted mb-3">兩項合計建議為 100；用於與現況對比。</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">股票</label><input type="number" id="alloc-stock" min="0" max="100" step="1"></div>
+                            <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">黃金</label><input type="number" id="alloc-gold" min="0" max="100" step="1"></div>
+                        </div>
+                        <button type="button" onclick="saveAllocTargets()" class="w-full mt-3 btn-surface py-3 rounded-xl text-xs font-bold c-gold">儲存配置目標</button>
                     </div>
-                    <div class="flex gap-3 mt-3">
-                        <button type="button" onclick="saveSyncSettings()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold">儲存同步設定</button>
-                        <button type="button" onclick="remoteSyncUpload()" class="flex-1 btn-primary py-3 rounded-xl text-xs font-bold">上傳</button>
-                        <button type="button" onclick="remoteSyncDownload()" class="flex-1 btn-sell py-3 rounded-xl text-xs font-bold">下載</button>
+                </details>
+
+                <details class="settings-fold">
+                    <summary>
+                        <div class="settings-fold-title">
+                            <span class="t c-gold">管理密碼</span>
+                            <span class="d">解除數值遮罩用</span>
+                        </div>
+                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                    </summary>
+                    <div class="settings-fold-body">
+                        <p class="text-xs text-muted mb-3">用於解除數值遮罩；修改後請記住新密碼。</p>
+                        <div class="space-y-3">
+                            <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">目前密碼</label><input type="password" id="pwd-current" class="w-full" placeholder="目前密碼" autocomplete="current-password"></div>
+                            <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">新密碼</label><input type="password" id="pwd-new" class="w-full" placeholder="新密碼" autocomplete="new-password"></div>
+                            <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">再次輸入新密碼</label><input type="password" id="pwd-new2" class="w-full" placeholder="確認新密碼" autocomplete="new-password"></div>
+                        </div>
+                        <button type="button" onclick="submitChangePassword()" class="w-full mt-4 btn-gold py-3 rounded-xl text-xs font-bold tracking-wide">修改密碼</button>
                     </div>
-                    <div class="mt-4 pt-4 border-t" style="border-color: var(--line)">
-                        <label class="stat-label text-[10px] block mb-2">壓縮同步碼</label>
-                        <textarea id="sync-code-text" class="w-full" placeholder="點「產生同步碼」後複製，或貼上後按套用" spellcheck="false"></textarea>
-                        <div class="flex gap-3 mt-3">
-                            <button type="button" onclick="generateSyncCode()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold">產生同步碼</button>
-                            <button type="button" onclick="applySyncCode()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold c-sage">套用同步碼</button>
+                </details>
+
+                <details class="settings-fold">
+                    <summary>
+                        <div class="settings-fold-title">
+                            <span class="t c-sage">匯出報表</span>
+                            <span class="d">CSV 或列印／存 PDF</span>
+                        </div>
+                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                    </summary>
+                    <div class="settings-fold-body">
+                        <p class="text-xs text-muted mb-3">CSV 可用 Numbers 開啟。PDF：可用列印頁的「共享 → 儲存到檔案」。</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button type="button" onclick="exportCsvReport()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold c-stock">匯出 CSV</button>
+                            <button type="button" onclick="printReport()" class="flex-1 btn-primary py-3 rounded-xl text-xs font-bold">列印／存 PDF</button>
                         </div>
                     </div>
-                </div>
-
-                <div class="border-t pt-6" style="border-color: var(--line)">
-                    <h3 class="text-[10px] font-bold tracking-widest c-gold mb-3">管理密碼</h3>
-                    <p class="text-xs text-muted mb-3">用於解除數值遮罩；修改後請記住新密碼。</p>
-                    <div class="space-y-3">
-                        <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">目前密碼</label><input type="password" id="pwd-current" class="w-full" placeholder="目前密碼" autocomplete="current-password"></div>
-                        <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">新密碼</label><input type="password" id="pwd-new" class="w-full" placeholder="新密碼" autocomplete="new-password"></div>
-                        <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">再次輸入新密碼</label><input type="password" id="pwd-new2" class="w-full" placeholder="確認新密碼" autocomplete="new-password"></div>
-                    </div>
-                    <button type="button" onclick="submitChangePassword()" class="w-full mt-4 btn-gold py-3 rounded-xl text-xs font-bold tracking-wide">修改密碼</button>
-                </div>
+                </details>
             </div>
         </div>
     </div>
@@ -1079,11 +1714,10 @@
     <script>
         const K_STK = 'WV20_STK', K_GLD = 'WV20_GLD', K_PRC = 'WV20_PRC', K_PRC_META = 'WV20_PRC_META', K_PWD = 'WV20_PWD', K_PRIV = 'WV20_PRIV';
         const K_COLL = 'WV20_COLL', K_STK_SELL = 'WV20_STK_SELL', K_GLD_SELL = 'WV20_GLD_SELL', K_COLL_SELL = 'WV20_COLL_SELL', K_INC = 'WV20_INC';
-        const K_ALLOC = 'WV20_ALLOC', K_SYNC = 'WV20_SYNC', K_CODES = 'WV20_CODES';
+        const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES';
         const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE';
         const defaultInc = { stockWorth: true, stockPerf: true, goldWorth: true, goldPerf: true, collWorth: false, collPerf: false };
         const defaultAlloc = { stock: 50, gold: 50, coll: 0 };
-        const defaultSync = { url: '', token: '' };
 
         let stockRecs = JSON.parse(localStorage.getItem(K_STK)) || [];
         let goldRecs = JSON.parse(localStorage.getItem(K_GLD)) || [];
@@ -1102,7 +1736,6 @@
         if ((num(allocTargets.stock) + num(allocTargets.gold)) === 0) {
             allocTargets.stock = 50; allocTargets.gold = 50;
         }
-        let syncSettings = { ...defaultSync, ...JSON.parse(localStorage.getItem(K_SYNC) || '{}') };
         let stockCodes = (function() {
             try {
                 const a = JSON.parse(localStorage.getItem(K_CODES) || '[]');
@@ -1563,16 +2196,21 @@
             document.getElementById('inc-stock-perf').checked = !!includeFlags.stockPerf;
             document.getElementById('inc-gold-worth').checked = !!includeFlags.goldWorth;
             document.getElementById('inc-gold-perf').checked = !!includeFlags.goldPerf;
+            refreshIncludeSwitchLabels();
+        }
+        function refreshIncludeSwitchLabels() {
+            ['inc-stock-worth', 'inc-stock-perf', 'inc-gold-worth', 'inc-gold-perf'].forEach((id) => {
+                const input = document.getElementById(id);
+                const state = document.querySelector('.setting-switch-state[data-for="' + id + '"]');
+                if (!input || !state) return;
+                state.textContent = input.checked ? '開' : '關';
+            });
         }
         function syncAllocToUI() {
             document.getElementById('alloc-stock').value = allocTargets.stock;
             document.getElementById('alloc-gold').value = allocTargets.gold;
         }
-        function syncRemoteToUI() {
-            document.getElementById('sync-url').value = syncSettings.url || '';
-            document.getElementById('sync-token').value = syncSettings.token || '';
-        }
-        function saveIncludeFlags() {
+        function saveIncludeFlags(el) {
             includeFlags = {
                 stockWorth: document.getElementById('inc-stock-worth').checked,
                 stockPerf: document.getElementById('inc-stock-perf').checked,
@@ -1582,6 +2220,15 @@
                 collPerf: false
             };
             localStorage.setItem(K_INC, JSON.stringify(includeFlags));
+            refreshIncludeSwitchLabels();
+            if (el && el.closest) {
+                const row = el.closest('.setting-switch');
+                if (row) {
+                    row.classList.remove('is-flash');
+                    void row.offsetWidth;
+                    row.classList.add('is-flash');
+                }
+            }
             updateUI();
         }
         function saveAllocTargets() {
@@ -1594,14 +2241,6 @@
             updateUI();
             alert('配置目標已儲存。');
         }
-        function saveSyncSettings(silent) {
-            syncSettings = {
-                url: document.getElementById('sync-url').value.trim(),
-                token: document.getElementById('sync-token').value
-            };
-            localStorage.setItem(K_SYNC, JSON.stringify(syncSettings));
-            if (!silent) alert('同步設定已儲存。');
-        }
 
         function openSettingsModal() {
             const el = document.getElementById('settings-modal');
@@ -1610,7 +2249,7 @@
             ['pwd-current', 'pwd-new', 'pwd-new2'].forEach(id => { document.getElementById(id).value = ''; });
             syncIncludeToUI();
             syncAllocToUI();
-            syncRemoteToUI();
+            initSettingsAccordion();
         }
         function closeSettingsModal() {
             const el = document.getElementById('settings-modal');
@@ -1619,6 +2258,21 @@
             ['pwd-current', 'pwd-new', 'pwd-new2'].forEach(id => { document.getElementById(id).value = ''; });
             const ta = document.getElementById('import-json-text');
             if (ta) ta.value = '';
+        }
+        function initSettingsAccordion() {
+            const root = document.querySelector('.settings-accordion');
+            if (!root || root._accordionBound) return;
+            root._accordionBound = true;
+            root.addEventListener('toggle', (e) => {
+                const t = e.target;
+                if (!t || t.tagName !== 'DETAILS') return;
+                if (!t.classList.contains('settings-fold')) return;
+                if (t.parentElement !== root) return;
+                if (!t.open) return;
+                Array.prototype.forEach.call(root.children, (d) => {
+                    if (d !== t && d.tagName === 'DETAILS') d.open = false;
+                });
+            });
         }
         function submitChangePassword() {
             const cur = document.getElementById('pwd-current').value;
@@ -1686,15 +2340,74 @@
             if (inc.goldWorth) tot += gV;
             if (inc.collWorth) tot += cV;
             const rows = [
-                { key: 'stock', name: '股票', color: 'rgba(14, 165, 233, 0.95)', cur: inc.stockWorth ? sV : 0, cls: 'c-stock' },
-                { key: 'gold', name: '黃金', color: 'rgba(245, 158, 11, 0.95)', cur: inc.goldWorth ? gV : 0, cls: 'c-gold' }
-            ];
-            panel.innerHTML = rows.map(r => {
+                {
+                    key: 'stock',
+                    name: '股票',
+                    color: '#0891b2',
+                    grad: 'linear-gradient(90deg, #0e7490, #22d3ee)',
+                    cur: inc.stockWorth ? sV : 0,
+                    target: num(allocTargets.stock),
+                    cls: 'c-stock'
+                },
+                {
+                    key: 'gold',
+                    name: '黃金',
+                    color: '#d97706',
+                    grad: 'linear-gradient(90deg, #b45309, #fbbf24)',
+                    cur: inc.goldWorth ? gV : 0,
+                    target: num(allocTargets.gold),
+                    cls: 'c-gold'
+                }
+            ].filter(r => r.cur > 0);
+
+            if (!rows.length) {
+                panel.innerHTML = '<div class="alloc-empty">尚無計入資產 — 登錄持倉或調整「總覽計入設定」後即可顯示配置</div>';
+                return;
+            }
+
+            panel.innerHTML = rows.map((r, idx) => {
                 const pct = tot > 0 ? (r.cur / tot * 100) : 0;
-                const curStr = isPrivacyMode ? '****' : pct.toFixed(1) + '%';
-                return `<div class="flex justify-between gap-2 items-center"><span class="${r.cls} font-bold inline-flex items-center gap-1.5"><span class="alloc-dot" style="background:${r.color}"></span>${r.name}</span><span class="text-muted">${curStr}</span></div>`;
+                const pctStr = isPrivacyMode ? '****' : (pct >= 99.95 ? '100' : pct.toFixed(1)) + '%';
+                const amtStr = isPrivacyMode ? '****' : 'NT$' + Math.round(r.cur).toLocaleString('zh-TW');
+                const tgt = Math.max(0, Math.min(100, r.target));
+                const delta = tot > 0 && !isPrivacyMode ? (pct - tgt) : null;
+                let deltaStr = '目標 ' + (tgt > 0 ? tgt.toFixed(0) + '%' : '—');
+                if (delta != null && tgt > 0) {
+                    const sign = delta > 0.05 ? '+' : delta < -0.05 ? '' : '±';
+                    deltaStr = '目標 ' + tgt.toFixed(0) + '% · 偏離 ' + sign + Math.abs(delta).toFixed(1) + '%';
+                }
+                const active = allocFocusIndex === idx ? ' is-active' : '';
+                const dim = allocFocusIndex != null && allocFocusIndex !== idx ? ' is-dim' : '';
+                return `<button type="button" class="alloc-legend-row${active}${dim}" data-key="${r.key}" data-idx="${idx}" onclick="focusAllocSegment(${idx})">
+                    <div class="alloc-legend-top">
+                        <span class="alloc-legend-swatch" style="background:${r.grad}"></span>
+                        <span class="alloc-legend-name ${r.cls}">${r.name}</span>
+                    </div>
+                    <span class="alloc-legend-pct">${pctStr}</span>
+                    <div class="alloc-legend-meta">
+                        <div class="alloc-bar">
+                            <i style="width:${Math.min(100, pct)}%;background:${r.grad}"></i>
+                            ${tgt > 0 ? `<span class="alloc-bar-target" style="left:${tgt}%"></span>` : ''}
+                        </div>
+                        <div class="alloc-legend-foot">
+                            <span>${amtStr}</span>
+                            <span>${deltaStr}</span>
+                        </div>
+                    </div>
+                </button>`;
             }).join('');
+
+            // trigger bar width paint after mount
+            requestAnimationFrame(() => {
+                panel.querySelectorAll('.alloc-bar > i').forEach((el) => {
+                    const w = el.style.width;
+                    el.style.width = '0';
+                    requestAnimationFrame(() => { el.style.width = w; });
+                });
+            });
         }
+
+        let allocLegendSnapshot = { labels: [], values: [], total: 0 };
 
         function updateUI() {
             const goldTWD_g = curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
@@ -1753,8 +2466,12 @@
                 const nowP = marketPrices[row.code] || 0;
                 const worth = nowP * row.shares;
                 const perf = totalPerfPct(worth, row.netCost, row.realized, row.soldCost);
+                const sparkCell = (typeof buildStockSumSparkCell === 'function')
+                    ? buildStockSumSparkCell(row.code)
+                    : '<td class="p-4 text-center text-faint">—</td>';
                 sumH += `<tr class="row-hover">
                     <td class="p-4 font-bold c-stock">${row.code}</td>
+                    ${sparkCell}
                     <td class="p-4 text-right">${isPrivacyMode ? '***' : row.shares.toLocaleString()}</td>
                     <td class="p-4 text-right">${fNum(row.netCost)}</td>
                     <td class="p-4 text-right">${fNum(row.dividend)}</td>
@@ -1764,7 +2481,7 @@
                 </tr>`;
             });
             const sumEl = document.getElementById('stock-sum-list');
-            if (sumEl) sumEl.innerHTML = sumH || '<tr><td colspan="7" class="p-8 text-center text-faint">尚無資料</td></tr>';
+            if (sumEl) sumEl.innerHTML = sumH || '<tr><td colspan="8" class="p-8 text-center text-faint">尚無資料</td></tr>';
 
             let gH = '';
             goldRecs.map((r, i) => ({...r, ori: i})).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(r => {
@@ -1807,6 +2524,11 @@
             cV = 0; cC = 0;
 
             document.getElementById('privacy-btn').innerText = isPrivacyMode ? "顯示數值" : "隱藏數值";
+            const pill = document.getElementById('privacy-status-pill');
+            if (pill) {
+                pill.textContent = isPrivacyMode ? '數值已隱藏' : '數值顯示中';
+                pill.className = 'privacy-status-pill ' + (isPrivacyMode ? 'is-on' : 'is-off');
+            }
             document.getElementById('chart-area').className = isPrivacyMode ? "chart-container privacy-masked" : "chart-container";
 
             const sSoldCost = sumSellBuyCost(stockSells);
@@ -1854,15 +2576,41 @@
             document.getElementById('total-realized').innerText = fNum(tReal);
             document.getElementById('total-all-perf').innerText = fNum(tPerf, false);
             document.getElementById('total-xirr').innerText = fXirr(xirr(buildTotalCashflows(sV, gV, cV, inc)));
-            document.getElementById('center-total-worth').innerText = fNum(tV);
 
-            renderAllocTargets(sV, gV, cV, inc);
             renderCharts(gV, sV, cV, inc);
             refreshCodeSelects();
             renderReport();
         }
 
         let trendChartObj, allocChartObj;
+        let trendRange = 'all';
+        let lastChartArgs = null;
+        let allocFocusIndex = null;
+        let allocCenterDefault = { label: '淨值', value: '--', sub: '' };
+
+        const crosshairPlugin = {
+            id: 'crosshairLine',
+            afterDraw(chart) {
+                if (chart.config.type !== 'line') return;
+                const active = chart.tooltip && chart.tooltip.getActiveElements
+                    ? chart.tooltip.getActiveElements()
+                    : (chart.tooltip && chart.tooltip._active) || [];
+                if (!active || !active.length) return;
+                const x = active[0].element.x;
+                const { top, bottom } = chart.chartArea;
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x, top);
+                ctx.lineTo(x, bottom);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(11, 18, 32, 0.28)';
+                ctx.setLineDash([5, 4]);
+                ctx.stroke();
+                ctx.restore();
+            }
+        };
+
         function trendAreaGradient(ctx, chartArea, c1, c2) {
             if (!chartArea) return c2;
             const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
@@ -1870,41 +2618,258 @@
             g.addColorStop(1, c2);
             return g;
         }
+        function syncTrendRangeUI() {
+            document.querySelectorAll('.chart-range-btn').forEach((btn) => {
+                btn.classList.toggle('is-active', btn.getAttribute('data-range') === trendRange);
+            });
+        }
+        function setTrendRange(range) {
+            trendRange = range || 'all';
+            syncTrendRangeUI();
+            if (lastChartArgs) {
+                renderCharts(lastChartArgs.gV, lastChartArgs.sV, lastChartArgs.cV, lastChartArgs.inc);
+            }
+        }
+        function filterTrendByRange(labels, datasets) {
+            if (trendRange === 'all' || !labels.length) return { labels, datasets };
+            const months = { '1m': 1, '3m': 3, '6m': 6, '1y': 12 }[trendRange];
+            if (!months) return { labels, datasets };
+            const last = new Date(labels[labels.length - 1]);
+            if (isNaN(last.getTime())) return { labels, datasets };
+            const cutoff = new Date(last);
+            cutoff.setMonth(cutoff.getMonth() - months);
+            let start = 0;
+            for (let i = 0; i < labels.length; i++) {
+                const d = new Date(labels[i]);
+                if (!isNaN(d.getTime()) && d >= cutoff) { start = i; break; }
+            }
+            return {
+                labels: labels.slice(start),
+                datasets: datasets.map((ds) => ({
+                    ...ds,
+                    data: Array.isArray(ds.data) ? ds.data.slice(start) : ds.data
+                }))
+            };
+        }
+        function resetTrendReadout() {
+            const el = document.getElementById('trend-readout');
+            if (!el) return;
+            el.innerHTML = '<div class="chart-readout-hint" id="trend-readout-hint">將游標移到圖表上，即可檢視當日淨值、投入與漲跌；點圖例可開關系列。</div>';
+        }
+        function updateTrendReadout(chart, dataIndex) {
+            const el = document.getElementById('trend-readout');
+            if (!el || dataIndex == null || dataIndex < 0) return;
+            const labels = chart.data.labels || [];
+            const dateLbl = labels[dataIndex];
+            const fmtMoney = (n) => 'NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
+            const fmtTickDate = (s) => {
+                if (!s) return '';
+                const d = new Date(s);
+                return isNaN(d.getTime()) ? s : d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'short', day: 'numeric' });
+            };
+            const findVal = (name) => {
+                const ds = chart.data.datasets.find((d) => d.label === name);
+                if (!ds || !chart.isDatasetVisible(chart.data.datasets.indexOf(ds))) return null;
+                return Number(ds.data[dataIndex]) || 0;
+            };
+            const worth = findVal('合計（總現值）');
+            const cost = findVal('合計（累計投入）');
+            const prevWorth = dataIndex > 0 ? (() => {
+                const ds = chart.data.datasets.find((d) => d.label === '合計（總現值）');
+                return ds ? Number(ds.data[dataIndex - 1]) || 0 : null;
+            })() : null;
+            let deltaHtml = '';
+            if (worth != null && prevWorth != null && !isPrivacyMode) {
+                const delta = worth - prevWorth;
+                const cls = delta > 0 ? 'c-gain' : delta < 0 ? 'c-loss' : '';
+                const sign = delta > 0 ? '+' : '';
+                deltaHtml = '<div class="chart-readout-item"><span class="k">較前點</span><span class="v ' + cls + '">' + sign + fmtMoney(delta) + '</span></div>';
+            }
+            const pnl = (worth != null && cost != null && cost > 0 && !isPrivacyMode)
+                ? ((worth - cost) / cost * 100)
+                : null;
+            el.innerHTML =
+                '<div class="chart-readout-item"><span class="k">日期</span><span class="v">' + fmtTickDate(String(dateLbl || '')) + '</span></div>' +
+                '<div class="chart-readout-item"><span class="k">總現值</span><span class="v">' + (isPrivacyMode || worth == null ? '****' : fmtMoney(worth)) + '</span></div>' +
+                '<div class="chart-readout-item"><span class="k">累計投入</span><span class="v">' + (isPrivacyMode || cost == null ? '****' : fmtMoney(cost)) + '</span></div>' +
+                (pnl != null
+                    ? '<div class="chart-readout-item"><span class="k">浮盈虧</span><span class="v ' + (pnl >= 0 ? 'c-gain' : 'c-loss') + '">' + (pnl >= 0 ? '+' : '') + pnl.toFixed(2) + '%</span></div>'
+                    : '') +
+                deltaHtml;
+        }
+        function fitAllocCenterText() {
+            const center = document.getElementById('alloc-center');
+            const v = document.getElementById('center-total-worth');
+            const s = document.getElementById('alloc-center-sub');
+            if (!center || !v) return;
+            const maxW = Math.max(40, center.clientWidth - 12);
+            const fit = (el, startRem, minRem) => {
+                if (!el || !el.textContent) return;
+                el.style.fontSize = startRem + 'rem';
+                let size = startRem;
+                while (el.scrollWidth > maxW && size > minRem) {
+                    size = Math.round((size - 0.04) * 100) / 100;
+                    el.style.fontSize = size + 'rem';
+                }
+            };
+            fit(v, 1.2, 0.62);
+            fit(s, 0.62, 0.48);
+        }
+        function setAllocCenter(label, valueHtml, sub) {
+            const l = document.getElementById('alloc-center-label');
+            const v = document.getElementById('center-total-worth');
+            const s = document.getElementById('alloc-center-sub');
+            const center = document.getElementById('alloc-center');
+            if (l) l.textContent = label;
+            if (v) {
+                v.innerHTML = valueHtml;
+                v.style.fontSize = '';
+            }
+            if (s) {
+                s.textContent = sub || '';
+                s.style.fontSize = '';
+            }
+            if (center) {
+                center.classList.remove('is-pulse');
+                void center.offsetWidth;
+                center.classList.add('is-pulse');
+            }
+            requestAnimationFrame(() => fitAllocCenterText());
+        }
+        function syncAllocLegendActive() {
+            document.querySelectorAll('.alloc-legend-row').forEach((row) => {
+                const idx = Number(row.getAttribute('data-idx'));
+                row.classList.toggle('is-active', allocFocusIndex === idx);
+                row.classList.toggle('is-dim', allocFocusIndex != null && allocFocusIndex !== idx);
+            });
+            const wrap = document.getElementById('alloc-chart-wrap');
+            if (wrap) wrap.classList.toggle('is-focused', allocFocusIndex != null);
+        }
+        function applyAllocFocus(idx) {
+            if (!allocChartObj || !allocLegendSnapshot.labels.length) return;
+            if (allocLegendSnapshot.labels[0] === '尚無計入項目') return;
+            const fmtMoney = (n) => 'NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
+            if (allocFocusIndex === idx) {
+                resetAllocCenter();
+                return;
+            }
+            allocFocusIndex = idx;
+            const val = Number(allocLegendSnapshot.values[idx]) || 0;
+            const total = allocLegendSnapshot.total;
+            const pct = total > 0 ? (val / total) * 100 : 0;
+            const pctStr = pct >= 99.95 ? '100' : pct >= 10 ? pct.toFixed(1) : pct.toFixed(2);
+            setAllocCenter(
+                allocLegendSnapshot.labels[idx],
+                isPrivacyMode ? '****' : fmtMoney(val),
+                isPrivacyMode ? '占比 ****%' : ('占淨值 ' + pctStr + '%')
+            );
+            allocChartObj.update('active');
+            syncAllocLegendActive();
+        }
+        function focusAllocSegment(idx) {
+            applyAllocFocus(idx);
+        }
+        function resetAllocCenter() {
+            allocFocusIndex = null;
+            setAllocCenter(allocCenterDefault.label, allocCenterDefault.value, allocCenterDefault.sub);
+            if (allocChartObj) allocChartObj.update('none');
+            syncAllocLegendActive();
+        }
+        function makeAllocGradient(ctx, chartArea, c1, c2) {
+            if (!chartArea) return c1;
+            const g = ctx.createLinearGradient(chartArea.left, chartArea.top, chartArea.right, chartArea.bottom);
+            g.addColorStop(0, c1);
+            g.addColorStop(1, c2);
+            return g;
+        }
         function renderCharts(gV, sV, cV, inc) {
-            Chart.defaults.color = '#64748b';
+            lastChartArgs = { gV, sV, cV, inc };
+            Chart.defaults.color = '#5b6b7f';
             Chart.defaults.font.family = "'Outfit', 'Noto Sans TC', sans-serif";
 
+            const fmtMoney = (n) => 'NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
+            const fmtTickDate = (s) => {
+                if (!s) return '';
+                const d = new Date(s);
+                return isNaN(d.getTime()) ? s : d.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', year: 'numeric' });
+            };
+
             const ctxA = document.getElementById('allocationChart').getContext('2d');
-            if(allocChartObj) allocChartObj.destroy();
-            const al = [], ad = [], ac = [];
-            if (inc.goldWorth && gV > 0) { al.push('黃金'); ad.push(gV); ac.push('rgba(245, 158, 11, 0.9)'); }
-            if (inc.stockWorth && sV > 0) { al.push('股票'); ad.push(sV); ac.push('rgba(14, 165, 233, 0.9)'); }
-            if (inc.collWorth && cV > 0) { al.push('收藏'); ad.push(cV); ac.push('rgba(244, 63, 94, 0.88)'); }
+            if (allocChartObj) allocChartObj.destroy();
+            const al = [], ad = [], acPairs = [];
+            // 順序與圖例一致：股票 → 黃金
+            if (inc.stockWorth && sV > 0) { al.push('股票'); ad.push(sV); acPairs.push(['#0e7490', '#22d3ee']); }
+            if (inc.goldWorth && gV > 0) { al.push('黃金'); ad.push(gV); acPairs.push(['#b45309', '#fbbf24']); }
+            if (inc.collWorth && cV > 0) { al.push('收藏'); ad.push(cV); acPairs.push(['#be123c', '#fb7185']); }
             let adUse = ad.length ? ad : [1];
             let alUse = al.length ? al : ['尚無計入項目'];
-            let acUse = ac.length ? ac : ['rgba(148, 163, 184, 0.45)'];
+            const totalAlloc = ad.reduce((a, b) => a + b, 0);
+            allocLegendSnapshot = { labels: alUse.slice(), values: adUse.slice(), total: totalAlloc };
+            allocCenterDefault = {
+                label: '淨值',
+                value: isPrivacyMode ? '****' : (totalAlloc > 0 ? fmtMoney(totalAlloc) : '--'),
+                sub: totalAlloc > 0 ? (al.length + ' 類資產') : '尚無資料'
+            };
+            allocFocusIndex = null;
+            setAllocCenter(allocCenterDefault.label, allocCenterDefault.value, allocCenterDefault.sub);
+            syncAllocLegendActive();
+
             allocChartObj = new Chart(ctxA, {
                 type: 'doughnut',
                 data: {
                     labels: alUse,
-                    datasets: [{ data: adUse, backgroundColor: acUse, borderWidth: 0, hoverOffset: 4 }]
+                    datasets: [{
+                        data: adUse,
+                        backgroundColor: (context) => {
+                            const chart = context.chart;
+                            const { ctx, chartArea } = chart;
+                            if (!chartArea || !acPairs.length) return 'rgba(148, 163, 184, 0.4)';
+                            const i = context.dataIndex;
+                            if (alUse[0] === '尚無計入項目') return 'rgba(148, 163, 184, 0.35)';
+                            const pair = acPairs[i] || ['#94a3b8', '#cbd5e1'];
+                            if (allocFocusIndex != null && allocFocusIndex !== i) {
+                                return 'rgba(148, 163, 184, 0.16)';
+                            }
+                            return makeAllocGradient(ctx, chartArea, pair[0], pair[1]);
+                        },
+                        borderColor: 'rgba(255,255,255,0.95)',
+                        borderWidth: ad.length > 1 ? 5 : 0,
+                        hoverBorderWidth: ad.length > 1 ? 5 : 0,
+                        borderRadius: 20,
+                        hoverOffset: 14,
+                        spacing: ad.length > 1 ? 4 : 0
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '72%',
+                    cutout: '76%',
+                    rotation: -90,
                     layout: { padding: 6 },
+                    onClick: (evt, elements) => {
+                        if (!elements.length || alUse[0] === '尚無計入項目') {
+                            resetAllocCenter();
+                            return;
+                        }
+                        applyAllocFocus(elements[0].index);
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            enabled: true,
                             usePointStyle: true,
+                            backgroundColor: 'rgba(11, 18, 32, 0.92)',
+                            titleFont: { size: 12, weight: '600' },
+                            bodyFont: { size: 11 },
+                            padding: 10,
+                            cornerRadius: 10,
                             callbacks: {
                                 labelPointStyle: () => ({ pointStyle: 'circle', rotation: 0 }),
                                 label: (ctx) => {
                                     if (ctx.label === '尚無計入項目') return isPrivacyMode ? ' ****' : ' —';
                                     const val = Number(ctx.raw) || 0;
                                     if (isPrivacyMode) return ' ****';
-                                    return ' NT$' + Math.round(val).toLocaleString('zh-TW');
+                                    return ' ' + fmtMoney(val);
                                 },
                                 afterLabel: (ctx) => {
                                     if (ctx.label === '尚無計入項目') return '';
@@ -1919,9 +2884,15 @@
                             }
                         }
                     },
-                    animation: { animateRotate: true, duration: 550 }
+                    animation: {
+                        animateRotate: true,
+                        duration: 900,
+                        easing: 'easeOutQuart'
+                    }
                 }
             });
+
+            renderAllocTargets(sV, gV, cV, inc);
 
             const timeline = [
                 ...stockRecs.map(r => ({ date: r.date, type: 's', rec: r })),
@@ -1972,43 +2943,35 @@
                 worthData.push(wS + wG + wC);
             });
 
-            const fmtMoney = (n) => 'NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
-            const fmtTickDate = (s) => {
-                if (!s) return '';
-                const d = new Date(s);
-                return isNaN(d.getTime()) ? s : d.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', year: 'numeric' });
-            };
-
             const ctxT = document.getElementById('trendChart').getContext('2d');
-            if(trendChartObj) trendChartObj.destroy();
+            if (trendChartObj) trendChartObj.destroy();
             const lineBase = {
-                tension: 0.35,
+                tension: 0.32,
                 fill: false,
                 pointRadius: 0,
-                pointHoverRadius: 6,
+                pointHoverRadius: 5,
                 pointHoverBorderWidth: 2,
                 pointHoverBorderColor: '#ffffff',
-                pointStyle: 'line'
+                pointStyle: 'circle'
             };
-            // 高對比：墨黑／綠／藍系／橘系分開；現值虛線、成本點線
             const trendDatasets = [
                 {
                     ...lineBase,
                     label: '合計（總現值）',
                     data: worthData,
-                    borderColor: '#0f172a',
-                    borderWidth: 3,
-                    pointHoverBackgroundColor: '#0f172a'
+                    borderColor: '#0b1220',
+                    borderWidth: 2.75,
+                    pointHoverBackgroundColor: '#0b1220'
                 },
                 {
                     ...lineBase,
                     label: '合計（累計投入）',
                     data: tData,
-                    borderColor: '#16a34a',
-                    borderWidth: 2.5,
+                    borderColor: '#059669',
+                    borderWidth: 2.25,
                     fill: true,
-                    pointHoverBackgroundColor: '#16a34a',
-                    backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(22, 163, 74, 0.16)', 'rgba(22, 163, 74, 0)')
+                    pointHoverBackgroundColor: '#059669',
+                    backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(5, 150, 105, 0.18)', 'rgba(5, 150, 105, 0)')
                 }
             ];
             if (incS) {
@@ -2016,19 +2979,19 @@
                     ...lineBase,
                     label: '股票（現值）',
                     data: sWorthData,
-                    borderColor: '#2563eb',
-                    borderWidth: 2.4,
-                    borderDash: [8, 4],
-                    pointHoverBackgroundColor: '#2563eb'
+                    borderColor: '#0891b2',
+                    borderWidth: 2.2,
+                    borderDash: [7, 4],
+                    pointHoverBackgroundColor: '#0891b2'
                 });
                 trendDatasets.push({
                     ...lineBase,
                     label: '股票（成本）',
                     data: sData,
-                    borderColor: '#1e3a8a',
-                    borderWidth: 2.1,
+                    borderColor: '#155e75',
+                    borderWidth: 1.8,
                     borderDash: [2, 3],
-                    pointHoverBackgroundColor: '#1e3a8a'
+                    pointHoverBackgroundColor: '#155e75'
                 });
             }
             if (incG) {
@@ -2036,38 +2999,50 @@
                     ...lineBase,
                     label: '黃金（現值）',
                     data: gWorthData,
-                    borderColor: '#ea580c',
-                    borderWidth: 2.4,
-                    borderDash: [8, 4],
-                    pointHoverBackgroundColor: '#ea580c'
+                    borderColor: '#d97706',
+                    borderWidth: 2.2,
+                    borderDash: [7, 4],
+                    pointHoverBackgroundColor: '#d97706'
                 });
                 trendDatasets.push({
                     ...lineBase,
                     label: '黃金（成本）',
                     data: gData,
                     borderColor: '#92400e',
-                    borderWidth: 2.1,
+                    borderWidth: 1.8,
                     borderDash: [2, 3],
                     pointHoverBackgroundColor: '#92400e'
                 });
             }
+
+            const filtered = filterTrendByRange(labels, trendDatasets);
+            resetTrendReadout();
+
             trendChartObj = new Chart(ctxT, {
                 type: 'line',
-                data: { labels, datasets: trendDatasets },
+                data: { labels: filtered.labels, datasets: filtered.datasets },
+                plugins: [crosshairPlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
+                    onHover: (evt, elements, chart) => {
+                        if (!elements.length) {
+                            resetTrendReadout();
+                            return;
+                        }
+                        updateTrendReadout(chart, elements[0].index);
+                    },
                     plugins: {
                         legend: {
                             display: true,
                             position: 'bottom',
                             labels: {
                                 usePointStyle: true,
-                                pointStyleWidth: 22,
-                                padding: 14,
+                                pointStyleWidth: 18,
+                                padding: 12,
                                 font: { size: 11 },
-                                color: '#334155',
+                                color: '#2a3648',
                                 generateLabels: (chart) => chart.data.datasets.map((ds, i) => ({
                                     text: ds.label,
                                     fillStyle: ds.borderColor,
@@ -2081,8 +3056,15 @@
                             }
                         },
                         tooltip: {
+                            enabled: true,
                             usePointStyle: true,
                             boxPadding: 4,
+                            backgroundColor: 'rgba(11, 18, 32, 0.92)',
+                            titleFont: { size: 12, weight: '600' },
+                            bodyFont: { size: 11 },
+                            padding: 12,
+                            cornerRadius: 10,
+                            displayColors: true,
                             callbacks: {
                                 title: (items) => {
                                     const lbl = items[0] && items[0].label;
@@ -2093,6 +3075,19 @@
                                     const name = ctx.dataset.label || '';
                                     if (isPrivacyMode) return ' ' + name + '：****';
                                     return ' ' + name + '：' + fmtMoney(ctx.raw);
+                                },
+                                afterBody: (items) => {
+                                    if (isPrivacyMode || !items.length) return [];
+                                    const idx = items[0].dataIndex;
+                                    const chart = items[0].chart;
+                                    const worthDs = chart.data.datasets.find((d) => d.label === '合計（總現值）');
+                                    const costDs = chart.data.datasets.find((d) => d.label === '合計（累計投入）');
+                                    if (!worthDs || !costDs) return [];
+                                    const worth = Number(worthDs.data[idx]) || 0;
+                                    const cost = Number(costDs.data[idx]) || 0;
+                                    if (cost <= 0) return [];
+                                    const pct = ((worth - cost) / cost) * 100;
+                                    return ['', '浮盈虧 ' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%'];
                                 }
                             }
                         }
@@ -2100,24 +3095,38 @@
                     scales: {
                         x: {
                             ticks: {
-                                color: '#64748b',
+                                color: '#5b6b7f',
                                 maxTicksLimit: 7,
                                 font: { size: 10 },
-                                callback: (v, i) => fmtTickDate(labels[i])
+                                callback: (v, i) => fmtTickDate(filtered.labels[i])
                             },
-                            grid: { display: false }
+                            grid: { display: false },
+                            border: { display: false }
                         },
                         y: {
                             ticks: {
-                                color: '#64748b',
-                                maxTicksLimit: 7,
+                                color: '#5b6b7f',
+                                maxTicksLimit: 6,
                                 font: { size: 10 },
-                                callback: (v) => fmtMoney(v)
-                            }
+                                callback: (v) => {
+                                    if (isPrivacyMode) return '****';
+                                    return 'NT$' + Math.round(Number(v) || 0).toLocaleString('zh-TW');
+                                }
+                            },
+                            grid: { color: 'rgba(11, 18, 32, 0.05)', drawBorder: false },
+                            border: { display: false },
+                            afterFit: (scale) => { scale.width = Math.max(scale.width, 88); }
                         }
-                    }
+                    },
+                    animation: { duration: 550, easing: 'easeOutQuart' }
                 }
             });
+
+            const canvas = document.getElementById('trendChart');
+            if (canvas && !canvas._leaveBound) {
+                canvas._leaveBound = true;
+                canvas.addEventListener('mouseleave', () => resetTrendReadout());
+            }
         }
 
         function inReportPeriod(dateStr, mode, periodVal) {
@@ -2513,66 +3522,6 @@
             }
         }
 
-        function generateSyncCode() {
-            try {
-                const raw = JSON.stringify(buildExportPayload());
-                const code = (typeof LZString !== 'undefined')
-                    ? LZString.compressToBase64(raw)
-                    : btoa(unescape(encodeURIComponent(raw)));
-                document.getElementById('sync-code-text').value = code;
-                alert('同步碼已產生，請複製到其他裝置。');
-            } catch (e) {
-                alert('產生同步碼失敗。');
-            }
-        }
-        function applySyncCode() {
-            const code = document.getElementById('sync-code-text').value.trim();
-            if (!code) { alert('請先貼上同步碼。'); return; }
-            try {
-                let raw;
-                if (typeof LZString !== 'undefined') {
-                    raw = LZString.decompressFromBase64(code);
-                    if (!raw) raw = decodeURIComponent(escape(atob(code)));
-                } else {
-                    raw = decodeURIComponent(escape(atob(code)));
-                }
-                const data = JSON.parse(raw);
-                applyImportedData(data);
-            } catch (e) {
-                alert('同步碼無法解析。');
-            }
-        }
-        async function remoteSyncUpload() {
-            const url = (document.getElementById('sync-url').value || syncSettings.url || '').trim();
-            const token = document.getElementById('sync-token').value || syncSettings.token || '';
-            if (!url) { alert('請先填寫同步 URL。'); return; }
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) headers['Authorization'] = 'Bearer ' + token;
-                const res = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(buildExportPayload()) });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                saveSyncSettings(true);
-                alert('上傳成功。');
-            } catch (e) {
-                alert('上傳失敗：' + (e.message || e) + '\n請確認端點允許跨網域 PUT。');
-            }
-        }
-        async function remoteSyncDownload() {
-            const url = (document.getElementById('sync-url').value || syncSettings.url || '').trim();
-            const token = document.getElementById('sync-token').value || syncSettings.token || '';
-            if (!url) { alert('請先填寫同步 URL。'); return; }
-            try {
-                const headers = {};
-                if (token) headers['Authorization'] = 'Bearer ' + token;
-                const res = await fetch(url, { method: 'GET', headers });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const data = await res.json();
-                applyImportedData(data);
-            } catch (e) {
-                alert('下載失敗：' + (e.message || e));
-            }
-        }
-
         function editStock(i) {
             const r = stockRecs[i];
             if (!r) return;
@@ -2834,6 +3783,7 @@
                 restoreDividendPanel();
                 renderHoldingPeriodDividendsFromCache();
             }
+            if (mode === 'sum' && typeof refreshSparklines === 'function') setTimeout(refreshSparklines, 40);
         }
         function switchGoldSub(mode) {
             document.getElementById('gold-panel-hold').classList.toggle('hidden', mode !== 'hold');
@@ -2874,7 +3824,6 @@
             localStorage.setItem(K_PRC_META, JSON.stringify(priceMeta));
             localStorage.setItem(K_INC, JSON.stringify(includeFlags));
             localStorage.setItem(K_ALLOC, JSON.stringify(allocTargets));
-            localStorage.setItem(K_SYNC, JSON.stringify(syncSettings));
             localStorage.setItem(K_CODES, JSON.stringify(stockCodes));
             if (lastDivCode) localStorage.setItem(K_DIV_LAST, lastDivCode);
             try { localStorage.setItem(K_DIV_CACHE, JSON.stringify(divHistoryCache)); } catch (e) { /* quota */ }
@@ -3167,6 +4116,11 @@
             (groups || []).forEach(g => (g.rows || []).forEach(r => out.push(r)));
             return out;
         }
+        function flattenDivEvents(groups) {
+            const out = [];
+            (groups || []).forEach(g => (g.rows || []).forEach(r => out.push(r)));
+            return out;
+        }
         function pickCurrentCashDiv(events) {
             const today = todayISO();
             const y = today.slice(0, 4);
@@ -3309,22 +4263,30 @@
                 renderExpectDividendRows(rows);
                 if (fails.length && empty) {
                     empty.classList.remove('hidden');
-                    empty.textContent = '部分標的無法取得：' + fails.join('、');
+                    empty.textContent = '部分標的無法計算：' + fails.join('、');
+                } else if (!rows.length && empty) {
+                    empty.classList.remove('hidden');
+                    empty.textContent = '找不到可用的現金股利資料。';
                 }
             } finally {
                 if (btn) { btn.disabled = false; btn.textContent = '計算當期股息'; }
             }
         }
-
         syncIncludeToUI();
         syncAllocToUI();
-        syncRemoteToUI();
         if (document.getElementById('report-period')) {
             document.getElementById('report-period').value = new Date().toISOString().slice(0, 7);
         }
         if (lastDivCode) rememberStockCode(lastDivCode);
+        window.addEventListener('resize', () => {
+            if (typeof fitAllocCenterText === 'function') fitAllocCenterText();
+        });
+    </script>
+    <script src="./app-extras.js"></script>
+    <script>
         updateUI();
         fetchAllPrices();
+        if (typeof initExtras === 'function') initExtras();
     </script>
 
 </body>
