@@ -1830,6 +1830,13 @@
             if (!grams || !buyG) return null;
             return num(r.cost) - grams * buyG;
         }
+        /** 金料成本（不含工費）；無購入金價時退回總成本 */
+        function goldMetalCost(r) {
+            const grams = goldToGrams(r.weight, r.unit);
+            const buyG = num(r.buyPriceG);
+            if (grams > 0 && buyG > 0) return grams * buyG;
+            return num(r.cost);
+        }
         function netSellProceeds(r) { return num(r.sellAmount); }
         function sellProfit(r) { return netSellProceeds(r) - num(r.buyCost); }
         function sellRatePct(r) { const c = num(r.buyCost); return c > 0 ? (sellProfit(r) / c * 100) : 0; }
@@ -2632,7 +2639,7 @@
                 const w = goldToGrams(r.weight, r.unit);
                 const val = w * goldTWD_g;
                 gV += val; gC += num(r.cost); gW += w;
-                const profit = val - num(r.cost);
+                const profit = val - goldMetalCost(r);
                 const labor = goldLaborCost(r);
                 const buyG = num(r.buyPriceG);
                 const buyCell = buyG > 0
@@ -3331,7 +3338,7 @@
                 sUn += nowP * num(r.shares) - netHoldingCashCost(r);
             });
             goldRecs.forEach(r => {
-                gUn += goldToGrams(r.weight, r.unit) * goldTWD_g - num(r.cost);
+                gUn += goldToGrams(r.weight, r.unit) * goldTWD_g - goldMetalCost(r);
             });
 
             const tReal = sReal + gReal;
