@@ -3578,12 +3578,31 @@
             saveAll(); clearCollSellForm(); updateUI();
         }
 
+        function buildGoldBuyPricesByDate() {
+            const m = {};
+            goldRecs.forEach(r => {
+                const v = num(r.buyPriceG);
+                if (r && r.date && v > 0) m[r.date] = v;
+            });
+            return m;
+        }
         function buildExportPayload() {
+            const goldBuyPricesByDate = buildGoldBuyPricesByDate();
             return {
-                stocks: stockRecs, golds: goldRecs, collects: collRecs,
+                stocks: stockRecs,
+                golds: goldRecs.map(r => {
+                    const o = { ...r };
+                    const v = num(o.buyPriceG);
+                    if (!(v > 0) && o.date && goldBuyPricesByDate[o.date] != null) {
+                        o.buyPriceG = goldBuyPricesByDate[o.date];
+                    }
+                    return o;
+                }),
+                collects: collRecs,
                 stockSells, goldSells, collSells,
                 prices: marketPrices, priceMeta, includeFlags, allocTargets,
-                stockCodes: collectStockCodes()
+                stockCodes: collectStockCodes(),
+                goldBuyPricesByDate
             };
         }
         function exportAllData() {
@@ -3628,6 +3647,7 @@
             if (data.goldBuyPricesByDate && typeof data.goldBuyPricesByDate === 'object') {
                 let n = 0;
                 goldRecs.forEach(r => {
+                    if (r.buyPriceG != null && num(r.buyPriceG) > 0) return;
                     const p = data.goldBuyPricesByDate[r.date];
                     if (p == null || p === '') return;
                     const v = num(p);
