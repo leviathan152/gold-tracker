@@ -398,6 +398,13 @@
             cursor: pointer;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
             transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            overflow: hidden;
+        }
+        .code-pick-btn > span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .code-pick-btn.is-empty { color: var(--muted); font-weight: 500; }
         .code-pick-btn:hover,
@@ -982,6 +989,9 @@
             flex-direction: column;
             height: 100%;
             min-height: 100%;
+            min-width: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
         .alloc-panel-head {
             display: flex;
@@ -997,11 +1007,17 @@
             justify-content: center;
             padding: 0.35rem 0 0.75rem;
             flex: 1;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
         }
         .alloc-halo {
             position: absolute;
-            width: 230px;
-            height: 230px;
+            inset: 0;
+            width: auto;
+            height: auto;
             border-radius: 50%;
             background:
                 radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), transparent 42%),
@@ -1013,12 +1029,13 @@
         }
         @keyframes alloc-breathe {
             from { transform: scale(0.96); opacity: 0.7; }
-            to { transform: scale(1.05); opacity: 1; }
+            to { transform: scale(1.02); opacity: 1; }
         }
         .alloc-ring-track {
             position: absolute;
-            width: 208px;
-            height: 208px;
+            inset: 5%;
+            width: auto;
+            height: auto;
             border-radius: 50%;
             border: 1px solid rgba(29, 29, 31, 0.06);
             box-shadow:
@@ -1028,17 +1045,19 @@
         }
         .alloc-chart-wrap {
             position: relative;
-            width: 220px;
-            height: 220px;
+            width: min(220px, 100%);
             max-width: 100%;
-            flex-shrink: 0;
-            overflow: visible;
+            aspect-ratio: 1 / 1;
+            height: auto;
+            flex: 0 0 auto;
+            overflow: hidden;
             cursor: pointer;
             z-index: 1;
+            container-type: size;
             transition: transform 0.45s var(--ease-out);
         }
-        .alloc-chart-wrap:hover { transform: scale(1.03); }
-        .alloc-chart-wrap.is-focused { transform: scale(1.04); }
+        .alloc-chart-wrap:hover { transform: scale(1.015); }
+        .alloc-chart-wrap.is-focused { transform: scale(1.02); }
         .alloc-chart-wrap canvas {
             display: block;
             width: 100% !important;
@@ -1080,7 +1099,7 @@
             flex-shrink: 0;
         }
         .alloc-center-value {
-            font-size: 1.15rem;
+            font-size: clamp(0.62rem, 12cqw, 1.15rem);
             font-weight: 800;
             letter-spacing: -0.04em;
             font-variant-numeric: tabular-nums;
@@ -1088,37 +1107,43 @@
             line-height: 1.15;
             max-width: 100%;
             width: 100%;
-            overflow: visible;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
             padding: 0;
             text-align: center;
         }
         .alloc-center-sub {
             margin-top: 0.22rem;
-            font-size: 0.58rem;
+            font-size: clamp(0.48rem, 7cqw, 0.58rem);
             font-weight: 700;
             color: var(--muted);
             letter-spacing: 0.02em;
             min-height: 0.85rem;
             max-width: 100%;
-            overflow: visible;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
             flex-shrink: 0;
         }
         .alloc-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 0.55rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.4rem;
             width: 100%;
             margin-top: 0.35rem;
+            flex-shrink: 0;
         }
+        .alloc-legend:has(> .alloc-legend-row:nth-child(2)) {
+            grid-template-columns: 1fr 1fr;
+        }
+        .alloc-empty { grid-column: 1 / -1; }
         .alloc-legend-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 0.35rem 0.75rem;
-            align-items: center;
-            padding: 0.7rem 0.8rem;
-            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.28rem;
+            padding: 0.42rem 0.6rem;
+            border-radius: 12px;
             border: 1px solid var(--line);
             background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.38));
             cursor: pointer;
@@ -1127,6 +1152,7 @@
             font: inherit;
             width: 100%;
             color: inherit;
+            min-width: 0;
         }
         .alloc-legend-row:hover {
             transform: translateY(-1px);
@@ -1150,37 +1176,39 @@
         }
         .alloc-legend-top {
             display: flex;
-            align-items: center;
-            gap: 0.55rem;
+            align-items: baseline;
+            gap: 0.4rem;
             min-width: 0;
         }
         .alloc-legend-swatch {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 4px;
             flex-shrink: 0;
+            align-self: center;
             box-shadow: 0 0 0 3px rgba(255,255,255,0.7);
         }
         .alloc-legend-name {
+            flex: 1;
+            min-width: 0;
             font-size: 0.72rem;
             font-weight: 800;
             letter-spacing: 0.04em;
         }
         .alloc-legend-pct {
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.02em;
             color: var(--ink);
+            flex-shrink: 0;
         }
         .alloc-legend-meta {
-            grid-column: 1 / -1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
+            min-width: 0;
         }
         .alloc-bar {
-            height: 5px;
+            width: 100%;
+            height: 4px;
             border-radius: 999px;
             background: rgba(29, 29, 31, 0.06);
             overflow: hidden;
@@ -1204,13 +1232,30 @@
             border-radius: 2px;
             transition: left 0.7s var(--ease-out);
         }
-        .alloc-legend-foot {
+        .alloc-legend-detail {
             display: flex;
             justify-content: space-between;
-            gap: 0.5rem;
-            font-size: 0.6rem;
+            align-items: baseline;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+        .alloc-legend-amt {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .alloc-legend-foot {
+            flex-shrink: 0;
+            font-size: 0.58rem;
             color: var(--muted);
             font-weight: 600;
+            white-space: nowrap;
         }
         .alloc-empty {
             text-align: center;
@@ -1494,6 +1539,36 @@
         .modal-panel-bottom-space {
             margin-bottom: max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
         }
+        .greet-modal-card {
+            max-width: 26rem;
+        }
+        .greet-row {
+            padding: 0.85rem 0.95rem;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.55);
+        }
+        .greet-kicker {
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.2rem;
+        }
+        .greet-main {
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            font-variant-numeric: tabular-nums;
+        }
+        .greet-sub {
+            margin-top: 0.28rem;
+            font-size: 0.72rem;
+            color: var(--muted);
+            line-height: 1.4;
+        }
 
         @media (max-width: 640px) {
             /* 維持 ≥16px，避免 iOS 聚焦時自動放大畫面 */
@@ -1510,14 +1585,14 @@
 
         .table-scroll {
             overflow: auto;
-            max-height: min(56vh, 32rem);
+            max-height: min(64vh, 40rem);
             -webkit-overflow-scrolling: touch;
             width: 100%;
             overscroll-behavior: contain;
             scrollbar-gutter: stable;
         }
         .table-scroll-tall {
-            max-height: min(70vh, 42rem);
+            max-height: min(74vh, 48rem);
         }
         .table-scroll > table {
             border-collapse: separate;
@@ -1530,13 +1605,9 @@
             background: rgba(248, 250, 252, 0.92);
             box-shadow: inset 0 -1px 0 var(--line);
         }
-        .table-scroll > table:not(.div-table) > thead > tr > th {
-            padding-top: 0.7rem !important;
-            padding-bottom: 0.7rem !important;
-        }
+        .table-scroll > table:not(.div-table) > thead > tr > th,
         .table-scroll > table:not(.div-table) > tbody > tr > td {
-            padding-top: 0.7rem !important;
-            padding-bottom: 0.7rem !important;
+            padding: 0.42rem 0.65rem !important;
         }
         .table-scroll .div-table thead th {
             position: sticky;
@@ -1551,8 +1622,131 @@
             box-shadow: inset 0 -1px 0 var(--line);
         }
         @media (max-width: 640px) {
-            .table-scroll { max-height: min(48vh, 26rem); }
-            .table-scroll-tall { max-height: min(62vh, 34rem); }
+            .table-scroll { max-height: min(52vh, 30rem); }
+            .table-scroll-tall { max-height: min(64vh, 38rem); }
+        }
+
+        .entry-card {
+            padding: 0.65rem 0.8rem !important;
+            margin-bottom: 0.55rem;
+        }
+        .entry-card:hover { transform: none; }
+        .entry-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.65rem;
+        }
+        .entry-grid {
+            flex: 1;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: minmax(8.5rem, 1.2fr) repeat(5, minmax(0, 1fr));
+            gap: 0.4rem 0.55rem;
+        }
+        .entry-actions {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: stretch;
+            gap: 0.4rem;
+        }
+        .entry-actions button {
+            min-width: 7.1rem;
+            height: 2.25rem;
+            padding: 0 0.85rem !important;
+            font-size: 0.75rem;
+            border-radius: 10px;
+            box-shadow: none;
+            white-space: nowrap;
+        }
+        .entry-hint {
+            margin: 0.38rem 0 0;
+            font-size: 10px;
+            line-height: 1.35;
+            color: var(--muted);
+        }
+        @media (max-width: 1100px) {
+            .entry-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 720px) {
+            .entry-row { flex-direction: column; align-items: stretch; }
+            .entry-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .entry-actions button { width: 100%; min-width: 0; height: 2.75rem; }
+            body[data-view="stock"] .app-shell,
+            body[data-view="gold"] .app-shell { overflow: auto; }
+            .record-table { min-height: 16rem; }
+            .record-table .table-scroll { max-height: min(52vh, 30rem); }
+            #stock-price-bar:not(.hidden) > p { display: none; }
+            #stock-price-bar:not(.hidden) button { height: 2.75rem; }
+        }
+
+        body[data-view="stock"] .site-header,
+        body[data-view="gold"] .site-header {
+            margin-bottom: 0.7rem;
+            padding-bottom: 0.55rem;
+        }
+        body[data-view="stock"] .app-shell,
+        body[data-view="gold"] .app-shell {
+            overflow: hidden;
+        }
+        body[data-view="stock"] #section-stock:not(.hidden),
+        body[data-view="gold"] #section-gold:not(.hidden) {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        #section-stock > .flex.gap-2,
+        #section-gold > .flex.gap-2 {
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+        #stock-panel-hold:not(.hidden),
+        #stock-panel-sell:not(.hidden),
+        #stock-panel-sum:not(.hidden),
+        #gold-panel-hold:not(.hidden),
+        #gold-panel-sell:not(.hidden) {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        #stock-panel-div:not(.hidden) {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+        }
+        .record-table {
+            flex: 1 1 0;
+            min-height: 12rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-bottom: 0 !important;
+        }
+        .record-table .table-scroll {
+            flex: 1 1 0;
+            max-height: none;
+            min-height: 0;
+        }
+        #stock-price-bar:not(.hidden) {
+            margin-bottom: 0.55rem;
+            padding: 0.55rem 0.75rem;
+            gap: 0.35rem;
+            flex-shrink: 0;
+        }
+        #stock-price-bar:not(.hidden) > p {
+            margin: 0;
+            line-height: 1.3;
+        }
+        #stock-price-bar:not(.hidden) > div {
+            flex-direction: row !important;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.45rem;
+        }
+        #stock-price-bar:not(.hidden) button {
+            height: 2.25rem;
+            padding: 0 0.8rem;
         }
 
         .tabs-row {
@@ -1721,12 +1915,12 @@
             min-height: -webkit-fill-available;
         }
         .app-sidebar {
-            width: 15.25rem;
+            width: 12.75rem;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
             gap: 1.15rem;
-            padding: max(1.15rem, env(safe-area-inset-top)) 0.85rem max(1.25rem, env(safe-area-inset-bottom)) max(0.85rem, env(safe-area-inset-left));
+            padding: max(1.15rem, env(safe-area-inset-top)) 0.7rem max(1.25rem, env(safe-area-inset-bottom)) max(0.7rem, env(safe-area-inset-left));
             background: rgba(255, 255, 255, 0.48);
             border-right: 1px solid var(--line);
             backdrop-filter: var(--glass);
@@ -1759,20 +1953,23 @@
         .app-sidebar nav {
             display: flex;
             flex-direction: column;
+            align-items: flex-start;
             gap: 0.12rem;
         }
         .app-nav-btn {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
-            width: 100%;
-            padding: 0.7rem 0.8rem 0.7rem 0.95rem;
+            gap: 0.5rem;
+            width: auto;
+            max-width: 100%;
+            min-width: 0;
+            padding: 0.5rem 0.72rem 0.5rem 0.62rem;
             border: 0;
-            border-radius: 12px;
+            border-radius: 10px;
             background: transparent;
             color: var(--ink-soft);
             font: inherit;
-            font-size: 0.88rem;
+            font-size: 0.84rem;
             font-weight: 600;
             cursor: pointer;
             text-align: left;
@@ -1793,17 +1990,20 @@
         .app-nav-btn.is-on::before {
             content: '';
             position: absolute;
-            left: 0;
-            top: 0.42rem;
-            bottom: 0.42rem;
-            width: 3px;
-            border-radius: 3px;
+            left: 0.18rem;
+            top: 0.48rem;
+            bottom: 0.48rem;
+            width: 2px;
+            border-radius: 2px;
             background: var(--stock);
         }
         .app-main {
             flex: 1;
             min-width: 0;
             padding: max(1rem, env(safe-area-inset-top)) max(0.85rem, env(safe-area-inset-right)) max(1.75rem, env(safe-area-inset-bottom)) 0.85rem;
+        }
+        body[data-view="overview"] .app-main {
+            padding-bottom: max(0.7rem, env(safe-area-inset-bottom));
         }
         .app-shell { max-width: none; width: 100%; margin: 0; }
         .site-header { margin-bottom: 1.25rem; }
@@ -1863,6 +2063,11 @@
             overflow: auto;
         }
         body[data-view="overview"] .app-shell { overflow: hidden; }
+        body[data-view="overview"] .site-header {
+            flex-shrink: 0;
+            margin-bottom: 0.55rem;
+            padding-bottom: 0.55rem;
+        }
         #view-overview.hidden,
         #view-peer.hidden,
         #section-stock.hidden,
@@ -1876,83 +2081,305 @@
             min-height: 0;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.65rem;
+            overflow: hidden;
         }
         #view-overview .ov-charts {
             flex: 1 1 0;
             min-height: 0;
             align-items: stretch;
         }
-        #view-overview .ov-stats { flex: 0 0 auto; }
+        #view-overview .ov-stats { flex: 0 0 auto; min-height: 0; }
         @media (min-width: 861px) {
             #view-overview:not(.hidden) {
                 display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-columns: repeat(6, minmax(0, 1fr));
                 grid-template-rows: minmax(0, 1fr) auto;
-                gap: 0.75rem;
+                gap: 0.65rem;
+                flex: 1 1 0;
+                min-height: 0;
             }
             #view-overview .ov-charts,
             #view-overview .ov-stats {
                 display: contents;
             }
             #view-overview .ov-charts > .card:first-child {
+                grid-column: 1 / span 4;
+                grid-row: 1;
+                min-height: 0;
+            }
+            #view-overview .alloc-panel {
+                grid-column: 5 / span 2;
+                grid-row: 1 / -1;
+                align-self: stretch;
+            }
+            #view-overview .ov-charts > .card.alloc-panel {
+                height: auto;
+                min-height: 0;
+                overflow: hidden;
+            }
+            #view-overview .stat-card.stock,
+            #view-overview .stat-card.gold {
+                grid-row: 2;
+                height: auto;
+            }
+            #view-overview .stat-card.stock {
                 grid-column: 1 / span 2;
+            }
+            #view-overview .stat-card.gold {
+                grid-column: 3 / span 2;
             }
         }
         #view-overview .ov-charts > .card,
         #view-overview .ov-stats > .card {
             min-height: 0;
+            min-width: 0;
             height: 100%;
-            padding: clamp(0.65rem, 1.3vh, 1.1rem) clamp(0.8rem, 1.1vw, 1.2rem);
+            padding: clamp(0.5rem, 1.1vh, 0.9rem) clamp(0.7rem, 1vw, 1.1rem);
         }
         #view-overview .ov-charts > .card {
             display: flex;
             flex-direction: column;
         }
         body[data-view="overview"] #view-overview .card:hover { transform: none; }
-        #view-overview .chart-panel-head { margin-bottom: 0.45rem; }
+        #view-overview .chart-panel-head { margin-bottom: 0.3rem; }
         #view-overview .chart-readout {
             min-height: 0;
-            margin-bottom: 0.45rem;
-            padding: 0.48rem 0.7rem;
+            margin-bottom: 0.3rem;
+            padding: 0.32rem 0.55rem;
         }
         #view-overview .chart-container {
             flex: 1 1 0;
             height: auto;
-            min-height: 8rem;
+            min-height: 4.5rem;
         }
         #view-overview .chart-hint { display: none; }
-        #view-overview .alloc-panel-head { margin-bottom: 0.45rem; }
-        #view-overview .alloc-stage { padding: 0.15rem 0 0.35rem; min-height: 0; }
-        #view-overview .alloc-chart-wrap,
-        #view-overview .alloc-halo,
-        #view-overview .alloc-ring-track {
-            width: min(200px, 24vh, 100%);
-            height: min(200px, 24vh);
+        #view-overview .alloc-panel-head { margin-bottom: 0.2rem; flex-shrink: 0; }
+        #view-overview .alloc-stage {
+            flex: 1 1 0;
+            min-height: 7.5rem;
+            height: auto;
+            padding: 0;
+            container-type: size;
         }
-        #view-overview .alloc-legend { margin-top: 0.2rem; }
-        #view-overview .ov-metrics {
+        #view-overview .alloc-overview {
+            position: relative;
+            flex: 0 0 auto;
+            margin-top: 0.35rem;
+            padding: 0.04rem 0 0 0.65rem;
+        }
+        #view-overview .alloc-overview::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.08rem;
+            bottom: 0.08rem;
+            width: 3px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, var(--sage-deep), var(--sage));
+        }
+        #view-overview .alloc-overview .ov-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.16rem 0.7rem;
+        }
+        #view-overview .alloc-overview .ov-metrics > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            min-width: 0;
+            gap: 0.35rem;
+        }
+        #view-overview .alloc-overview .ov-metrics > div > span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        #view-overview .alloc-overview .ov-metrics .text-lg {
+            font-size: clamp(0.72rem, 1.25vh, 0.9rem);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #view-overview .alloc-overview .ov-metrics .text-sm {
+            font-size: clamp(0.66rem, 1.1vh, 0.78rem);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #view-overview .alloc-overview .text-xs { font-size: 0.58rem; }
+        #view-overview .alloc-chart-wrap {
+            width: min(100%, 100cqh);
+            height: auto;
+            aspect-ratio: 1 / 1;
+        }
+        #view-overview .alloc-legend {
+            margin-top: 0.1rem;
+            gap: 0.22rem;
+            flex-shrink: 0;
+        }
+        #view-overview .alloc-legend-row {
+            padding: 0.28rem 0.42rem;
+            gap: 0.18rem;
+        }
+        #view-overview .alloc-legend-foot {
+            font-size: 0.52rem;
+        }
+        #view-overview .alloc-legend-amt {
+            font-size: 0.58rem;
+        }
+        #view-overview .stat-card {
             display: flex;
             flex-direction: column;
-            gap: clamp(0.28rem, 0.7vh, 0.48rem);
+            justify-content: flex-start;
         }
-        #view-overview .ov-metrics .text-lg { font-size: clamp(0.95rem, 1.5vh, 1.15rem); }
-        #view-overview .ov-metrics .text-sm { font-size: clamp(0.75rem, 1.2vh, 0.88rem); }
+        #view-overview .stat-card .ov-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        #view-overview .stat-card .ov-metrics-main,
+        #view-overview .stat-card .ov-metrics-sub {
+            display: grid;
+            gap: 0.28rem 0.7rem;
+        }
+        #view-overview .stat-card .ov-metrics-main {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        #view-overview .stat-card .ov-metrics-sub {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            padding-top: 0.32rem;
+            border-top: 1px solid var(--line);
+        }
+        #view-overview .stat-card .ov-metrics-main > div,
+        #view-overview .stat-card .ov-metrics-sub > div {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 0.08rem;
+            min-width: 0;
+        }
+        #view-overview .stat-card .ov-metrics .text-lg {
+            font-size: clamp(0.84rem, 1.4vh, 1.02rem);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+        #view-overview .stat-card .ov-metrics .text-sm {
+            font-size: clamp(0.74rem, 1.35vh, 0.92rem);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #view-overview .stat-card .text-xs {
+            font-size: 0.6rem;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+        }
+        #view-overview .stat-card .stat-label { margin-bottom: 0.22rem; }
         @media (max-width: 860px) {
-            body[data-view="overview"] .app-shell { overflow: auto; }
+            body[data-view="overview"] .app-shell { overflow: hidden; }
+            body[data-view="overview"] .site-header {
+                flex-direction: row;
+                align-items: center;
+                gap: 0.55rem;
+                margin-bottom: 0.45rem;
+                padding-bottom: 0.45rem;
+            }
+            body[data-view="overview"] .header-actions {
+                align-self: center;
+                justify-content: flex-end;
+            }
+            body[data-view="overview"] .header-btn { flex: none; }
             #view-overview:not(.hidden) {
-                flex: none;
+                flex: 1 1 0;
+                min-height: 0;
                 height: auto;
-                display: block;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            #view-overview .ov-charts {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                flex: 1 1 0;
+                min-height: 0;
             }
             #view-overview .ov-charts > .card { height: auto; }
-            #view-overview .chart-container { flex: none; height: 220px; }
-            #view-overview .alloc-chart-wrap,
-            #view-overview .alloc-halo,
-            #view-overview .alloc-ring-track {
-                width: 180px;
-                height: 180px;
+            #view-overview .chart-readout { display: none; }
+            body[data-view="overview"] .header-subtitle { display: none; }
+            #view-overview .ov-charts > .card:first-child {
+                flex: 0.5 1 0;
+                min-height: 5.5rem;
             }
+            #view-overview .alloc-panel {
+                flex: 2 1 0;
+                min-height: 0;
+                height: auto;
+                overflow: hidden;
+            }
+            #view-overview .alloc-overview .stat-label { display: none; }
+            #view-overview .alloc-overview {
+                margin-top: 0.28rem;
+                padding: 0.04rem 0 0 0.6rem;
+            }
+            #view-overview .alloc-overview .ov-metrics {
+                gap: 0.06rem 0.4rem;
+            }
+            #view-overview .chart-container {
+                flex: 1 1 0;
+                height: auto;
+                min-height: 5.5rem;
+            }
+            #view-overview .alloc-stage {
+                flex: 1.4 1 8.5rem;
+                min-height: 8.5rem;
+                height: auto;
+                container-type: size;
+            }
+            #view-overview .alloc-legend {
+                gap: 0.2rem;
+                margin-top: 0.08rem;
+            }
+            #view-overview .alloc-legend-row {
+                padding: 0.18rem 0.32rem;
+                gap: 0.1rem;
+            }
+            #view-overview .ov-stats {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.45rem;
+                flex: 0 0 auto;
+            }
+            #view-overview .ov-stats > .card {
+                padding: 0.4rem 0.5rem;
+            }
+            #view-overview .ov-stats .ov-metrics-main {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.12rem 0.4rem;
+            }
+            #view-overview .ov-stats .ov-metrics-sub {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.12rem 0.4rem;
+                padding-top: 0.2rem;
+            }
+            #view-overview .ov-stats .text-lg { font-size: 0.72rem; }
+            #view-overview .ov-stats .text-sm { font-size: 0.64rem; }
+            #view-overview .ov-stats .text-xs { font-size: 0.52rem; }
+            .alloc-chart-wrap:hover,
+            .alloc-chart-wrap.is-focused { transform: none; }
+        }
+        @media (hover: none) {
+            .alloc-chart-wrap:hover,
+            .alloc-chart-wrap.is-focused { transform: none; }
         }
     </style>
 </head>
@@ -2041,9 +2468,9 @@
                     <span class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
                 </div>
                 <div class="alloc-stage">
-                    <div class="alloc-halo" aria-hidden="true"></div>
-                    <div class="alloc-ring-track" aria-hidden="true"></div>
                     <div class="alloc-chart-wrap" id="alloc-chart-wrap" title="點擊區塊或下方圖例檢視細節">
+                        <div class="alloc-halo" aria-hidden="true"></div>
+                        <div class="alloc-ring-track" aria-hidden="true"></div>
                         <canvas id="allocationChart"></canvas>
                         <div class="alloc-chart-center" id="alloc-center">
                             <span class="alloc-center-kicker" id="alloc-center-label" data-i18n="chart.net">淨值</span>
@@ -2053,45 +2480,52 @@
                     </div>
                 </div>
                 <div id="alloc-target-panel" class="alloc-legend"></div>
+                <div class="alloc-overview">
+                    <h3 class="stat-label c-sage mb-1" data-i18n="card.overview">總覽</h3>
+                    <div class="ov-metrics">
+                        <div><span class="text-xs text-muted">總投入成本</span><span id="total-all-cost" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted">總累計股利</span><span id="total-all-dividend" class="text-lg font-bold c-sage">--</span></div>
+                        <div><span class="text-xs text-muted">總資產現值</span><span id="total-all-worth" class="text-lg font-bold c-sage">--</span></div>
+                        <div><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="total-unreal" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間）">總報酬率</span><span id="total-all-perf" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="total-xirr" class="text-lg font-bold c-sage">--</span></div>
+                    </div>
+                </div>
                 <div id="rebalance-panel"></div>
             </div>
         </section>
 
-        <section class="ov-stats grid grid-cols-1 md:grid-cols-3 gap-3 section-rise">
+        <section class="ov-stats grid grid-cols-1 md:grid-cols-2 gap-3 section-rise">
             <div class="card stat-card stock">
-                <h3 class="stat-label c-stock mb-2" data-i18n="card.stock">股票管理</h3>
+                <h3 class="stat-label c-stock mb-1" data-i18n="card.stock">股票管理</h3>
                 <div class="ov-metrics">
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><span id="stock-total-cost" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">資產現值</span><span id="stock-worth" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="現值 − 持倉淨成本">未實現損益</span><span id="stock-unreal" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><span id="stock-perf" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="stock-xirr" class="text-sm font-bold c-stock">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總股數</span><span id="stock-total-shares" class="text-sm font-bold c-stock">--</span></div>
-                    <div class="flex justify-between items-end border-t pt-2" style="border-color: var(--line)"><span class="text-xs c-sell">已實現損益</span><span id="stock-realized" class="text-sm font-bold c-sell">--</span></div>
+                    <div class="ov-metrics-main">
+                        <div><span class="text-xs text-muted" title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><span id="stock-total-cost" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted">資產現值</span><span id="stock-worth" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="現值 − 持倉淨成本">未實現損益</span><span id="stock-unreal" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><span id="stock-perf" class="text-lg font-bold">--</span></div>
+                    </div>
+                    <div class="ov-metrics-sub">
+                        <div><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="stock-xirr" class="text-lg font-bold c-stock">--</span></div>
+                        <div><span class="text-xs text-muted">總股數</span><span id="stock-total-shares" class="text-lg font-bold c-stock">--</span></div>
+                        <div><span class="text-xs text-muted">已實現損益</span><span id="stock-realized" class="text-lg font-bold c-sell">--</span></div>
+                    </div>
                 </div>
             </div>
             <div class="card stat-card gold">
-                <h3 class="stat-label c-gold mb-2" data-i18n="card.gold">黃金管理</h3>
+                <h3 class="stat-label c-gold mb-1" data-i18n="card.gold">黃金管理</h3>
                 <div class="ov-metrics">
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總投入成本</span><span id="gold-total-cost" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">資產現值</span><span id="gold-worth" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="gold-unreal" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><span id="gold-perf" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢</span><span id="gold-price-unit" class="text-sm font-bold c-gold">--</span></div>
-                    <div class="flex justify-between items-end font-mono"><span class="text-xs text-muted">總持倉重量</span><span id="gold-total-weight" class="text-sm c-gold">--</span></div>
-                    <div class="flex justify-between items-end border-t pt-2" style="border-color: var(--line)"><span class="text-xs c-sell">已實現損益</span><span id="gold-realized" class="text-sm font-bold c-sell">--</span></div>
-                </div>
-            </div>
-            <div class="card stat-card overview">
-                <h3 class="stat-label c-sage mb-2" data-i18n="card.overview">總覽</h3>
-                <div class="ov-metrics">
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總投入成本</span><span id="total-all-cost" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總累計股利</span><span id="total-all-dividend" class="text-lg font-bold c-sage">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總資產現值</span><span id="total-all-worth" class="text-lg font-bold c-sage">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="total-unreal" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">累計已實現</span><span id="total-realized" class="text-sm font-bold c-sell">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間）">總報酬率</span><span id="total-all-perf" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="total-xirr" class="text-sm font-bold c-sage">--</span></div>
+                    <div class="ov-metrics-main">
+                        <div><span class="text-xs text-muted">總投入成本</span><span id="gold-total-cost" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted">資產現值</span><span id="gold-worth" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="gold-unreal" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><span id="gold-perf" class="text-lg font-bold">--</span></div>
+                    </div>
+                    <div class="ov-metrics-sub">
+                        <div><span class="text-xs text-muted" title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢</span><span id="gold-price-unit" class="text-lg font-bold c-gold">--</span></div>
+                        <div><span class="text-xs text-muted">總持倉重量</span><span id="gold-total-weight" class="text-lg font-bold c-gold">--</span></div>
+                        <div><span class="text-xs text-muted">已實現損益</span><span id="gold-realized" class="text-lg font-bold c-sell">--</span></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -2252,14 +2686,15 @@
 
         <div id="section-stock" class="hidden">
             <div class="flex gap-2 mb-4 flex-wrap">
-                <button type="button" id="sub-stock-hold" onclick="switchStockSub('hold')" class="px-4 py-2 rounded-xl text-xs font-bold sub-on-stock">持倉登錄</button>
-                <button type="button" id="sub-stock-sell" onclick="switchStockSub('sell')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
-                <button type="button" id="sub-stock-sum" onclick="switchStockSub('sum')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">標的彙總</button>
-                <button type="button" id="sub-stock-div" onclick="switchStockSub('div')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">股利年表</button>
+                <button type="button" id="sub-stock-hold" onclick="switchStockSub('hold')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-on-stock">持倉登錄</button>
+                <button type="button" id="sub-stock-sell" onclick="switchStockSub('sell')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
+                <button type="button" id="sub-stock-sum" onclick="switchStockSub('sum')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-off">標的彙總</button>
+                <button type="button" id="sub-stock-div" onclick="switchStockSub('div')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-off">股利年表</button>
             </div>
             <div id="stock-panel-hold">
-            <div id="stock-input-card" class="card mb-8">
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div id="stock-input-card" class="card entry-card">
+                <div class="entry-row">
+                    <div class="entry-grid">
                     <input type="hidden" id="stock-edit-idx" value="-1">
                     <div class="flex flex-col gap-1">
                         <label class="stat-label text-[10px]" for="stock-code">標的代號</label>
@@ -2276,13 +2711,14 @@
                     <div class="flex flex-col gap-1" id="stock-price-wrap"><label class="stat-label text-[10px]">成交單價</label><input type="number" step="0.01" id="stock-buy-price"></div>
                     <div class="flex flex-col gap-1" id="stock-cost-wrap"><label class="stat-label text-[10px]">總投入成本</label><input type="number" id="stock-cost" placeholder="空白則單價×股數"></div>
                     <div id="stock-div-field" class="hidden flex flex-col gap-1"><label class="stat-label text-[10px] c-sage">配發股利</label><input type="number" id="stock-div-amount" title="再投入時請與成本同額；現金股利僅填此欄"></div>
+                    </div>
+                    <div class="entry-actions">
+                        <button id="stock-btn" onclick="saveStock()" class="btn-primary font-bold tracking-wide">確認登錄</button>
+                    </div>
                 </div>
-                <p class="text-[10px] text-muted mt-3">成本空白＝單價×股數。再投入：成本與股利同額。現金股利：不增加股數與成本。</p>
-                <div class="flex gap-3 mt-4">
-                    <button id="stock-btn" onclick="saveStock()" class="flex-1 btn-primary py-4 rounded-xl font-bold tracking-wide text-sm">確認登錄資料</button>
-                </div>
+                <p class="entry-hint">成本空白＝單價×股數。再投入：成本與股利同額。現金股利：不增加股數與成本。</p>
             </div>
-            <div class="card overflow-hidden p-0">
+            <div class="card overflow-hidden p-0 record-table">
                 <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[720px]">
                     <thead class="thead-bar font-bold">
@@ -2294,9 +2730,10 @@
             </div>
             </div>
             <div id="stock-panel-sell" class="hidden">
-                <div id="stock-sell-input-card" class="card mb-8 panel-sell">
-                    <p class="stat-label text-[10px] c-sell mb-3">登錄賣出後將以 FIFO 自動自持倉扣除；買入成本空白則自動計算。</p>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div id="stock-sell-input-card" class="card entry-card panel-sell">
+                    <p class="entry-hint" style="margin-top:0;margin-bottom:0.4rem">登錄賣出後將以 FIFO 自動自持倉扣除；買入成本空白則自動計算。</p>
+                    <div class="entry-row">
+                    <div class="entry-grid">
                         <input type="hidden" id="stock-sell-edit-idx" value="-1">
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">賣出日期</label><input type="date" id="stock-sell-date"></div>
                         <div class="flex flex-col gap-1">
@@ -2313,12 +2750,13 @@
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">賣出金額</label><input type="number" step="0.01" id="stock-sell-amount"></div>
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">買入成本</label><input type="number" step="0.01" id="stock-sell-cost" title="空白＝FIFO 自動" placeholder="空白＝自動"></div>
                     </div>
-                    <div class="flex gap-3 mt-6">
-                        <button type="button" onclick="saveStockSell()" class="flex-1 btn-sell py-4 rounded-xl font-bold tracking-wide text-sm">確認賣出紀錄</button>
-                        <button type="button" id="stock-sell-cancel" onclick="clearStockSellForm()" class="hidden btn-surface px-8 rounded-xl font-bold">取消</button>
+                    <div class="entry-actions">
+                        <button type="button" onclick="saveStockSell()" class="btn-sell font-bold tracking-wide">確認賣出</button>
+                        <button type="button" id="stock-sell-cancel" onclick="clearStockSellForm()" class="hidden btn-surface font-bold">取消</button>
+                    </div>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8">
+                <div class="card overflow-hidden p-0 record-table">
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="thead-bar font-bold">
@@ -2330,7 +2768,7 @@
                 </div>
             </div>
             <div id="stock-panel-sum" class="hidden">
-                <div class="card overflow-hidden p-0 mb-8">
+                <div class="card overflow-hidden p-0 record-table">
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[900px]">
                         <thead class="thead-bar font-bold">
@@ -2421,12 +2859,13 @@
 
         <div id="section-gold" class="hidden">
             <div class="flex gap-2 mb-4">
-                <button type="button" id="sub-gold-hold" onclick="switchGoldSub('hold')" class="px-4 py-2 rounded-xl text-xs font-bold sub-on-gold">持倉登錄</button>
-                <button type="button" id="sub-gold-sell" onclick="switchGoldSub('sell')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
+                <button type="button" id="sub-gold-hold" onclick="switchGoldSub('hold')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-on-gold">持倉登錄</button>
+                <button type="button" id="sub-gold-sell" onclick="switchGoldSub('sell')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
             </div>
             <div id="gold-panel-hold">
-            <div id="gold-input-card" class="card mb-8">
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div id="gold-input-card" class="card entry-card">
+                <div class="entry-row">
+                    <div class="entry-grid">
                     <input type="hidden" id="gold-edit-idx" value="-1">
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">資產名稱</label><input type="text" id="gold-name" placeholder="實體金條/黃金存摺"></div>
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">購買日期</label><input type="date" id="gold-date"></div>
@@ -2434,14 +2873,15 @@
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">單位</label><select id="gold-unit"><option value="g">公克</option><option value="ts">台錢</option></select></div>
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">總購入成本</label><input type="number" id="gold-cost" placeholder="實付總額"></div>
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]" title="購買當日每公克金價（新台幣）">購入金價／公克</label><input type="number" step="0.01" id="gold-buy-price-g" placeholder="NT$/公克"></div>
+                    </div>
+                    <div class="entry-actions">
+                        <button id="gold-btn" onclick="saveGold()" class="btn-gold font-bold tracking-wide">登錄黃金</button>
+                        <button id="gold-cancel" onclick="clearGoldForm()" class="hidden btn-surface font-bold">取消</button>
+                    </div>
                 </div>
-                <p class="text-[10px] text-muted mt-3">工費＝購入成本 −（公克數 × 購入金價／公克）。未填購入金價時表格工費顯示為 —。</p>
-                <div class="flex gap-3 mt-4">
-                    <button id="gold-btn" onclick="saveGold()" class="flex-1 btn-gold py-4 rounded-xl font-bold tracking-wide text-sm">登錄黃金紀錄</button>
-                    <button id="gold-cancel" onclick="clearGoldForm()" class="hidden btn-surface px-8 rounded-xl font-bold">取消</button>
-                </div>
+                <p class="entry-hint">工費＝購入成本 −（公克數 × 購入金價／公克）。未填購入金價時表格工費顯示為 —。</p>
             </div>
-            <div class="card overflow-hidden p-0">
+            <div class="card overflow-hidden p-0 record-table">
                 <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[900px]">
                     <thead class="thead-bar font-bold">
@@ -2462,9 +2902,10 @@
             </div>
             </div>
             <div id="gold-panel-sell" class="hidden">
-                <div id="gold-sell-input-card" class="card mb-8 panel-sell">
-                    <p class="stat-label text-[10px] c-sell mb-3">登錄後以 FIFO 自動自持倉扣除重量；買入成本空白則自動計算。</p>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div id="gold-sell-input-card" class="card entry-card panel-sell">
+                    <p class="entry-hint" style="margin-top:0;margin-bottom:0.4rem">登錄後以 FIFO 自動自持倉扣除重量；買入成本空白則自動計算。</p>
+                    <div class="entry-row">
+                    <div class="entry-grid">
                         <input type="hidden" id="gold-sell-edit-idx" value="-1">
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">賣出日期</label><input type="date" id="gold-sell-date"></div>
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">備註名稱</label><input type="text" id="gold-sell-name" placeholder="選填"></div>
@@ -2473,12 +2914,13 @@
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">賣出金額</label><input type="number" step="0.01" id="gold-sell-amount"></div>
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">買入成本</label><input type="number" step="0.01" id="gold-sell-cost" placeholder="空白＝自動"></div>
                     </div>
-                    <div class="flex gap-3 mt-6">
-                        <button type="button" onclick="saveGoldSell()" class="flex-1 btn-sell py-4 rounded-xl font-bold tracking-wide text-sm">確認賣出紀錄</button>
-                        <button type="button" id="gold-sell-cancel" onclick="clearGoldSellForm()" class="hidden btn-surface px-8 rounded-xl font-bold">取消</button>
+                    <div class="entry-actions">
+                        <button type="button" onclick="saveGoldSell()" class="btn-sell font-bold tracking-wide">確認賣出</button>
+                        <button type="button" id="gold-sell-cancel" onclick="clearGoldSellForm()" class="hidden btn-surface font-bold">取消</button>
+                    </div>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8">
+                <div class="card overflow-hidden p-0 record-table">
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="thead-bar font-bold">
@@ -2750,11 +3192,42 @@
         </div>
     </div>
 
+    <div id="greeting-modal" class="fixed inset-0 z-[104] hidden flex flex-col items-center justify-center overflow-y-auto modal-overlay-safe" role="dialog" aria-modal="true" aria-labelledby="greeting-modal-title" onclick="if(event.target===this)closeGreetingModal()">
+        <div class="card greet-modal-card w-full p-6 mx-4 modal-panel-bottom-space shrink-0" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-start gap-3 mb-4">
+                <div>
+                    <h2 id="greeting-modal-title" class="stat-label mb-1">今日速覽</h2>
+                    <p class="text-[11px] text-muted">最後買入至今漲跌，以及總資產相對昨日變化</p>
+                </div>
+                <button type="button" onclick="closeGreetingModal()" class="text-muted hover:text-ink text-xl leading-none px-1" aria-label="關閉">✕</button>
+            </div>
+            <div class="space-y-2.5">
+                <div class="greet-row">
+                    <div class="greet-kicker c-stock">股票</div>
+                    <div class="greet-main" id="greet-stock-pct">--</div>
+                    <div class="greet-sub" id="greet-stock-sub"></div>
+                </div>
+                <div class="greet-row">
+                    <div class="greet-kicker c-gold">黃金</div>
+                    <div class="greet-main" id="greet-gold-pct">--</div>
+                    <div class="greet-sub" id="greet-gold-sub"></div>
+                </div>
+                <div class="greet-row">
+                    <div class="greet-kicker">總資產 · 昨至今</div>
+                    <div class="greet-main" id="greet-day-pct">--</div>
+                    <div class="greet-sub" id="greet-day-sub"></div>
+                </div>
+            </div>
+            <button type="button" onclick="closeGreetingModal()" class="w-full mt-4 btn-primary py-3 rounded-xl font-bold text-sm">知道了</button>
+        </div>
+    </div>
+
     <script>
         const K_STK = 'WV20_STK', K_GLD = 'WV20_GLD', K_PRC = 'WV20_PRC', K_PRC_META = 'WV20_PRC_META', K_PWD = 'WV20_PWD', K_PRIV = 'WV20_PRIV';
         const K_COLL = 'WV20_COLL', K_STK_SELL = 'WV20_STK_SELL', K_GLD_SELL = 'WV20_GLD_SELL', K_COLL_SELL = 'WV20_COLL_SELL', K_INC = 'WV20_INC';
         const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL';
         const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE';
+        const K_WORTH_SNAP = 'WV20_WORTH_SNAP';
         const I18N = {
                 'app.title': '資產管理',
                 'header.kicker': 'Portfolio',
@@ -2978,6 +3451,179 @@
             return t('type.buy');
         }
         function cloneRec(r) { return JSON.parse(JSON.stringify(r)); }
+
+        function currentGoldTwdPerGram() {
+            return curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
+        }
+        function computeAssetWorth() {
+            const goldTWD_g = currentGoldTwdPerGram();
+            const inc = includeFlags;
+            let sV = 0, gV = 0;
+            stockRecs.forEach((r) => {
+                const nowP = marketPrices[r.code] || r.buyPrice || 0;
+                sV += nowP * num(r.shares);
+            });
+            goldRecs.forEach((r) => {
+                gV += goldToGrams(r.weight, r.unit) * goldTWD_g;
+            });
+            const tV = (inc.stockWorth ? sV : 0) + (inc.goldWorth ? gV : 0);
+            return { sV, gV, tV, goldTWD_g };
+        }
+        function recDateMs(r) {
+            const d = new Date(r && r.date);
+            return isNaN(d.getTime()) ? 0 : d.getTime();
+        }
+        function lastStockBuy() {
+            let best = null, bestT = -1, bestI = -1;
+            stockRecs.forEach((r, i) => {
+                if ((r.type || 'buy') !== 'buy') return;
+                if (!r.code || num(r.buyPrice) <= 0) return;
+                const t = recDateMs(r);
+                if (t > bestT || (t === bestT && i > bestI)) {
+                    best = r; bestT = t; bestI = i;
+                }
+            });
+            return best;
+        }
+        function lastGoldBuy() {
+            let best = null, bestT = -1, bestI = -1;
+            goldRecs.forEach((r, i) => {
+                const t = recDateMs(r);
+                if (t > bestT || (t === bestT && i > bestI)) {
+                    best = r; bestT = t; bestI = i;
+                }
+            });
+            return best;
+        }
+        function pctFrom(from, to) {
+            if (!(from > 0) || to == null || !isFinite(Number(to))) return null;
+            return ((Number(to) - from) / from) * 100;
+        }
+        function fmtGreetPct(p) {
+            if (p == null || !isFinite(p)) return '—';
+            return (p > 0 ? '+' : '') + p.toFixed(2) + '%';
+        }
+        function fmtGreetMoney(n) {
+            if (isPrivacyMode) return '****';
+            return 'NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
+        }
+        function localDateKey(d) {
+            const x = d || new Date();
+            return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+        }
+        function loadWorthSnaps() {
+            try {
+                const o = JSON.parse(localStorage.getItem(K_WORTH_SNAP) || '{}');
+                return (o && typeof o === 'object') ? o : {};
+            } catch (e) { return {}; }
+        }
+        function prevWorthSnap(snaps, todayKey) {
+            const keys = Object.keys(snaps).filter((k) => k < todayKey).sort();
+            if (!keys.length) return null;
+            const k = keys[keys.length - 1];
+            const row = snaps[k] || {};
+            return { date: k, worth: num(row.worth) };
+        }
+        function saveWorthSnap(worth) {
+            if (!isFinite(Number(worth))) return;
+            if (!(stockRecs.length || goldRecs.length || Number(worth) > 0)) return;
+            const snaps = loadWorthSnaps();
+            const today = localDateKey();
+            snaps[today] = { worth: Number(worth), at: new Date().toISOString() };
+            Object.keys(snaps).sort().slice(0, Math.max(0, Object.keys(snaps).length - 90)).forEach((k) => { delete snaps[k]; });
+            localStorage.setItem(K_WORTH_SNAP, JSON.stringify(snaps));
+        }
+        function setGreetPct(el, p) {
+            if (!el) return;
+            el.textContent = fmtGreetPct(p);
+            el.classList.remove('c-gain', 'c-drop');
+            if (p != null && isFinite(p) && p !== 0) el.classList.add(p > 0 ? 'c-gain' : 'c-drop');
+        }
+        function fillGreetingModal() {
+            const worth = computeAssetWorth();
+            const snaps = loadWorthSnaps();
+            const today = localDateKey();
+            const prev = prevWorthSnap(snaps, today);
+
+            const stockBuy = lastStockBuy();
+            const stockPctEl = document.getElementById('greet-stock-pct');
+            const stockSubEl = document.getElementById('greet-stock-sub');
+            if (!stockBuy) {
+                setGreetPct(stockPctEl, null);
+                if (stockSubEl) stockSubEl.textContent = '尚無股票買入紀錄';
+            } else {
+                const code = String(stockBuy.code || '').toUpperCase();
+                const buyP = num(stockBuy.buyPrice);
+                const nowP = marketPrices[code] != null ? num(marketPrices[code]) : null;
+                const pct = nowP != null && nowP > 0 ? pctFrom(buyP, nowP) : null;
+                setGreetPct(stockPctEl, pct);
+                if (stockSubEl) {
+                    if (nowP == null || !(nowP > 0)) {
+                        stockSubEl.textContent = '最後買入 ' + code + '（' + (stockBuy.date || '—') + '）· 尚無現價，請先刷新';
+                    } else {
+                        stockSubEl.textContent = '最後買入 ' + code + '（' + (stockBuy.date || '—') + '）· 買入 ' + fmtGreetMoney(buyP) + ' → 現價 ' + fmtGreetMoney(nowP);
+                    }
+                }
+            }
+
+            const goldBuy = lastGoldBuy();
+            const goldPctEl = document.getElementById('greet-gold-pct');
+            const goldSubEl = document.getElementById('greet-gold-sub');
+            if (!goldBuy) {
+                setGreetPct(goldPctEl, null);
+                if (goldSubEl) goldSubEl.textContent = '尚無黃金買入紀錄';
+            } else {
+                const grams = goldToGrams(goldBuy.weight, goldBuy.unit);
+                let buyG = num(goldBuy.buyPriceG);
+                if (!(buyG > 0) && grams > 0 && num(goldBuy.cost) > 0) buyG = num(goldBuy.cost) / grams;
+                const nowG = worth.goldTWD_g;
+                const pct = nowG > 0 && buyG > 0 ? pctFrom(buyG, nowG) : null;
+                setGreetPct(goldPctEl, pct);
+                if (goldSubEl) {
+                    if (!(nowG > 0)) {
+                        goldSubEl.textContent = '最後買入（' + (goldBuy.date || '—') + '）· 尚無金價，請先刷新';
+                    } else if (!(buyG > 0)) {
+                        goldSubEl.textContent = '最後買入（' + (goldBuy.date || '—') + '）· 未填購入金價，無法比較';
+                    } else {
+                        goldSubEl.textContent = '最後買入（' + (goldBuy.date || '—') + '）· 購入 ' + fmtGreetMoney(buyG) + '／公克 → 現價 ' + fmtGreetMoney(nowG);
+                    }
+                }
+            }
+
+            const dayPctEl = document.getElementById('greet-day-pct');
+            const daySubEl = document.getElementById('greet-day-sub');
+            if (!prev || !(prev.worth > 0)) {
+                setGreetPct(dayPctEl, null);
+                if (daySubEl) daySubEl.textContent = '尚無昨日紀錄。已開始記錄今日淨值，明天開啟即可對照。';
+            } else {
+                const pct = pctFrom(prev.worth, worth.tV);
+                setGreetPct(dayPctEl, pct);
+                const yest = new Date();
+                yest.setDate(yest.getDate() - 1);
+                const isYest = prev.date === localDateKey(yest);
+                let verb = '持平';
+                if (pct > 0.005) verb = '成長';
+                else if (pct < -0.005) verb = '減少';
+                if (daySubEl) {
+                    daySubEl.textContent = (isYest ? '較昨日' : ('較 ' + prev.date + ' 紀錄')) + verb
+                        + (isPrivacyMode ? '' : (' · ' + fmtGreetMoney(prev.worth) + ' → ' + fmtGreetMoney(worth.tV)));
+                }
+            }
+            saveWorthSnap(worth.tV);
+        }
+        function openGreetingModal() {
+            fillGreetingModal();
+            const el = document.getElementById('greeting-modal');
+            if (!el) return;
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        }
+        function closeGreetingModal() {
+            const el = document.getElementById('greeting-modal');
+            if (!el) return;
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+        }
 
         function collectStockCodes() {
             const set = new Set(stockCodes.map(c => String(c).toUpperCase()).filter(Boolean));
@@ -3909,7 +4555,7 @@
             peerBirthYear = 0;
             peerCash = 0;
             goalPlan = { reinvest: true };
-            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_BIRTH, K_CASH, K_GOAL].forEach(k => localStorage.removeItem(k));
+            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_BIRTH, K_CASH, K_GOAL, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
             saveAll();
             try { clearStockForm(); } catch (e) {}
             try { clearGoldForm(); } catch (e) {}
@@ -3954,11 +4600,13 @@
         }
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Escape') return;
+            const greetM = document.getElementById('greeting-modal');
             const editM = document.getElementById('stock-edit-modal');
             const clearM = document.getElementById('clear-data-modal');
             const p = document.getElementById('privacy-modal');
             const s = document.getElementById('settings-modal');
-            if (editM && !editM.classList.contains('hidden')) closeStockEditModal();
+            if (greetM && !greetM.classList.contains('hidden')) closeGreetingModal();
+            else if (editM && !editM.classList.contains('hidden')) closeStockEditModal();
             else if (clearM && !clearM.classList.contains('hidden')) closeClearDataModal();
             else if (!p.classList.contains('hidden')) closePrivacyPasswordModal();
             else if (!s.classList.contains('hidden')) closeSettingsModal();
@@ -4568,10 +5216,10 @@
                 const amtStr = isPrivacyMode ? '****' : 'NT$' + Math.round(r.cur).toLocaleString('zh-TW');
                 const tgt = Math.max(0, Math.min(100, r.target));
                 const delta = tot > 0 && !isPrivacyMode ? (pct - tgt) : null;
-                let deltaStr = '目標 ' + (tgt > 0 ? tgt.toFixed(0) + '%' : '—');
+                let deltaStr = tgt > 0 ? ('目標 ' + tgt.toFixed(0) + '%') : '目標 —';
                 if (delta != null && tgt > 0) {
-                    const sign = delta > 0.05 ? '+' : delta < -0.05 ? '' : '±';
-                    deltaStr = '目標 ' + tgt.toFixed(0) + '% · 偏離 ' + sign + Math.abs(delta).toFixed(1) + '%';
+                    const sign = delta > 0.05 ? '+' : delta < -0.05 ? '−' : '±';
+                    deltaStr = tgt.toFixed(0) + '% · ' + sign + Math.abs(delta).toFixed(0) + '%';
                 }
                 const active = allocFocusIndex === idx ? ' is-active' : '';
                 const dim = allocFocusIndex != null && allocFocusIndex !== idx ? ' is-dim' : '';
@@ -4579,17 +5227,17 @@
                     <div class="alloc-legend-top">
                         <span class="alloc-legend-swatch" style="background:${r.grad}"></span>
                         <span class="alloc-legend-name ${r.cls}">${r.name}</span>
+                        <span class="alloc-legend-pct">${pctStr}</span>
                     </div>
-                    <span class="alloc-legend-pct">${pctStr}</span>
                     <div class="alloc-legend-meta">
                         <div class="alloc-bar">
                             <i style="width:${Math.min(100, pct)}%;background:${r.grad}"></i>
                             ${tgt > 0 ? `<span class="alloc-bar-target" style="left:${tgt}%"></span>` : ''}
                         </div>
-                        <div class="alloc-legend-foot">
-                            <span>${amtStr}</span>
-                            <span>${deltaStr}</span>
-                        </div>
+                    </div>
+                    <div class="alloc-legend-detail">
+                        <span class="alloc-legend-amt">${amtStr}</span>
+                        <span class="alloc-legend-foot">${deltaStr}</span>
                     </div>
                 </button>`;
             }).join('');
@@ -4799,7 +5447,8 @@
             if (inc.goldWorth) tUnreal += gV - gC;
             const tXirr = xirr(buildTotalCashflows(sV, gV, cV, inc));
             setUnrealText('total-unreal', tUnreal);
-            document.getElementById('total-realized').innerText = fNum(tReal);
+            const tRealEl = document.getElementById('total-realized');
+            if (tRealEl) tRealEl.innerText = fNum(tReal);
             document.getElementById('total-all-perf').innerText = fNum(tPerf, false);
             document.getElementById('total-xirr').innerText = fXirr(tXirr);
 
@@ -5112,11 +5761,11 @@
                             return makeAllocGradient(ctx, chartArea, pair[0], pair[1]);
                         },
                         borderColor: 'rgba(255,255,255,0.95)',
-                        borderWidth: ad.length > 1 ? 5 : 0,
-                        hoverBorderWidth: ad.length > 1 ? 5 : 0,
-                        borderRadius: 20,
-                        hoverOffset: 14,
-                        spacing: ad.length > 1 ? 4 : 0
+                        borderWidth: ad.length > 1 ? 4 : 0,
+                        hoverBorderWidth: ad.length > 1 ? 4 : 0,
+                        borderRadius: 12,
+                        hoverOffset: 6,
+                        spacing: ad.length > 1 ? 3 : 0
                     }]
                 },
                 options: {
@@ -5124,7 +5773,7 @@
                     maintainAspectRatio: false,
                     cutout: '76%',
                     rotation: -90,
-                    layout: { padding: 6 },
+                    layout: { padding: 4 },
                     onClick: (evt, elements) => {
                         if (!elements.length || alUse[0] === t('chart.noItem')) {
                             resetAllocCenter();
@@ -6120,8 +6769,8 @@
             document.getElementById('stock-panel-sell').classList.toggle('hidden', mode !== 'sell');
             document.getElementById('stock-panel-sum').classList.toggle('hidden', mode !== 'sum');
             document.getElementById('stock-panel-div').classList.toggle('hidden', mode !== 'div');
-            const on = 'px-4 py-2 rounded-xl text-xs font-bold sub-on-stock';
-            const off = 'px-4 py-2 rounded-xl text-xs font-bold sub-off';
+            const on = 'px-3 py-1.5 rounded-xl text-xs font-bold sub-on-stock';
+            const off = 'px-3 py-1.5 rounded-xl text-xs font-bold sub-off';
             document.getElementById('sub-stock-hold').className = mode === 'hold' ? on : off;
             document.getElementById('sub-stock-sell').className = mode === 'sell' ? on : off;
             document.getElementById('sub-stock-sum').className = mode === 'sum' ? on : off;
@@ -6146,8 +6795,8 @@
         function switchGoldSub(mode) {
             document.getElementById('gold-panel-hold').classList.toggle('hidden', mode !== 'hold');
             document.getElementById('gold-panel-sell').classList.toggle('hidden', mode !== 'sell');
-            const on = 'px-4 py-2 rounded-xl text-xs font-bold sub-on-gold';
-            const off = 'px-4 py-2 rounded-xl text-xs font-bold sub-off';
+            const on = 'px-3 py-1.5 rounded-xl text-xs font-bold sub-on-gold';
+            const off = 'px-3 py-1.5 rounded-xl text-xs font-bold sub-off';
             document.getElementById('sub-gold-hold').className = mode === 'hold' ? on : off;
             document.getElementById('sub-gold-sell').className = mode === 'sell' ? on : off;
         }
@@ -6653,7 +7302,21 @@
         updateUI();
         enhanceAllSelects();
         enhanceAllDateInputs();
-        fetchAllPrices();
+        (function bootGreeting() {
+            let opened = false;
+            const show = () => {
+                if (!opened) {
+                    opened = true;
+                    openGreetingModal();
+                    return;
+                }
+                const el = document.getElementById('greeting-modal');
+                if (el && !el.classList.contains('hidden')) fillGreetingModal();
+                else saveWorthSnap(computeAssetWorth().tV);
+            };
+            fetchAllPrices().finally(show);
+            setTimeout(show, 1800);
+        })();
         if (typeof initExtras === 'function') initExtras();
     </script>
 
