@@ -2570,7 +2570,8 @@
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="stat-label text-[10px]" for="goal-dps">每股年配息</label>
-                    <input type="number" id="goal-dps" min="0" step="0.0001" placeholder="近一年現金股利" oninput="saveGoalPlan(); renderGoalCalc()">
+                    <input type="number" id="goal-dps" min="0" step="0.0001" placeholder="完整年份平均" title="選代號後依完整配息年份的現金股利平均自動帶入，可改" oninput="onGoalDpsInput()">
+                    <span id="goal-dps-hint" class="text-[10px] text-muted"></span>
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="stat-label text-[10px]" for="goal-monthly">每月投入</label>
@@ -4825,23 +4826,120 @@
             };
             try { localStorage.setItem(K_GOAL, JSON.stringify(goalPlan)); } catch (e) {}
         }
-        function annualCashDivFromEvents(events) {
-            const list = events || [];
-            const cutoff = new Date();
-            cutoff.setFullYear(cutoff.getFullYear() - 1);
-            const cut = cutoff.toISOString().slice(0, 10);
-            let s = 0;
-            list.forEach(e => {
-                if (num(e.cash) > 0 && e.cashEx && e.cashEx >= cut) s += num(e.cash);
+        let goalDpsMeta = { years: [], avg: 0, typical: 0 };
+        const goalDivFetchAt = {};
+        const GOAL_DIV_STALE_MS = 6 * 60 * 60 * 1000;
+        function cashDivYearRows(events) {
+            const byDate = {};
+            (events || []).forEach(e => {
+                const cash = num(e.cash);
+                const cashEx = String(e.cashEx || '').slice(0, 10);
+                if (!(cash > 0) || cashEx.length < 8) return;
+                if (byDate[cashEx] == null || cash > byDate[cashEx]) byDate[cashEx] = cash;
             });
-            if (s > 0) return s;
             const byYear = {};
-            list.forEach(e => {
-                const y = String(e.cashEx || '').slice(0, 4);
-                if (y && num(e.cash) > 0) byYear[y] = (byYear[y] || 0) + num(e.cash);
+            Object.keys(byDate).forEach(cashEx => {
+                const y = Number(cashEx.slice(0, 4));
+                if (!y) return;
+                if (!byYear[y]) byYear[y] = { year: y, cash: 0, count: 0 };
+                byYear[y].cash += byDate[cashEx];
+                byYear[y].count += 1;
             });
-            const ys = Object.keys(byYear).sort();
-            return ys.length ? byYear[ys[ys.length - 1]] : 0;
+            return Object.keys(byYear).map(Number).sort((a, b) => a - b).map(y => byYear[y]);
+        }
+        function typicalCashDivCount(yearRows, thisYear) {
+            const recent = (yearRows || []).filter(r => r.year < thisYear).slice(-3).map(r => r.count);
+            if (!recent.length) return 0;
+            const freq = {};
+            let best = 0, bestN = -1;
+            recent.forEach(c => {
+                freq[c] = (freq[c] || 0) + 1;
+                if (freq[c] > bestN || (freq[c] === bestN && c > best)) {
+                    bestN = freq[c];
+                    best = c;
+                }
+            });
+            return best;
+        }
+        function annualCashDivFromEvents(events) {
+            const rows = cashDivYearRows(events);
+            goalDpsMeta = { years: [], avg: 0, typical: 0 };
+            if (!rows.length) return 0;
+            const thisYear = new Date().getFullYear();
+            const typical = typicalCashDivCount(rows, thisYear);
+            const minCount = typical >= 2 ? Math.ceil(typical / 2) : 1;
+            let complete = rows.filter(r => {
+                if (!(r.cash > 0) || r.count < minCount) return false;
+                if (r.year < thisYear) return true;
+                return typical > 0 && r.count >= typical;
+            });
+            if (!complete.length) complete = rows.filter(r => r.year < thisYear && r.cash > 0);
+            if (!complete.length) complete = rows.slice(-1);
+            const sum = complete.reduce((s, r) => s + r.cash, 0);
+            const avg = complete.length ? sum / complete.length : 0;
+            goalDpsMeta = { years: complete.map(r => r.year), avg, typical };
+            return avg;
+        }
+        function updateGoalDpsHint() {
+            const el = document.getElementById('goal-dps-hint');
+            if (!el) return;
+            const ys = (goalDpsMeta && goalDpsMeta.years) || [];
+            if (!ys.length || !(goalDpsMeta.avg > 0)) {
+                el.textContent = '';
+                return;
+            }
+            const a = ys[0], b = ys[ys.length - 1];
+            el.textContent = ys.length === 1
+                ? (a + ' 年配息')
+                : (a + '–' + b + ' 共 ' + ys.length + ' 年平均');
+        }
+        function onGoalDpsInput() {
+            const hint = document.getElementById('goal-dps-hint');
+            if (hint && goalDpsMeta && goalDpsMeta.avg > 0) {
+                const cur = num(document.getElementById('goal-dps') && document.getElementById('goal-dps').value);
+                const auto = Math.round(goalDpsMeta.avg * 10000) / 10000;
+                if (Math.abs(cur - auto) > 1e-9) hint.textContent = '已手動調整';
+                else updateGoalDpsHint();
+            }
+            saveGoalPlan();
+            renderGoalCalc();
+        }
+        function applyGoalDpsFromEvents(events, code) {
+            const cur = stripTwStockCode((document.getElementById('goal-code') || {}).value);
+            if (code && cur && cur !== stripTwStockCode(code)) return 0;
+            const dps = annualCashDivFromEvents(events);
+            const dpsEl = document.getElementById('goal-dps');
+            if (dpsEl && dps > 0) dpsEl.value = String(Math.round(dps * 10000) / 10000);
+            updateGoalDpsHint();
+            saveGoalPlan();
+            renderGoalCalc();
+            return dps;
+        }
+        async function refreshGoalDps(code) {
+            const c = stripTwStockCode(code);
+            if (!c) {
+                goalDpsMeta = { years: [], avg: 0, typical: 0 };
+                updateGoalDpsHint();
+                return;
+            }
+            let events = [];
+            if (typeof flattenDivEvents === 'function' && divHistoryCache[c]) {
+                events = flattenDivEvents(divHistoryCache[c]);
+            }
+            if (events.length) applyGoalDpsFromEvents(events, c);
+            const stale = !goalDivFetchAt[c] || (Date.now() - goalDivFetchAt[c] > GOAL_DIV_STALE_MS);
+            if (!looksLikeTwStock(c) || (!stale && events.length)) return;
+            const hint = document.getElementById('goal-dps-hint');
+            if (hint && !events.length) hint.textContent = '載入股利中…';
+            try {
+                const start = String(new Date().getFullYear() - 8) + '-01-01';
+                const policy = await fetchFinMindDataset('TaiwanStockDividend', c, start);
+                events = policyToLightEvents(policy);
+                goalDivFetchAt[c] = Date.now();
+                applyGoalDpsFromEvents(events, c);
+            } catch (e) {
+                if (!events.length && hint) hint.textContent = '股利資料載入失敗';
+            }
         }
         function monthDivFromShares(shares, annualDps) {
             return annualDps > 0 ? shares * annualDps / 12 : 0;
@@ -5180,6 +5278,9 @@
                 ? '****'
                 : (fNum(nowDiv) + ' / ' + fNum(targetMonthly));
             let note = '需存股數＝目標月領 × 12 ÷ 每股年配息。預估本金＝需存股數 × 現價。1 張＝1000 股。完成時間以每月投入買進、每年配息一次估算。';
+            const dpsYears = (goalDpsMeta && goalDpsMeta.years) || [];
+            if (dpsYears.length > 1) note += '每股年配息依 ' + dpsYears[0] + '–' + dpsYears[dpsYears.length - 1] + ' 共 ' + dpsYears.length + ' 個完整配息年平均。';
+            else if (dpsYears.length === 1) note += '每股年配息依 ' + dpsYears[0] + ' 年現金股利。';
             if (goalPlan.reinvest) note += '再投入時，年度現金股利會以現價加買股數，達標通常較快。';
             else note += '領出現金時，股利不增加持股，達標只靠每月投入。';
             document.getElementById('goal-note').textContent = note;
@@ -5199,14 +5300,9 @@
                 if (nowEl && hold && (overwrite || !num(nowEl.value))) nowEl.value = String(Math.round(hold.shares * 1000) / 1000);
                 const priceEl = document.getElementById('goal-price');
                 if (priceEl && marketPrices[c] != null && (overwrite || !num(priceEl.value))) priceEl.value = marketPrices[c];
-                let events = [];
-                if (typeof flattenDivEvents === 'function' && divHistoryCache[c]) events = flattenDivEvents(divHistoryCache[c]);
-                if (!events.length && typeof ensureDivEventsForCode === 'function' && looksLikeTwStock(c)) {
-                    try { events = await ensureDivEventsForCode(c); } catch (e) {}
-                }
-                const dps = annualCashDivFromEvents(events);
-                const dpsEl = document.getElementById('goal-dps');
-                if (dpsEl && dps > 0 && (overwrite || !num(dpsEl.value))) dpsEl.value = String(Math.round(dps * 10000) / 10000);
+                await refreshGoalDps(c);
+            } else {
+                await refreshGoalDps('');
             }
             saveGoalPlan();
             renderGoalCalc();
@@ -7158,8 +7254,11 @@
                 const groups = buildDividendRows(policy, results, priceMap);
                 divHistoryCache[code] = groups;
                 persistDividendState();
+                goalDivFetchAt[code] = Date.now();
                 renderDividendTable(groups);
                 renderHoldingPeriodDividendsFromCache();
+                const goalCode = stripTwStockCode((document.getElementById('goal-code') || {}).value);
+                if (goalCode === code) applyGoalDpsFromEvents(flattenDivEvents(groups), code);
                 if (status) status.textContent = code + ' · 共 ' + groups.reduce((s, g) => s + g.rows.length, 0) + ' 筆';
             } catch (e) {
                 console.error(e);
@@ -7224,7 +7323,7 @@
         async function ensureDivEventsForCode(code) {
             const c = stripTwStockCode(code);
             if (divHistoryCache[c]) return flattenDivEvents(divHistoryCache[c]);
-            const start = String(new Date().getFullYear() - 3) + '-01-01';
+            const start = String(new Date().getFullYear() - 8) + '-01-01';
             const policy = await fetchFinMindDataset('TaiwanStockDividend', c, start);
             return policyToLightEvents(policy);
         }
