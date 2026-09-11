@@ -2566,11 +2566,11 @@
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="stat-label text-[10px]" for="goal-price">現價</label>
-                    <input type="number" id="goal-price" min="0" step="0.01" placeholder="NT$" oninput="saveGoalPlan(); renderGoalCalc()">
+                    <input type="number" id="goal-price" min="0" step="0.01" placeholder="NT$" oninput="onGoalPriceInput()">
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="stat-label text-[10px]" for="goal-dps">每股年配息</label>
-                    <input type="number" id="goal-dps" min="0" step="0.0001" placeholder="完整年份平均" title="選代號後依完整配息年份的現金股利平均自動帶入，可改" oninput="onGoalDpsInput()">
+                    <input type="number" id="goal-dps" min="0" step="0.0001" placeholder="殖利率 × 現價" title="依完整配息年平均殖利率 × 現價自動帶入，可改" oninput="onGoalDpsInput()">
                     <span id="goal-dps-hint" class="text-[10px] text-muted"></span>
                 </div>
                 <div class="flex flex-col gap-1">
@@ -4826,7 +4826,8 @@
             };
             try { localStorage.setItem(K_GOAL, JSON.stringify(goalPlan)); } catch (e) {}
         }
-        let goalDpsMeta = { years: [], avg: 0, typical: 0 };
+        let goalDpsMeta = { years: [], avgYield: 0, avgCash: 0, typical: 0 };
+        let goalDivEvents = [];
         const goalDivFetchAt = {};
         const GOAL_DIV_STALE_MS = 6 * 60 * 60 * 1000;
         function cashDivYearRows(events) {
@@ -4835,17 +4836,30 @@
                 const cash = num(e.cash);
                 const cashEx = String(e.cashEx || '').slice(0, 10);
                 if (!(cash > 0) || cashEx.length < 8) return;
-                if (byDate[cashEx] == null || cash > byDate[cashEx]) byDate[cashEx] = cash;
+                const before = num(e.beforeCash) > 0 ? num(e.beforeCash) : 0;
+                const prev = byDate[cashEx];
+                if (!prev || cash > prev.cash) byDate[cashEx] = { cash, before };
+                else if (prev && !(prev.before > 0) && before > 0) prev.before = before;
             });
             const byYear = {};
             Object.keys(byDate).forEach(cashEx => {
                 const y = Number(cashEx.slice(0, 4));
                 if (!y) return;
-                if (!byYear[y]) byYear[y] = { year: y, cash: 0, count: 0 };
-                byYear[y].cash += byDate[cashEx];
+                const rec = byDate[cashEx];
+                if (!byYear[y]) byYear[y] = { year: y, cash: 0, count: 0, beforeSum: 0, beforeN: 0, yield: 0 };
+                byYear[y].cash += rec.cash;
                 byYear[y].count += 1;
+                if (rec.before > 0) {
+                    byYear[y].beforeSum += rec.before;
+                    byYear[y].beforeN += 1;
+                }
             });
-            return Object.keys(byYear).map(Number).sort((a, b) => a - b).map(y => byYear[y]);
+            return Object.keys(byYear).map(Number).sort((a, b) => a - b).map(y => {
+                const r = byYear[y];
+                const avgBefore = r.beforeN ? r.beforeSum / r.beforeN : 0;
+                r.yield = (r.cash > 0 && avgBefore > 0) ? r.cash / avgBefore : 0;
+                return r;
+            });
         }
         function typicalCashDivCount(yearRows, thisYear) {
             const recent = (yearRows || []).filter(r => r.year < thisYear).slice(-3).map(r => r.count);
@@ -4861,10 +4875,9 @@
             });
             return best;
         }
-        function annualCashDivFromEvents(events) {
+        function completeCashDivYears(events) {
             const rows = cashDivYearRows(events);
-            goalDpsMeta = { years: [], avg: 0, typical: 0 };
-            if (!rows.length) return 0;
+            if (!rows.length) return { complete: [], typical: 0 };
             const thisYear = new Date().getFullYear();
             const typical = typicalCashDivCount(rows, thisYear);
             const minCount = typical >= 2 ? Math.ceil(typical / 2) : 1;
@@ -4875,39 +4888,65 @@
             });
             if (!complete.length) complete = rows.filter(r => r.year < thisYear && r.cash > 0);
             if (!complete.length) complete = rows.slice(-1);
-            const sum = complete.reduce((s, r) => s + r.cash, 0);
-            const avg = complete.length ? sum / complete.length : 0;
-            goalDpsMeta = { years: complete.map(r => r.year), avg, typical };
-            return avg;
+            return { complete, typical };
+        }
+        function goalDivStatsFromEvents(events) {
+            const { complete, typical } = completeCashDivYears(events);
+            const yieldRows = complete.filter(r => r.yield > 0);
+            const avgYield = yieldRows.length
+                ? yieldRows.reduce((s, r) => s + r.yield, 0) / yieldRows.length
+                : 0;
+            const avgCash = complete.length
+                ? complete.reduce((s, r) => s + r.cash, 0) / complete.length
+                : 0;
+            const years = (yieldRows.length ? yieldRows : complete).map(r => r.year);
+            goalDpsMeta = { years, avgYield, avgCash, typical };
+            return goalDpsMeta;
+        }
+        function autoGoalDps(price) {
+            if (goalDpsMeta.avgYield > 0 && price > 0) return price * goalDpsMeta.avgYield;
+            return goalDpsMeta.avgCash || 0;
         }
         function updateGoalDpsHint() {
             const el = document.getElementById('goal-dps-hint');
             if (!el) return;
             const ys = (goalDpsMeta && goalDpsMeta.years) || [];
-            if (!ys.length || !(goalDpsMeta.avg > 0)) {
-                el.textContent = '';
+            const yTxt = !ys.length ? ''
+                : (ys.length === 1 ? (ys[0] + ' 年') : (ys[0] + '–' + ys[ys.length - 1] + ' 共 ' + ys.length + ' 年'));
+            if (goalDpsMeta.avgYield > 0) {
+                el.textContent = '平均殖利率 ' + (goalDpsMeta.avgYield * 100).toFixed(2) + '%' + (yTxt ? '（' + yTxt + '）' : '');
                 return;
             }
-            const a = ys[0], b = ys[ys.length - 1];
-            el.textContent = ys.length === 1
-                ? (a + ' 年配息')
-                : (a + '–' + b + ' 共 ' + ys.length + ' 年平均');
+            if (yTxt && goalDpsMeta.avgCash > 0) {
+                el.textContent = yTxt + '平均配息';
+                return;
+            }
+            el.textContent = '';
         }
         function onGoalDpsInput() {
             const hint = document.getElementById('goal-dps-hint');
-            if (hint && goalDpsMeta && goalDpsMeta.avg > 0) {
+            if (hint && (goalDpsMeta.avgYield > 0 || goalDpsMeta.avgCash > 0)) {
                 const cur = num(document.getElementById('goal-dps') && document.getElementById('goal-dps').value);
-                const auto = Math.round(goalDpsMeta.avg * 10000) / 10000;
-                if (Math.abs(cur - auto) > 1e-9) hint.textContent = '已手動調整';
+                const price = num(document.getElementById('goal-price') && document.getElementById('goal-price').value);
+                const auto = Math.round(autoGoalDps(price) * 10000) / 10000;
+                if (auto > 0 && Math.abs(cur - auto) > 1e-9) hint.textContent = '已手動調整';
                 else updateGoalDpsHint();
             }
             saveGoalPlan();
             renderGoalCalc();
         }
+        function onGoalPriceInput() {
+            saveGoalPlan();
+            if (goalDivEvents && goalDivEvents.length) applyGoalDpsFromEvents(goalDivEvents);
+            else renderGoalCalc();
+        }
         function applyGoalDpsFromEvents(events, code) {
             const cur = stripTwStockCode((document.getElementById('goal-code') || {}).value);
             if (code && cur && cur !== stripTwStockCode(code)) return 0;
-            const dps = annualCashDivFromEvents(events);
+            goalDivEvents = events || [];
+            goalDivStatsFromEvents(goalDivEvents);
+            const price = num(document.getElementById('goal-price') && document.getElementById('goal-price').value);
+            const dps = autoGoalDps(price);
             const dpsEl = document.getElementById('goal-dps');
             if (dpsEl && dps > 0) dpsEl.value = String(Math.round(dps * 10000) / 10000);
             updateGoalDpsHint();
@@ -4918,7 +4957,8 @@
         async function refreshGoalDps(code) {
             const c = stripTwStockCode(code);
             if (!c) {
-                goalDpsMeta = { years: [], avg: 0, typical: 0 };
+                goalDpsMeta = { years: [], avgYield: 0, avgCash: 0, typical: 0 };
+                goalDivEvents = [];
                 updateGoalDpsHint();
                 return;
             }
@@ -4927,14 +4967,18 @@
                 events = flattenDivEvents(divHistoryCache[c]);
             }
             if (events.length) applyGoalDpsFromEvents(events, c);
+            const hasBefore = events.some(e => num(e.beforeCash) > 0);
             const stale = !goalDivFetchAt[c] || (Date.now() - goalDivFetchAt[c] > GOAL_DIV_STALE_MS);
-            if (!looksLikeTwStock(c) || (!stale && events.length)) return;
+            if (!looksLikeTwStock(c) || (!stale && events.length && hasBefore)) return;
             const hint = document.getElementById('goal-dps-hint');
             if (hint && !events.length) hint.textContent = '載入股利中…';
             try {
                 const start = String(new Date().getFullYear() - 8) + '-01-01';
-                const policy = await fetchFinMindDataset('TaiwanStockDividend', c, start);
-                events = policyToLightEvents(policy);
+                const [policy, results] = await Promise.all([
+                    fetchFinMindDataset('TaiwanStockDividend', c, start),
+                    fetchFinMindDataset('TaiwanStockDividendResult', c, start)
+                ]);
+                events = policyToLightEvents(policy, results);
                 goalDivFetchAt[c] = Date.now();
                 applyGoalDpsFromEvents(events, c);
             } catch (e) {
@@ -5220,7 +5264,9 @@
                 destroyGoalChart();
                 empty.textContent = !(targetMonthly > 0)
                     ? '請填目標月領（台幣），即可反推需存股數與完成時間。'
-                    : '請填每股年配息，才能從月領目標反推需存股數。';
+                    : ((goalDpsMeta.avgYield > 0 && !(price > 0))
+                        ? '請填現價，才能用平均殖利率推估每股年配息。'
+                        : '請填每股年配息，才能從月領目標反推需存股數。');
                 return;
             }
             empty.classList.add('hidden');
@@ -5279,7 +5325,12 @@
                 : (fNum(nowDiv) + ' / ' + fNum(targetMonthly));
             let note = '需存股數＝目標月領 × 12 ÷ 每股年配息。預估本金＝需存股數 × 現價。1 張＝1000 股。完成時間以每月投入買進、每年配息一次估算。';
             const dpsYears = (goalDpsMeta && goalDpsMeta.years) || [];
-            if (dpsYears.length > 1) note += '每股年配息依 ' + dpsYears[0] + '–' + dpsYears[dpsYears.length - 1] + ' 共 ' + dpsYears.length + ' 個完整配息年平均。';
+            if (goalDpsMeta.avgYield > 0 && dpsYears.length) {
+                const yTxt = dpsYears.length === 1
+                    ? (dpsYears[0] + ' 年')
+                    : (dpsYears[0] + '–' + dpsYears[dpsYears.length - 1] + ' 共 ' + dpsYears.length + ' 個完整配息年');
+                note += '每股年配息＝現價 × 平均殖利率（' + yTxt + '，' + (goalDpsMeta.avgYield * 100).toFixed(2) + '%）。';
+            } else if (dpsYears.length > 1) note += '每股年配息依 ' + dpsYears[0] + '–' + dpsYears[dpsYears.length - 1] + ' 共 ' + dpsYears.length + ' 個完整配息年平均。';
             else if (dpsYears.length === 1) note += '每股年配息依 ' + dpsYears[0] + ' 年現金股利。';
             if (goalPlan.reinvest) note += '再投入時，年度現金股利會以現價加買股數，達標通常較快。';
             else note += '領出現金時，股利不增加持股，達標只靠每月投入。';
@@ -7306,16 +7357,23 @@
             const latest = withCash.slice().sort((a, b) => String(b.cashEx).localeCompare(String(a.cashEx)));
             return { ...latest[0], reason: '最近一期（參考）' };
         }
-        function policyToLightEvents(policyRows) {
+        function policyToLightEvents(policyRows, resultRows) {
+            const resultByDate = {};
+            (resultRows || []).forEach(r => {
+                if (r && r.date) resultByDate[r.date] = r;
+            });
             const events = [];
             (policyRows || []).forEach(r => {
                 const cash = num(r.CashEarningsDistribution) + num(r.CashStatutorySurplus);
                 const cashEx = r.CashExDividendTradingDate || '';
                 if (!(cash > 0) || !cashEx) return;
+                const cashRes = resultByDate[cashEx];
+                const beforeCash = cashRes && cashRes.before_price != null ? Number(cashRes.before_price) : null;
                 events.push({
                     cash,
                     cashEx,
-                    cashPay: r.CashDividendPaymentDate || ''
+                    cashPay: r.CashDividendPaymentDate || '',
+                    beforeCash: isFinite(beforeCash) && beforeCash > 0 ? beforeCash : null
                 });
             });
             return events;
