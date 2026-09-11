@@ -3201,7 +3201,7 @@
             <div class="flex justify-between items-start gap-3 mb-4">
                 <div>
                     <h2 id="greeting-modal-title" class="stat-label mb-1">今日速覽</h2>
-                    <p class="text-[11px] text-muted">最後買入至今漲跌，以及總資產相對昨日變化</p>
+                    <p class="text-[11px] text-muted">最後買入至今漲跌，以及總資產近 30 日變化</p>
                 </div>
                 <button type="button" onclick="closeGreetingModal()" class="text-muted hover:text-ink text-xl leading-none px-1" aria-label="關閉">✕</button>
             </div>
@@ -3217,7 +3217,7 @@
                     <div class="greet-sub" id="greet-gold-sub"></div>
                 </div>
                 <div class="greet-row">
-                    <div class="greet-kicker">總資產 · 昨至今</div>
+                    <div class="greet-kicker" id="greet-day-kicker">總資產 · 近 30 日</div>
                     <div class="greet-main" id="greet-day-pct">--</div>
                     <div class="greet-sub" id="greet-day-sub"></div>
                 </div>
@@ -3515,18 +3515,37 @@
             const x = d || new Date();
             return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
         }
+        function shiftLocalDateKey(deltaDays, fromKey) {
+            const d = fromKey ? new Date(fromKey + 'T12:00:00') : new Date();
+            d.setDate(d.getDate() + deltaDays);
+            return localDateKey(d);
+        }
+        function daysBetweenKeys(a, b) {
+            const da = new Date(String(a) + 'T12:00:00');
+            const db = new Date(String(b) + 'T12:00:00');
+            return Math.round((db - da) / 86400000);
+        }
+        function fmtGreetDate(key) {
+            const m = String(key || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            return m ? (Number(m[2]) + '/' + Number(m[3])) : String(key || '');
+        }
         function loadWorthSnaps() {
             try {
                 const o = JSON.parse(localStorage.getItem(K_WORTH_SNAP) || '{}');
                 return (o && typeof o === 'object') ? o : {};
             } catch (e) { return {}; }
         }
-        function prevWorthSnap(snaps, todayKey) {
-            const keys = Object.keys(snaps).filter((k) => k < todayKey).sort();
+        function worthSnapOnOrBefore(snaps, dateKey, beforeKey) {
+            const keys = Object.keys(snaps).filter((k) => k <= dateKey && (!beforeKey || k < beforeKey)).sort();
             if (!keys.length) return null;
             const k = keys[keys.length - 1];
-            const row = snaps[k] || {};
-            return { date: k, worth: num(row.worth) };
+            return { date: k, worth: num((snaps[k] || {}).worth) };
+        }
+        function greetingWorthBaseline(snaps, todayKey) {
+            const target = shiftLocalDateKey(-30, todayKey);
+            let prev = worthSnapOnOrBefore(snaps, target, todayKey);
+            if (!prev || !(prev.worth > 0)) prev = worthSnapOnOrBefore(snaps, shiftLocalDateKey(-1, todayKey), todayKey);
+            return prev && prev.worth > 0 ? prev : null;
         }
         function saveWorthSnap(worth) {
             if (!isFinite(Number(worth))) return;
@@ -3534,7 +3553,7 @@
             const snaps = loadWorthSnaps();
             const today = localDateKey();
             snaps[today] = { worth: Number(worth), at: new Date().toISOString() };
-            Object.keys(snaps).sort().slice(0, Math.max(0, Object.keys(snaps).length - 90)).forEach((k) => { delete snaps[k]; });
+            Object.keys(snaps).sort().slice(0, Math.max(0, Object.keys(snaps).length - 400)).forEach((k) => { delete snaps[k]; });
             localStorage.setItem(K_WORTH_SNAP, JSON.stringify(snaps));
         }
         function setGreetPct(el, p) {
@@ -3547,7 +3566,6 @@
             const worth = computeAssetWorth();
             const snaps = loadWorthSnaps();
             const today = localDateKey();
-            const prev = prevWorthSnap(snaps, today);
 
             const stockBuy = lastStockBuy();
             const stockPctEl = document.getElementById('greet-stock-pct');
@@ -3596,20 +3614,22 @@
 
             const dayPctEl = document.getElementById('greet-day-pct');
             const daySubEl = document.getElementById('greet-day-sub');
+            const dayKickerEl = document.getElementById('greet-day-kicker');
+            const prev = greetingWorthBaseline(snaps, today);
             if (!prev || !(prev.worth > 0)) {
                 setGreetPct(dayPctEl, null);
-                if (daySubEl) daySubEl.textContent = '尚無昨日紀錄。已開始記錄今日淨值，明天開啟即可對照。';
+                if (dayKickerEl) dayKickerEl.textContent = '總資產 · 近 30 日';
+                if (daySubEl) daySubEl.textContent = '尚無對照紀錄。已開始記錄今日淨值，之後開啟即可看近 30 日變化。';
             } else {
                 const pct = pctFrom(prev.worth, worth.tV);
+                const n = Math.max(1, daysBetweenKeys(prev.date, today));
                 setGreetPct(dayPctEl, pct);
-                const yest = new Date();
-                yest.setDate(yest.getDate() - 1);
-                const isYest = prev.date === localDateKey(yest);
+                if (dayKickerEl) dayKickerEl.textContent = n <= 1 ? '總資產 · 昨至今' : ('總資產 · 近 ' + n + ' 日');
                 let verb = '持平';
                 if (pct > 0.005) verb = '成長';
                 else if (pct < -0.005) verb = '減少';
                 if (daySubEl) {
-                    daySubEl.textContent = (isYest ? '較昨日' : ('較 ' + prev.date + ' 紀錄')) + verb
+                    daySubEl.textContent = '較 ' + fmtGreetDate(prev.date) + ' ' + verb
                         + (isPrivacyMode ? '' : (' · ' + fmtGreetMoney(prev.worth) + ' → ' + fmtGreetMoney(worth.tV)));
                 }
             }
