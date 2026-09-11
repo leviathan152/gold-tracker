@@ -368,7 +368,9 @@
             flex: 1;
             min-width: 0;
             width: 100%;
+            z-index: 1;
         }
+        .code-pick.is-open { z-index: 8; }
         .code-pick-native {
             position: absolute !important;
             width: 1px !important;
@@ -422,28 +424,28 @@
         }
         .code-pick.is-open .code-pick-chevron { transform: rotate(180deg); color: var(--stock); }
         .code-pick-menu {
-            position: absolute;
-            z-index: 60;
-            top: calc(100% + 6px);
+            position: fixed;
+            z-index: 210;
+            top: 0;
             left: 0;
-            right: 0;
-            min-width: 100%;
+            right: auto;
+            min-width: 0;
             width: max-content;
-            max-width: min(18rem, 92vw);
-            max-height: 14rem;
+            max-width: min(18rem, calc(100vw - 24px));
+            max-height: min(14rem, calc(100vh - 24px));
             overflow: auto;
+            -webkit-overflow-scrolling: touch;
             padding: 0.35rem;
             border-radius: 14px;
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid rgba(255, 255, 255, 0.86);
-            box-shadow: 0 18px 40px -18px rgba(15, 23, 42, 0.35);
-            backdrop-filter: blur(22px) saturate(1.6);
-            -webkit-backdrop-filter: blur(22px) saturate(1.6);
+            background: #fff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 18px 40px -18px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.04);
         }
         .code-pick-menu.is-hidden { display: none; }
         .code-pick-item {
             display: block;
-            width: 100%;
+            width: auto;
+            min-width: 100%;
             text-align: left;
             border: 0;
             background: transparent;
@@ -455,6 +457,7 @@
             padding: 0.55rem 0.75rem;
             border-radius: 10px;
             cursor: pointer;
+            white-space: nowrap;
         }
         .code-pick-item:hover { background: rgba(10, 90, 212, 0.08); }
         .code-pick-item.is-on {
@@ -3667,15 +3670,84 @@
         }
         const CODE_SELECT_IDS = { 'market-code': 1, 'stock-code': 1, 'stock-sell-code': 1, 'es-stock-code': 1, 'div-code': 1, 'goal-code': 1 };
         function isCodeSelect(el) { return !!(el && CODE_SELECT_IDS[el.id]); }
+        let codePickState = null;
         function enhanceAllSelects() {
             document.querySelectorAll('select').forEach(syncCodePicker);
         }
+        function getCodePop() {
+            let pop = document.getElementById('code-pick-pop');
+            if (pop) return pop;
+            pop = document.createElement('div');
+            pop.id = 'code-pick-pop';
+            pop.className = 'code-pick-menu is-hidden';
+            pop.setAttribute('role', 'listbox');
+            document.body.appendChild(pop);
+            pop.addEventListener('mousedown', (e) => e.stopPropagation());
+            pop.addEventListener('click', (e) => e.stopPropagation());
+            return pop;
+        }
         function closeAllCodePickers() {
-            document.querySelectorAll('.code-pick').forEach((pick) => {
-                pick.classList.remove('is-open');
-                const menu = pick.querySelector('.code-pick-menu');
-                if (menu) menu.classList.add('is-hidden');
+            document.querySelectorAll('.code-pick').forEach((pick) => pick.classList.remove('is-open'));
+            const pop = document.getElementById('code-pick-pop');
+            if (pop) pop.classList.add('is-hidden');
+            codePickState = null;
+        }
+        function positionCodeMenu(wrap) {
+            const pop = getCodePop();
+            const btn = wrap && wrap.querySelector('.code-pick-btn');
+            if (!btn || pop.classList.contains('is-hidden')) return;
+            const r = btn.getBoundingClientRect();
+            const maxW = Math.min(288, window.innerWidth - 24);
+            pop.style.width = 'max-content';
+            pop.style.minWidth = r.width + 'px';
+            pop.style.maxWidth = maxW + 'px';
+            pop.style.left = '12px';
+            pop.style.top = '0px';
+            const mw = Math.max(r.width, Math.min(pop.offsetWidth, maxW));
+            let left = r.left;
+            if (left + mw > window.innerWidth - 12) left = window.innerWidth - mw - 12;
+            if (left < 12) left = 12;
+            pop.style.width = mw + 'px';
+            pop.style.left = left + 'px';
+            const ph = pop.offsetHeight;
+            const below = r.bottom + 6;
+            const above = r.top - 6 - ph;
+            const top = (below + ph < window.innerHeight - 12 || above < 12) ? below : above;
+            pop.style.top = Math.max(12, top) + 'px';
+        }
+        function fillCodePop(el) {
+            const pop = getCodePop();
+            const isCode = isCodeSelect(el);
+            const val = el.value || '';
+            const opts = Array.from(el.options).filter((o) => isCode ? o.value : true);
+            if (isCode) {
+                pop.innerHTML = opts.length
+                    ? (val ? '<button type="button" class="code-pick-item is-clear" data-value="">清除選擇</button>' : '') +
+                        opts.map((o) => '<button type="button" class="code-pick-item' + (o.value === val ? ' is-on' : '') + '" data-value="' + escapeHtml(o.value) + '" role="option" aria-selected="' + (o.value === val ? 'true' : 'false') + '">' + escapeHtml(o.text) + '</button>').join('')
+                    : '<div class="code-pick-empty">尚無代號，請按 ＋ 新增</div>';
+            } else {
+                pop.innerHTML = opts.map((o) => '<button type="button" class="code-pick-item' + (o.value === val ? ' is-on' : '') + '" data-value="' + escapeHtml(o.value) + '" role="option" aria-selected="' + (o.value === val ? 'true' : 'false') + '">' + escapeHtml(o.text) + '</button>').join('');
+            }
+            pop.querySelectorAll('.code-pick-item').forEach((item) => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    el.value = item.getAttribute('data-value') || '';
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                    syncCodePicker(el);
+                    closeAllCodePickers();
+                });
             });
+        }
+        function openCodePicker(el, wrap) {
+            closeAllCodePickers();
+            closeDatePicker();
+            wrap.classList.add('is-open');
+            codePickState = { el: el, wrap: wrap };
+            fillCodePop(el);
+            const pop = getCodePop();
+            pop.classList.remove('is-hidden');
+            positionCodeMenu(wrap);
         }
         function ensureCodePicker(el) {
             if (!el || el.closest('.code-pick')) return el.closest('.code-pick');
@@ -3687,21 +3759,15 @@
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'code-pick-btn';
+            btn.setAttribute('aria-haspopup', 'listbox');
             btn.innerHTML = '<span class="code-pick-label"></span><svg class="code-pick-chevron" viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M3 4.5 6 8l3-3.5"/></svg>';
-            const menu = document.createElement('div');
-            menu.className = 'code-pick-menu is-hidden';
             wrap.appendChild(btn);
-            wrap.appendChild(menu);
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const willOpen = menu.classList.contains('is-hidden');
-                closeAllCodePickers();
-                closeDatePicker();
-                if (willOpen) {
-                    wrap.classList.add('is-open');
-                    menu.classList.remove('is-hidden');
-                }
+                const willOpen = !wrap.classList.contains('is-open');
+                if (willOpen) openCodePicker(el, wrap);
+                else closeAllCodePickers();
             });
             return wrap;
         }
@@ -3711,7 +3777,6 @@
             if (!wrap) return;
             const btn = wrap.querySelector('.code-pick-btn');
             const label = wrap.querySelector('.code-pick-label');
-            const menu = wrap.querySelector('.code-pick-menu');
             const isCode = isCodeSelect(el);
             const val = el.value || '';
             const selectedOpt = el.options[el.selectedIndex];
@@ -3719,31 +3784,19 @@
                 ? selectedOpt.text
                 : (isCode ? t('select.code') : ((selectedOpt && selectedOpt.text) || ''));
             if (label) label.textContent = display;
-            if (btn) btn.classList.toggle('is-empty', isCode && !val);
-            const opts = Array.from(el.options).filter((o) => isCode ? o.value : true);
-            if (isCode) {
-                menu.innerHTML = opts.length
-                    ? (val ? '<button type="button" class="code-pick-item is-clear" data-value="">清除選擇</button>' : '') +
-                        opts.map((o) => '<button type="button" class="code-pick-item' + (o.value === val ? ' is-on' : '') + '" data-value="' + escapeHtml(o.value) + '">' + escapeHtml(o.text) + '</button>').join('')
-                    : '<div class="code-pick-empty">尚無代號，請按 ＋ 新增</div>';
-            } else {
-                menu.innerHTML = opts.map((o) => '<button type="button" class="code-pick-item' + (o.value === val ? ' is-on' : '') + '" data-value="' + escapeHtml(o.value) + '">' + escapeHtml(o.text) + '</button>').join('');
+            if (btn) {
+                btn.classList.toggle('is-empty', isCode && !val);
+                btn.setAttribute('aria-expanded', wrap.classList.contains('is-open') ? 'true' : 'false');
             }
-            menu.querySelectorAll('.code-pick-item').forEach((item) => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    el.value = item.getAttribute('data-value') || '';
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
-                    syncCodePicker(el);
-                    closeAllCodePickers();
-                });
-            });
+            if (codePickState && codePickState.el === el) {
+                fillCodePop(el);
+                positionCodeMenu(wrap);
+            }
         }
         if (!window._codePickBound) {
             window._codePickBound = true;
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('.code-pick')) closeAllCodePickers();
+                if (!e.target.closest('.code-pick') && !e.target.closest('#code-pick-pop')) closeAllCodePickers();
             });
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
@@ -3751,6 +3804,12 @@
                     closeDatePicker();
                 }
             });
+            window.addEventListener('resize', () => {
+                if (codePickState) positionCodeMenu(codePickState.wrap);
+            });
+            window.addEventListener('scroll', () => {
+                if (codePickState) positionCodeMenu(codePickState.wrap);
+            }, true);
         }
         const DATE_WEEK = ['日', '一', '二', '三', '四', '五', '六'];
         const DATE_MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
