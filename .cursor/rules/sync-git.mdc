@@ -1,0 +1,15 @@
+---
+description: 每次改完程式都要 commit 並 push 到 GitHub
+alwaysApply: true
+---
+
+# 自動同步 GitHub
+
+使用者要求：以後不管改什麼，完成後都要同步上傳 git。
+
+- 任務完成且有檔案變更時，立刻 `git add`、commit、`git push origin HEAD`。
+- 不必再問要不要上傳。
+- commit message 用英文、1–2 句，說明為什麼改。
+- 不要 commit 機密（`.env`、密碼、金鑰）。
+- 不要 `--no-verify`、force push，或改 git config。
+- 沒有變更就不要空 commit。
