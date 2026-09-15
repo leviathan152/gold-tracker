@@ -481,7 +481,7 @@
             padding: 0.7rem 0.7rem 0.55rem;
             border-radius: 18px;
             background: rgba(255, 255, 255, 0.97);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--line);
             box-shadow: 0 22px 50px -16px rgba(15, 23, 42, 0.38);
         }
         .date-pick-pop.is-hidden { display: none; }
@@ -1672,10 +1672,6 @@
             padding-right: 0.15rem;
             margin-right: 1.25rem;
         }
-
-        .section-rise { }
-        .section-rise:nth-child(2) { }
-        .section-rise:nth-child(3) { }
 
         .peer-bar {
             height: 0.62rem;
