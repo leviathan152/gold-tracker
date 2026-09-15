@@ -2678,13 +2678,13 @@
                     <div class="flex flex-col gap-1" id="stock-shares-wrap"><label class="stat-label text-[10px]">股數</label><input type="number" id="stock-shares"></div>
                     <div class="flex flex-col gap-1" id="stock-price-wrap"><label class="stat-label text-[10px]">成交單價</label><input type="number" step="0.01" id="stock-buy-price"></div>
                     <div class="flex flex-col gap-1" id="stock-cost-wrap"><label class="stat-label text-[10px]">總投入成本</label><input type="number" id="stock-cost" placeholder="空白則單價×股數"></div>
-                    <div id="stock-div-field" class="hidden flex flex-col gap-1"><label class="stat-label text-[10px] c-sage">配發股利</label><input type="number" id="stock-div-amount" title="再投入時請與成本同額；現金股利僅填此欄"></div>
+                    <div id="stock-div-field" class="hidden flex flex-col gap-1"><label class="stat-label text-[10px] c-sage">配發股利</label><input type="number" id="stock-div-amount" title="再投入：填實際配發額；成本可另填券商扣款（多出的差額計入口袋本金）。現金股利僅填此欄"></div>
                     </div>
                     <div class="entry-actions">
                         <button id="stock-btn" onclick="saveStock()" class="btn-primary font-bold tracking-wide">確認登錄</button>
                     </div>
                 </div>
-                <p class="entry-hint">成本空白＝單價×股數。再投入：成本與股利同額。現金股利：不增加股數與成本。</p>
+                <p class="entry-hint">成本空白＝單價×股數。再投入：成本與股利可分開；多出的（成本−股利）計入口袋本金。現金股利：不增加股數與成本。</p>
             </div>
             <div class="card overflow-hidden p-0 record-table">
                 <div class="table-scroll">
@@ -3128,7 +3128,7 @@
                 <div class="flex flex-col gap-1" id="es-stock-cost-wrap"><label class="stat-label text-[10px]">總投入成本</label><input type="number" id="es-stock-cost" placeholder="空白則單價×股數"></div>
                 <div id="es-stock-div-field" class="hidden flex flex-col gap-1"><label class="stat-label text-[10px] c-sage">配發股利</label><input type="number" id="es-stock-div-amount"></div>
             </div>
-            <p class="text-[10px] text-muted mt-3">再投入：成本與股利同額。現金股利：不增加股數與成本。</p>
+            <p class="text-[10px] text-muted mt-3">再投入：成本與股利可分開；差額計入口袋本金。現金股利：不增加股數與成本。</p>
             <div class="flex gap-3 mt-5">
                 <button type="button" onclick="saveStockEditModal()" class="flex-1 btn-primary py-3 rounded-xl font-bold text-sm">儲存修改</button>
                 <button type="button" onclick="closeStockEditModal()" class="btn-surface px-8 rounded-xl font-bold">取消</button>
@@ -3393,7 +3393,7 @@
         function goldSellRatePct(r) { return sellRatePct(r); }
         function sumSellBuyCost(sells) { return sells.reduce((a, r) => a + num(r.buyCost), 0); }
         function sumSellProfit(sells) { return sells.reduce((a, r) => a + sellProfit(r), 0); }
-        /** 口袋實際掏出的持倉成本：買入＝成本；再投入≈0；現金股利＝0 */
+        /** 口袋實際掏出的持倉成本：買入＝成本；再投入＝max(0, 成本−股利)；現金股利＝0 */
         function netHoldingCashCost(r) {
             const t = r.type || 'buy';
             if (t === 'cash_div') return 0;
@@ -3405,7 +3405,7 @@
         /**
          * 總報酬率（全程，非年化；不含股利）
          * 分子＝現值＋已實現損益 − 現有部位淨現金成本
-         * 分母＝現有淨現金成本＋已賣出淨現金成本（再投入不算口袋本金）
+         * 分母＝現有淨現金成本＋已賣出淨現金成本（再投入僅計「成本−股利」差額）
          */
         function totalPerfPct(worth, holdNetCash, realized, soldNetCash) {
             const basis = num(holdNetCash) + num(soldNetCash);
@@ -4274,7 +4274,10 @@
                 const t = r.type || 'buy';
                 if (t === 'buy') cfs.push({ date: r.date, amount: -num(r.cost) });
                 else if (t === 'cash_div') cfs.push({ date: r.date, amount: num(r.dividend) });
-                // drip: net zero cash
+                else if (t === 'dividend') {
+                    const net = netHoldingCashCost(r);
+                    if (net > 0) cfs.push({ date: r.date, amount: -net });
+                }
             });
             stockSells.forEach(r => cfs.push({ date: r.date, amount: netSellProceeds(r) }));
             if (terminalWorth > 0) cfs.push({ date: new Date().toISOString().split('T')[0], amount: terminalWorth });
@@ -4294,6 +4297,10 @@
                     const t = r.type || 'buy';
                     if (t === 'buy') cfs.push({ date: r.date, amount: -num(r.cost) });
                     else if (t === 'cash_div') cfs.push({ date: r.date, amount: num(r.dividend) });
+                    else if (t === 'dividend') {
+                        const net = netHoldingCashCost(r);
+                        if (net > 0) cfs.push({ date: r.date, amount: -net });
+                    }
                 });
                 stockSells.forEach(r => cfs.push({ date: r.date, amount: netSellProceeds(r) }));
             }
@@ -4326,7 +4333,7 @@
                 if (sh <= 0) continue;
                 const take = Math.min(sh, need);
                 const ratio = take / sh;
-                // 再投入的「成本」≈股利，不算口袋本金；賣出成本取淨現金成本
+                // 再投入賣出成本取淨現金（成本−股利的差額）
                 costTaken += netHoldingCashCost(r) * ratio;
                 r.shares = sh - take;
                 r.cost = num(r.cost) * (1 - ratio);
@@ -6037,6 +6044,7 @@
                     if (incS) {
                         const t = h.rec.type || 'buy';
                         if (t === 'buy') curS += num(h.rec.cost);
+                        else if (t === 'dividend') curS += netHoldingCashCost(h.rec);
                         heldS.push(h.rec);
                     }
                 } else if (h.type === 'g') {
@@ -6320,8 +6328,9 @@
                 cost = num(shares) * num(buyPrice);
             }
             if (type === 'dividend') {
-                const d = divN || cost;
-                return { shares: num(shares), cost: d, dividend: d, buyPrice: num(buyPrice) };
+                // 成本與股利可分開：券商常會多扣一點；空白成本時先用單價×股數，再不行才用股利額
+                if (!(cost > 0) && divN > 0) cost = divN;
+                return { shares: num(shares), cost, dividend: divN, buyPrice: num(buyPrice) };
             }
             return { shares: num(shares), cost, dividend: 0, buyPrice: num(buyPrice) };
         }
