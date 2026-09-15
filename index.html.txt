@@ -8,15 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
-
         :root {
             --ink: #1d1d1f;
             --ink-soft: #3a3a3c;
             --muted: #6e6e73;
             --faint: #8e8e93;
-            --paper: rgba(255, 255, 255, 0.62);
-            --paper-strong: rgba(255, 255, 255, 0.78);
+            --paper: rgba(255, 255, 255, 0.82);
+            --paper-strong: rgba(255, 255, 255, 0.92);
             --line: rgba(255, 255, 255, 0.62);
             --line-strong: rgba(255, 255, 255, 0.86);
             --stock: #0a5ad4;
@@ -40,7 +38,7 @@
             --shadow: 0 10px 40px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
             --radius: 22px;
             --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-            --glass: blur(40px) saturate(2.1);
+            --glass: blur(12px) saturate(1.25);
             --body-base:
                 radial-gradient(ellipse 58% 48% at 6% -2%, rgba(10, 90, 212, 0.38), transparent 60%),
                 radial-gradient(ellipse 50% 42% at 96% 4%, rgba(255, 55, 95, 0.26), transparent 54%),
@@ -67,20 +65,8 @@
             padding-top: max(1rem, env(safe-area-inset-top, 0px));
             padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
             background: var(--body-base);
-            background-attachment: fixed;
             position: relative;
             overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.12;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay;
         }
 
         body::after {
@@ -96,13 +82,6 @@
             background: radial-gradient(circle, var(--orb), transparent 68%);
             pointer-events: none;
             z-index: 0;
-            filter: blur(8px);
-            animation: drift 20s var(--ease-out) infinite alternate;
-        }
-
-        @keyframes drift {
-            from { transform: translate(0, 0) scale(1); }
-            to { transform: translate(-4%, 6%) scale(1.08); }
         }
 
         @keyframes rise-in {
@@ -133,12 +112,11 @@
             box-shadow: var(--shadow), inset 0 1px 1px rgba(255,255,255,0.92), inset 0 -1px 0 rgba(255,255,255,0.28);
             backdrop-filter: var(--glass);
             -webkit-backdrop-filter: var(--glass);
-            transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out), background 0.3s ease;
+            transition: box-shadow 0.3s ease, background 0.3s ease;
         }
         .card:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12), inset 0 1px 1px rgba(255,255,255,0.95);
+            background: var(--paper-strong);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255,255,255,0.95);
         }
 
         @keyframes sheen {
@@ -255,15 +233,12 @@
             padding: 0.7rem 0.8rem;
             border-radius: 12px;
             border: 1px solid var(--line);
-            background: rgba(255,255,255,0.45);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+            background: rgba(255,255,255,0.72);
+            transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
             user-select: none;
         }
-        .setting-switch:hover {
+            .setting-switch:hover {
             border-color: var(--line-strong);
-            transform: translateY(-1px);
         }
         .setting-switch:has(input:checked) {
             border-color: rgba(5, 150, 105, 0.45);
@@ -368,7 +343,9 @@
             flex: 1;
             min-width: 0;
             width: 100%;
+            z-index: 1;
         }
+        .code-pick.is-open { z-index: 8; }
         .code-pick-native {
             position: absolute !important;
             width: 1px !important;
@@ -398,6 +375,13 @@
             cursor: pointer;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
             transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            overflow: hidden;
+        }
+        .code-pick-btn > span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .code-pick-btn.is-empty { color: var(--muted); font-weight: 500; }
         .code-pick-btn:hover,
@@ -415,28 +399,28 @@
         }
         .code-pick.is-open .code-pick-chevron { transform: rotate(180deg); color: var(--stock); }
         .code-pick-menu {
-            position: absolute;
-            z-index: 60;
-            top: calc(100% + 6px);
+            position: fixed;
+            z-index: 210;
+            top: 0;
             left: 0;
-            right: 0;
-            min-width: 100%;
+            right: auto;
+            min-width: 0;
             width: max-content;
-            max-width: min(18rem, 92vw);
-            max-height: 14rem;
+            max-width: min(18rem, calc(100vw - 24px));
+            max-height: min(14rem, calc(100vh - 24px));
             overflow: auto;
+            -webkit-overflow-scrolling: touch;
             padding: 0.35rem;
             border-radius: 14px;
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid rgba(255, 255, 255, 0.86);
-            box-shadow: 0 18px 40px -18px rgba(15, 23, 42, 0.35);
-            backdrop-filter: blur(22px) saturate(1.6);
-            -webkit-backdrop-filter: blur(22px) saturate(1.6);
+            background: #fff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 18px 40px -18px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.04);
         }
         .code-pick-menu.is-hidden { display: none; }
         .code-pick-item {
             display: block;
-            width: 100%;
+            width: auto;
+            min-width: 100%;
             text-align: left;
             border: 0;
             background: transparent;
@@ -448,6 +432,7 @@
             padding: 0.55rem 0.75rem;
             border-radius: 10px;
             cursor: pointer;
+            white-space: nowrap;
         }
         .code-pick-item:hover { background: rgba(10, 90, 212, 0.08); }
         .code-pick-item.is-on {
@@ -530,8 +515,6 @@
             background: rgba(255, 255, 255, 0.97);
             border: 1px solid rgba(255, 255, 255, 0.9);
             box-shadow: 0 22px 50px -16px rgba(15, 23, 42, 0.38);
-            backdrop-filter: blur(28px) saturate(1.7);
-            -webkit-backdrop-filter: blur(28px) saturate(1.7);
         }
         .date-pick-pop.is-hidden { display: none; }
         .date-pick-head {
@@ -704,9 +687,7 @@
             background: rgba(255, 255, 255, 0.55);
             border: 1px solid rgba(255, 255, 255, 0.7);
             color: var(--ink);
-            backdrop-filter: blur(16px) saturate(1.4);
-            -webkit-backdrop-filter: blur(16px) saturate(1.4);
-            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+            transition: background 0.2s, border-color 0.2s;
         }
         .btn-surface:hover {
             background: rgba(255, 255, 255, 0.78);
@@ -982,6 +963,9 @@
             flex-direction: column;
             height: 100%;
             min-height: 100%;
+            min-width: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
         .alloc-panel-head {
             display: flex;
@@ -997,28 +981,29 @@
             justify-content: center;
             padding: 0.35rem 0 0.75rem;
             flex: 1;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
         }
         .alloc-halo {
             position: absolute;
-            width: 230px;
-            height: 230px;
+            inset: 0;
+            width: auto;
+            height: auto;
             border-radius: 50%;
             background:
                 radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), transparent 42%),
                 radial-gradient(circle at 50% 50%, rgba(10, 90, 212, 0.12), transparent 68%),
                 radial-gradient(circle at 70% 65%, rgba(255, 159, 10, 0.14), transparent 62%);
-            filter: blur(1px);
             pointer-events: none;
-            animation: alloc-breathe 5.5s var(--ease-out) infinite alternate;
-        }
-        @keyframes alloc-breathe {
-            from { transform: scale(0.96); opacity: 0.7; }
-            to { transform: scale(1.05); opacity: 1; }
         }
         .alloc-ring-track {
             position: absolute;
-            width: 208px;
-            height: 208px;
+            inset: 5%;
+            width: auto;
+            height: auto;
             border-radius: 50%;
             border: 1px solid rgba(29, 29, 31, 0.06);
             box-shadow:
@@ -1028,22 +1013,20 @@
         }
         .alloc-chart-wrap {
             position: relative;
-            width: 220px;
-            height: 220px;
+            width: min(220px, 100%);
             max-width: 100%;
-            flex-shrink: 0;
-            overflow: visible;
+            aspect-ratio: 1 / 1;
+            height: auto;
+            flex: 0 0 auto;
+            overflow: hidden;
             cursor: pointer;
             z-index: 1;
-            transition: transform 0.45s var(--ease-out);
+            container-type: size;
         }
-        .alloc-chart-wrap:hover { transform: scale(1.03); }
-        .alloc-chart-wrap.is-focused { transform: scale(1.04); }
         .alloc-chart-wrap canvas {
             display: block;
             width: 100% !important;
             height: 100% !important;
-            filter: drop-shadow(0 10px 18px rgba(29, 29, 31, 0.12));
         }
         .alloc-chart-center {
             position: absolute;
@@ -1080,7 +1063,7 @@
             flex-shrink: 0;
         }
         .alloc-center-value {
-            font-size: 1.15rem;
+            font-size: clamp(0.62rem, 12cqw, 1.15rem);
             font-weight: 800;
             letter-spacing: -0.04em;
             font-variant-numeric: tabular-nums;
@@ -1088,37 +1071,43 @@
             line-height: 1.15;
             max-width: 100%;
             width: 100%;
-            overflow: visible;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
             padding: 0;
             text-align: center;
         }
         .alloc-center-sub {
             margin-top: 0.22rem;
-            font-size: 0.58rem;
+            font-size: clamp(0.48rem, 7cqw, 0.58rem);
             font-weight: 700;
             color: var(--muted);
             letter-spacing: 0.02em;
             min-height: 0.85rem;
             max-width: 100%;
-            overflow: visible;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
             flex-shrink: 0;
         }
         .alloc-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 0.55rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.4rem;
             width: 100%;
             margin-top: 0.35rem;
+            flex-shrink: 0;
         }
+        .alloc-legend:has(> .alloc-legend-row:nth-child(2)) {
+            grid-template-columns: 1fr 1fr;
+        }
+        .alloc-empty { grid-column: 1 / -1; }
         .alloc-legend-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 0.35rem 0.75rem;
-            align-items: center;
-            padding: 0.7rem 0.8rem;
-            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.28rem;
+            padding: 0.42rem 0.6rem;
+            border-radius: 12px;
             border: 1px solid var(--line);
             background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.38));
             cursor: pointer;
@@ -1127,6 +1116,7 @@
             font: inherit;
             width: 100%;
             color: inherit;
+            min-width: 0;
         }
         .alloc-legend-row:hover {
             transform: translateY(-1px);
@@ -1150,37 +1140,39 @@
         }
         .alloc-legend-top {
             display: flex;
-            align-items: center;
-            gap: 0.55rem;
+            align-items: baseline;
+            gap: 0.4rem;
             min-width: 0;
         }
         .alloc-legend-swatch {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 4px;
             flex-shrink: 0;
+            align-self: center;
             box-shadow: 0 0 0 3px rgba(255,255,255,0.7);
         }
         .alloc-legend-name {
+            flex: 1;
+            min-width: 0;
             font-size: 0.72rem;
             font-weight: 800;
             letter-spacing: 0.04em;
         }
         .alloc-legend-pct {
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.02em;
             color: var(--ink);
+            flex-shrink: 0;
         }
         .alloc-legend-meta {
-            grid-column: 1 / -1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
+            min-width: 0;
         }
         .alloc-bar {
-            height: 5px;
+            width: 100%;
+            height: 4px;
             border-radius: 999px;
             background: rgba(29, 29, 31, 0.06);
             overflow: hidden;
@@ -1204,13 +1196,30 @@
             border-radius: 2px;
             transition: left 0.7s var(--ease-out);
         }
-        .alloc-legend-foot {
+        .alloc-legend-detail {
             display: flex;
             justify-content: space-between;
-            gap: 0.5rem;
-            font-size: 0.6rem;
+            align-items: baseline;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+        .alloc-legend-amt {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .alloc-legend-foot {
+            flex-shrink: 0;
+            font-size: 0.58rem;
             color: var(--muted);
             font-weight: 600;
+            white-space: nowrap;
         }
         .alloc-empty {
             text-align: center;
@@ -1314,17 +1323,15 @@
             line-height: 1.4;
         }
 
-        .header-actions {
+            .header-actions {
             display: flex;
             align-items: center;
             gap: 0.28rem;
             padding: 0.28rem;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.46);
+            background: rgba(255, 255, 255, 0.82);
             border: 1px solid rgba(255, 255, 255, 0.72);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(22px) saturate(1.6);
-            -webkit-backdrop-filter: blur(22px) saturate(1.6);
         }
         .header-btn {
             display: inline-flex;
@@ -1395,8 +1402,6 @@
             background: rgba(255, 255, 255, 0.42);
             overflow: hidden;
             transition: border-color 0.25s, box-shadow 0.25s;
-            backdrop-filter: blur(18px) saturate(1.5);
-            -webkit-backdrop-filter: blur(18px) saturate(1.5);
         }
         .settings-fold[open] {
             border-color: var(--line-strong);
@@ -1494,6 +1499,36 @@
         .modal-panel-bottom-space {
             margin-bottom: max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
         }
+        .greet-modal-card {
+            max-width: 26rem;
+        }
+        .greet-row {
+            padding: 0.85rem 0.95rem;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.55);
+        }
+        .greet-kicker {
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.2rem;
+        }
+        .greet-main {
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            font-variant-numeric: tabular-nums;
+        }
+        .greet-sub {
+            margin-top: 0.28rem;
+            font-size: 0.72rem;
+            color: var(--muted);
+            line-height: 1.4;
+        }
 
         @media (max-width: 640px) {
             /* 維持 ≥16px，避免 iOS 聚焦時自動放大畫面 */
@@ -1510,14 +1545,14 @@
 
         .table-scroll {
             overflow: auto;
-            max-height: min(56vh, 32rem);
+            max-height: min(64vh, 40rem);
             -webkit-overflow-scrolling: touch;
             width: 100%;
             overscroll-behavior: contain;
             scrollbar-gutter: stable;
         }
         .table-scroll-tall {
-            max-height: min(70vh, 42rem);
+            max-height: min(74vh, 48rem);
         }
         .table-scroll > table {
             border-collapse: separate;
@@ -1530,13 +1565,9 @@
             background: rgba(248, 250, 252, 0.92);
             box-shadow: inset 0 -1px 0 var(--line);
         }
-        .table-scroll > table:not(.div-table) > thead > tr > th {
-            padding-top: 0.7rem !important;
-            padding-bottom: 0.7rem !important;
-        }
+        .table-scroll > table:not(.div-table) > thead > tr > th,
         .table-scroll > table:not(.div-table) > tbody > tr > td {
-            padding-top: 0.7rem !important;
-            padding-bottom: 0.7rem !important;
+            padding: 0.42rem 0.65rem !important;
         }
         .table-scroll .div-table thead th {
             position: sticky;
@@ -1551,8 +1582,131 @@
             box-shadow: inset 0 -1px 0 var(--line);
         }
         @media (max-width: 640px) {
-            .table-scroll { max-height: min(48vh, 26rem); }
-            .table-scroll-tall { max-height: min(62vh, 34rem); }
+            .table-scroll { max-height: min(52vh, 30rem); }
+            .table-scroll-tall { max-height: min(64vh, 38rem); }
+        }
+
+        .entry-card {
+            padding: 0.65rem 0.8rem !important;
+            margin-bottom: 0.55rem;
+        }
+        .entry-card:hover { transform: none; }
+        .entry-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.65rem;
+        }
+        .entry-grid {
+            flex: 1;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: minmax(8.5rem, 1.2fr) repeat(5, minmax(0, 1fr));
+            gap: 0.4rem 0.55rem;
+        }
+        .entry-actions {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: stretch;
+            gap: 0.4rem;
+        }
+        .entry-actions button {
+            min-width: 7.1rem;
+            height: 2.25rem;
+            padding: 0 0.85rem !important;
+            font-size: 0.75rem;
+            border-radius: 10px;
+            box-shadow: none;
+            white-space: nowrap;
+        }
+        .entry-hint {
+            margin: 0.38rem 0 0;
+            font-size: 10px;
+            line-height: 1.35;
+            color: var(--muted);
+        }
+        @media (max-width: 1100px) {
+            .entry-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 720px) {
+            .entry-row { flex-direction: column; align-items: stretch; }
+            .entry-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .entry-actions button { width: 100%; min-width: 0; height: 2.75rem; }
+            body[data-view="stock"] .app-shell,
+            body[data-view="gold"] .app-shell { overflow: auto; }
+            .record-table { min-height: 16rem; }
+            .record-table .table-scroll { max-height: min(52vh, 30rem); }
+            #stock-price-bar:not(.hidden) > p { display: none; }
+            #stock-price-bar:not(.hidden) button { height: 2.75rem; }
+        }
+
+        body[data-view="stock"] .site-header,
+        body[data-view="gold"] .site-header {
+            margin-bottom: 0.7rem;
+            padding-bottom: 0.55rem;
+        }
+        body[data-view="stock"] .app-shell,
+        body[data-view="gold"] .app-shell {
+            overflow: hidden;
+        }
+        body[data-view="stock"] #section-stock:not(.hidden),
+        body[data-view="gold"] #section-gold:not(.hidden) {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        #section-stock > .flex.gap-2,
+        #section-gold > .flex.gap-2 {
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+        #stock-panel-hold:not(.hidden),
+        #stock-panel-sell:not(.hidden),
+        #stock-panel-sum:not(.hidden),
+        #gold-panel-hold:not(.hidden),
+        #gold-panel-sell:not(.hidden) {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        #stock-panel-div:not(.hidden) {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+        }
+        .record-table {
+            flex: 1 1 0;
+            min-height: 12rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-bottom: 0 !important;
+        }
+        .record-table .table-scroll {
+            flex: 1 1 0;
+            max-height: none;
+            min-height: 0;
+        }
+        #stock-price-bar:not(.hidden) {
+            margin-bottom: 0.55rem;
+            padding: 0.55rem 0.75rem;
+            gap: 0.35rem;
+            flex-shrink: 0;
+        }
+        #stock-price-bar:not(.hidden) > p {
+            margin: 0;
+            line-height: 1.3;
+        }
+        #stock-price-bar:not(.hidden) > div {
+            flex-direction: row !important;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.45rem;
+        }
+        #stock-price-bar:not(.hidden) button {
+            height: 2.25rem;
+            padding: 0 0.8rem;
         }
 
         .tabs-row {
@@ -1639,6 +1793,13 @@
                 transition-duration: 0.01ms !important;
             }
         }
+        @media (prefers-reduced-transparency: reduce) {
+            .card, .panel-soft, .app-sidebar, .header-actions {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background: rgba(255, 255, 255, 0.94);
+            }
+        }
         tbody.divide-y > tr { border-color: var(--line); }
         table { border-collapse: collapse; }
         th, td { border-color: var(--line); }
@@ -1721,12 +1882,12 @@
             min-height: -webkit-fill-available;
         }
         .app-sidebar {
-            width: 15.25rem;
+            width: 12.75rem;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
             gap: 1.15rem;
-            padding: max(1.15rem, env(safe-area-inset-top)) 0.85rem max(1.25rem, env(safe-area-inset-bottom)) max(0.85rem, env(safe-area-inset-left));
+            padding: max(1.15rem, env(safe-area-inset-top)) 0.7rem max(1.25rem, env(safe-area-inset-bottom)) max(0.7rem, env(safe-area-inset-left));
             background: rgba(255, 255, 255, 0.48);
             border-right: 1px solid var(--line);
             backdrop-filter: var(--glass);
@@ -1759,20 +1920,23 @@
         .app-sidebar nav {
             display: flex;
             flex-direction: column;
+            align-items: flex-start;
             gap: 0.12rem;
         }
         .app-nav-btn {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
-            width: 100%;
-            padding: 0.7rem 0.8rem 0.7rem 0.95rem;
+            gap: 0.5rem;
+            width: auto;
+            max-width: 100%;
+            min-width: 0;
+            padding: 0.5rem 0.72rem 0.5rem 0.62rem;
             border: 0;
-            border-radius: 12px;
+            border-radius: 10px;
             background: transparent;
             color: var(--ink-soft);
             font: inherit;
-            font-size: 0.88rem;
+            font-size: 0.84rem;
             font-weight: 600;
             cursor: pointer;
             text-align: left;
@@ -1793,17 +1957,20 @@
         .app-nav-btn.is-on::before {
             content: '';
             position: absolute;
-            left: 0;
-            top: 0.42rem;
-            bottom: 0.42rem;
-            width: 3px;
-            border-radius: 3px;
+            left: 0.18rem;
+            top: 0.48rem;
+            bottom: 0.48rem;
+            width: 2px;
+            border-radius: 2px;
             background: var(--stock);
         }
         .app-main {
             flex: 1;
             min-width: 0;
             padding: max(1rem, env(safe-area-inset-top)) max(0.85rem, env(safe-area-inset-right)) max(1.75rem, env(safe-area-inset-bottom)) 0.85rem;
+        }
+        body[data-view="overview"] .app-main {
+            padding-bottom: max(0.7rem, env(safe-area-inset-bottom));
         }
         .app-shell { max-width: none; width: 100%; margin: 0; }
         .site-header { margin-bottom: 1.25rem; }
@@ -1863,6 +2030,11 @@
             overflow: auto;
         }
         body[data-view="overview"] .app-shell { overflow: hidden; }
+        body[data-view="overview"] .site-header {
+            flex-shrink: 0;
+            margin-bottom: 0.55rem;
+            padding-bottom: 0.55rem;
+        }
         #view-overview.hidden,
         #view-peer.hidden,
         #section-stock.hidden,
@@ -1876,83 +2048,305 @@
             min-height: 0;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.65rem;
+            overflow: hidden;
         }
         #view-overview .ov-charts {
             flex: 1 1 0;
             min-height: 0;
             align-items: stretch;
         }
-        #view-overview .ov-stats { flex: 0 0 auto; }
+        #view-overview .ov-stats { flex: 0 0 auto; min-height: 0; }
         @media (min-width: 861px) {
             #view-overview:not(.hidden) {
                 display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-columns: repeat(6, minmax(0, 1fr));
                 grid-template-rows: minmax(0, 1fr) auto;
-                gap: 0.75rem;
+                gap: 0.65rem;
+                flex: 1 1 0;
+                min-height: 0;
             }
             #view-overview .ov-charts,
             #view-overview .ov-stats {
                 display: contents;
             }
             #view-overview .ov-charts > .card:first-child {
+                grid-column: 1 / span 4;
+                grid-row: 1;
+                min-height: 0;
+            }
+            #view-overview .alloc-panel {
+                grid-column: 5 / span 2;
+                grid-row: 1 / -1;
+                align-self: stretch;
+            }
+            #view-overview .ov-charts > .card.alloc-panel {
+                height: auto;
+                min-height: 0;
+                overflow: hidden;
+            }
+            #view-overview .stat-card.stock,
+            #view-overview .stat-card.gold {
+                grid-row: 2;
+                height: auto;
+            }
+            #view-overview .stat-card.stock {
                 grid-column: 1 / span 2;
+            }
+            #view-overview .stat-card.gold {
+                grid-column: 3 / span 2;
             }
         }
         #view-overview .ov-charts > .card,
         #view-overview .ov-stats > .card {
             min-height: 0;
+            min-width: 0;
             height: 100%;
-            padding: clamp(0.65rem, 1.3vh, 1.1rem) clamp(0.8rem, 1.1vw, 1.2rem);
+            padding: clamp(0.5rem, 1.1vh, 0.9rem) clamp(0.7rem, 1vw, 1.1rem);
         }
         #view-overview .ov-charts > .card {
             display: flex;
             flex-direction: column;
         }
         body[data-view="overview"] #view-overview .card:hover { transform: none; }
-        #view-overview .chart-panel-head { margin-bottom: 0.45rem; }
+        #view-overview .chart-panel-head { margin-bottom: 0.3rem; }
         #view-overview .chart-readout {
             min-height: 0;
-            margin-bottom: 0.45rem;
-            padding: 0.48rem 0.7rem;
+            margin-bottom: 0.3rem;
+            padding: 0.32rem 0.55rem;
         }
         #view-overview .chart-container {
             flex: 1 1 0;
             height: auto;
-            min-height: 8rem;
+            min-height: 4.5rem;
         }
         #view-overview .chart-hint { display: none; }
-        #view-overview .alloc-panel-head { margin-bottom: 0.45rem; }
-        #view-overview .alloc-stage { padding: 0.15rem 0 0.35rem; min-height: 0; }
-        #view-overview .alloc-chart-wrap,
-        #view-overview .alloc-halo,
-        #view-overview .alloc-ring-track {
-            width: min(200px, 24vh, 100%);
-            height: min(200px, 24vh);
+        #view-overview .alloc-panel-head { margin-bottom: 0.2rem; flex-shrink: 0; }
+        #view-overview .alloc-stage {
+            flex: 1 1 0;
+            min-height: 7.5rem;
+            height: auto;
+            padding: 0;
+            container-type: size;
         }
-        #view-overview .alloc-legend { margin-top: 0.2rem; }
-        #view-overview .ov-metrics {
+        #view-overview .alloc-overview {
+            position: relative;
+            flex: 0 0 auto;
+            margin-top: 0.35rem;
+            padding: 0.04rem 0 0 0.65rem;
+        }
+        #view-overview .alloc-overview::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.08rem;
+            bottom: 0.08rem;
+            width: 3px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, var(--sage-deep), var(--sage));
+        }
+        #view-overview .alloc-overview .ov-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.16rem 0.7rem;
+        }
+        #view-overview .alloc-overview .ov-metrics > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            min-width: 0;
+            gap: 0.35rem;
+        }
+        #view-overview .alloc-overview .ov-metrics > div > span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        #view-overview .alloc-overview .ov-metrics .text-lg {
+            font-size: clamp(0.72rem, 1.25vh, 0.9rem);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #view-overview .alloc-overview .ov-metrics .text-sm {
+            font-size: clamp(0.66rem, 1.1vh, 0.78rem);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #view-overview .alloc-overview .text-xs { font-size: 0.58rem; }
+        #view-overview .alloc-chart-wrap {
+            width: min(100%, 100cqh);
+            height: auto;
+            aspect-ratio: 1 / 1;
+        }
+        #view-overview .alloc-legend {
+            margin-top: 0.1rem;
+            gap: 0.22rem;
+            flex-shrink: 0;
+        }
+        #view-overview .alloc-legend-row {
+            padding: 0.28rem 0.42rem;
+            gap: 0.18rem;
+        }
+        #view-overview .alloc-legend-foot {
+            font-size: 0.52rem;
+        }
+        #view-overview .alloc-legend-amt {
+            font-size: 0.58rem;
+        }
+        #view-overview .stat-card {
             display: flex;
             flex-direction: column;
-            gap: clamp(0.28rem, 0.7vh, 0.48rem);
+            justify-content: flex-start;
         }
-        #view-overview .ov-metrics .text-lg { font-size: clamp(0.95rem, 1.5vh, 1.15rem); }
-        #view-overview .ov-metrics .text-sm { font-size: clamp(0.75rem, 1.2vh, 0.88rem); }
+        #view-overview .stat-card .ov-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        #view-overview .stat-card .ov-metrics-main,
+        #view-overview .stat-card .ov-metrics-sub {
+            display: grid;
+            gap: 0.28rem 0.7rem;
+        }
+        #view-overview .stat-card .ov-metrics-main {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        #view-overview .stat-card .ov-metrics-sub {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            padding-top: 0.32rem;
+            border-top: 1px solid var(--line);
+        }
+        #view-overview .stat-card .ov-metrics-main > div,
+        #view-overview .stat-card .ov-metrics-sub > div {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 0.08rem;
+            min-width: 0;
+        }
+        #view-overview .stat-card .ov-metrics .text-lg {
+            font-size: clamp(0.84rem, 1.4vh, 1.02rem);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+        #view-overview .stat-card .ov-metrics .text-sm {
+            font-size: clamp(0.74rem, 1.35vh, 0.92rem);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #view-overview .stat-card .text-xs {
+            font-size: 0.6rem;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+        }
+        #view-overview .stat-card .stat-label { margin-bottom: 0.22rem; }
         @media (max-width: 860px) {
-            body[data-view="overview"] .app-shell { overflow: auto; }
+            body[data-view="overview"] .app-shell { overflow: hidden; }
+            body[data-view="overview"] .site-header {
+                flex-direction: row;
+                align-items: center;
+                gap: 0.55rem;
+                margin-bottom: 0.45rem;
+                padding-bottom: 0.45rem;
+            }
+            body[data-view="overview"] .header-actions {
+                align-self: center;
+                justify-content: flex-end;
+            }
+            body[data-view="overview"] .header-btn { flex: none; }
             #view-overview:not(.hidden) {
-                flex: none;
+                flex: 1 1 0;
+                min-height: 0;
                 height: auto;
-                display: block;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            #view-overview .ov-charts {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                flex: 1 1 0;
+                min-height: 0;
             }
             #view-overview .ov-charts > .card { height: auto; }
-            #view-overview .chart-container { flex: none; height: 220px; }
-            #view-overview .alloc-chart-wrap,
-            #view-overview .alloc-halo,
-            #view-overview .alloc-ring-track {
-                width: 180px;
-                height: 180px;
+            #view-overview .chart-readout { display: none; }
+            body[data-view="overview"] .header-subtitle { display: none; }
+            #view-overview .ov-charts > .card:first-child {
+                flex: 0.5 1 0;
+                min-height: 5.5rem;
             }
+            #view-overview .alloc-panel {
+                flex: 2 1 0;
+                min-height: 0;
+                height: auto;
+                overflow: hidden;
+            }
+            #view-overview .alloc-overview .stat-label { display: none; }
+            #view-overview .alloc-overview {
+                margin-top: 0.28rem;
+                padding: 0.04rem 0 0 0.6rem;
+            }
+            #view-overview .alloc-overview .ov-metrics {
+                gap: 0.06rem 0.4rem;
+            }
+            #view-overview .chart-container {
+                flex: 1 1 0;
+                height: auto;
+                min-height: 5.5rem;
+            }
+            #view-overview .alloc-stage {
+                flex: 1.4 1 8.5rem;
+                min-height: 8.5rem;
+                height: auto;
+                container-type: size;
+            }
+            #view-overview .alloc-legend {
+                gap: 0.2rem;
+                margin-top: 0.08rem;
+            }
+            #view-overview .alloc-legend-row {
+                padding: 0.18rem 0.32rem;
+                gap: 0.1rem;
+            }
+            #view-overview .ov-stats {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.45rem;
+                flex: 0 0 auto;
+            }
+            #view-overview .ov-stats > .card {
+                padding: 0.4rem 0.5rem;
+            }
+            #view-overview .ov-stats .ov-metrics-main {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.12rem 0.4rem;
+            }
+            #view-overview .ov-stats .ov-metrics-sub {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.12rem 0.4rem;
+                padding-top: 0.2rem;
+            }
+            #view-overview .ov-stats .text-lg { font-size: 0.72rem; }
+            #view-overview .ov-stats .text-sm { font-size: 0.64rem; }
+            #view-overview .ov-stats .text-xs { font-size: 0.52rem; }
+            .alloc-chart-wrap:hover,
+            .alloc-chart-wrap.is-focused { transform: none; }
+        }
+        @media (hover: none) {
+            .alloc-chart-wrap:hover,
+            .alloc-chart-wrap.is-focused { transform: none; }
         }
     </style>
 </head>
@@ -1986,7 +2380,7 @@
                 股票
             </button>
             <button type="button" class="app-nav-btn" data-view="gold" onclick="switchView('gold')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8.2v7.6M9.6 10.2c.6-.7 1.5-1.1 2.4-1.1 1.6 0 2.6.8 2.6 2 0 2.7-5 1.5-5 4.1 0 1.1 1 2 2.6 2 .9 0 1.8-.4 2.4-1.1"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17.2 7.6 9.4h8.8L19 17.2H5z"/><path d="M7.8 12.6h8.4"/><path d="M6.6 15.2h10.8"/></svg>
                 黃金
             </button>
             <button type="button" class="app-nav-btn" data-view="report" onclick="switchView('report')">
@@ -2041,9 +2435,9 @@
                     <span class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
                 </div>
                 <div class="alloc-stage">
-                    <div class="alloc-halo" aria-hidden="true"></div>
-                    <div class="alloc-ring-track" aria-hidden="true"></div>
                     <div class="alloc-chart-wrap" id="alloc-chart-wrap" title="點擊區塊或下方圖例檢視細節">
+                        <div class="alloc-halo" aria-hidden="true"></div>
+                        <div class="alloc-ring-track" aria-hidden="true"></div>
                         <canvas id="allocationChart"></canvas>
                         <div class="alloc-chart-center" id="alloc-center">
                             <span class="alloc-center-kicker" id="alloc-center-label" data-i18n="chart.net">淨值</span>
@@ -2053,45 +2447,52 @@
                     </div>
                 </div>
                 <div id="alloc-target-panel" class="alloc-legend"></div>
+                <div class="alloc-overview">
+                    <h3 class="stat-label c-sage mb-1" data-i18n="card.overview">總覽</h3>
+                    <div class="ov-metrics">
+                        <div><span class="text-xs text-muted">總投入成本</span><span id="total-all-cost" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted">總累計股利</span><span id="total-all-dividend" class="text-lg font-bold c-sage">--</span></div>
+                        <div><span class="text-xs text-muted">總資產現值</span><span id="total-all-worth" class="text-lg font-bold c-sage">--</span></div>
+                        <div><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="total-unreal" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間）">總報酬率</span><span id="total-all-perf" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="total-xirr" class="text-lg font-bold c-sage">--</span></div>
+                    </div>
+                </div>
                 <div id="rebalance-panel"></div>
             </div>
         </section>
 
-        <section class="ov-stats grid grid-cols-1 md:grid-cols-3 gap-3 section-rise">
+        <section class="ov-stats grid grid-cols-1 md:grid-cols-2 gap-3 section-rise">
             <div class="card stat-card stock">
-                <h3 class="stat-label c-stock mb-2" data-i18n="card.stock">股票管理</h3>
+                <h3 class="stat-label c-stock mb-1" data-i18n="card.stock">股票管理</h3>
                 <div class="ov-metrics">
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><span id="stock-total-cost" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">資產現值</span><span id="stock-worth" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="現值 − 持倉淨成本">未實現損益</span><span id="stock-unreal" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><span id="stock-perf" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="stock-xirr" class="text-sm font-bold c-stock">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總股數</span><span id="stock-total-shares" class="text-sm font-bold c-stock">--</span></div>
-                    <div class="flex justify-between items-end border-t pt-2" style="border-color: var(--line)"><span class="text-xs c-sell">已實現損益</span><span id="stock-realized" class="text-sm font-bold c-sell">--</span></div>
+                    <div class="ov-metrics-main">
+                        <div><span class="text-xs text-muted" title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><span id="stock-total-cost" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted">資產現值</span><span id="stock-worth" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="現值 − 持倉淨成本">未實現損益</span><span id="stock-unreal" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><span id="stock-perf" class="text-lg font-bold">--</span></div>
+                    </div>
+                    <div class="ov-metrics-sub">
+                        <div><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="stock-xirr" class="text-lg font-bold c-stock">--</span></div>
+                        <div><span class="text-xs text-muted">總股數</span><span id="stock-total-shares" class="text-lg font-bold c-stock">--</span></div>
+                        <div><span class="text-xs text-muted">已實現損益</span><span id="stock-realized" class="text-lg font-bold c-sell">--</span></div>
+                    </div>
                 </div>
             </div>
             <div class="card stat-card gold">
-                <h3 class="stat-label c-gold mb-2" data-i18n="card.gold">黃金管理</h3>
+                <h3 class="stat-label c-gold mb-1" data-i18n="card.gold">黃金管理</h3>
                 <div class="ov-metrics">
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總投入成本</span><span id="gold-total-cost" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">資產現值</span><span id="gold-worth" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="gold-unreal" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><span id="gold-perf" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢</span><span id="gold-price-unit" class="text-sm font-bold c-gold">--</span></div>
-                    <div class="flex justify-between items-end font-mono"><span class="text-xs text-muted">總持倉重量</span><span id="gold-total-weight" class="text-sm c-gold">--</span></div>
-                    <div class="flex justify-between items-end border-t pt-2" style="border-color: var(--line)"><span class="text-xs c-sell">已實現損益</span><span id="gold-realized" class="text-sm font-bold c-sell">--</span></div>
-                </div>
-            </div>
-            <div class="card stat-card overview">
-                <h3 class="stat-label c-sage mb-2" data-i18n="card.overview">總覽</h3>
-                <div class="ov-metrics">
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總投入成本</span><span id="total-all-cost" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總累計股利</span><span id="total-all-dividend" class="text-lg font-bold c-sage">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">總資產現值</span><span id="total-all-worth" class="text-lg font-bold c-sage">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="total-unreal" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted">累計已實現</span><span id="total-realized" class="text-sm font-bold c-sell">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間）">總報酬率</span><span id="total-all-perf" class="text-lg font-bold">--</span></div>
-                    <div class="flex justify-between items-end"><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="total-xirr" class="text-sm font-bold c-sage">--</span></div>
+                    <div class="ov-metrics-main">
+                        <div><span class="text-xs text-muted">總投入成本</span><span id="gold-total-cost" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted">資產現值</span><span id="gold-worth" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="gold-unreal" class="text-lg font-bold">--</span></div>
+                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><span id="gold-perf" class="text-lg font-bold">--</span></div>
+                    </div>
+                    <div class="ov-metrics-sub">
+                        <div><span class="text-xs text-muted" title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢</span><span id="gold-price-unit" class="text-lg font-bold c-gold">--</span></div>
+                        <div><span class="text-xs text-muted">總持倉重量</span><span id="gold-total-weight" class="text-lg font-bold c-gold">--</span></div>
+                        <div><span class="text-xs text-muted">已實現損益</span><span id="gold-realized" class="text-lg font-bold c-sell">--</span></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -2129,11 +2530,12 @@
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="stat-label text-[10px]" for="goal-price">現價</label>
-                    <input type="number" id="goal-price" min="0" step="0.01" placeholder="NT$" oninput="saveGoalPlan(); renderGoalCalc()">
+                    <input type="number" id="goal-price" min="0" step="0.01" placeholder="NT$" oninput="onGoalPriceInput()">
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="stat-label text-[10px]" for="goal-dps">每股年配息</label>
-                    <input type="number" id="goal-dps" min="0" step="0.0001" placeholder="近一年現金股利" oninput="saveGoalPlan(); renderGoalCalc()">
+                    <input type="number" id="goal-dps" min="0" step="0.0001" placeholder="殖利率 × 現價" title="依完整配息年平均殖利率 × 現價自動帶入，可改" oninput="onGoalDpsInput()">
+                    <span id="goal-dps-hint" class="text-[10px] text-muted"></span>
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="stat-label text-[10px]" for="goal-monthly">每月投入</label>
@@ -2252,14 +2654,15 @@
 
         <div id="section-stock" class="hidden">
             <div class="flex gap-2 mb-4 flex-wrap">
-                <button type="button" id="sub-stock-hold" onclick="switchStockSub('hold')" class="px-4 py-2 rounded-xl text-xs font-bold sub-on-stock">持倉登錄</button>
-                <button type="button" id="sub-stock-sell" onclick="switchStockSub('sell')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
-                <button type="button" id="sub-stock-sum" onclick="switchStockSub('sum')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">標的彙總</button>
-                <button type="button" id="sub-stock-div" onclick="switchStockSub('div')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">股利年表</button>
+                <button type="button" id="sub-stock-hold" onclick="switchStockSub('hold')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-on-stock">持倉登錄</button>
+                <button type="button" id="sub-stock-sell" onclick="switchStockSub('sell')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
+                <button type="button" id="sub-stock-sum" onclick="switchStockSub('sum')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-off">標的彙總</button>
+                <button type="button" id="sub-stock-div" onclick="switchStockSub('div')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-off">股利年表</button>
             </div>
             <div id="stock-panel-hold">
-            <div id="stock-input-card" class="card mb-8">
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div id="stock-input-card" class="card entry-card">
+                <div class="entry-row">
+                    <div class="entry-grid">
                     <input type="hidden" id="stock-edit-idx" value="-1">
                     <div class="flex flex-col gap-1">
                         <label class="stat-label text-[10px]" for="stock-code">標的代號</label>
@@ -2276,13 +2679,14 @@
                     <div class="flex flex-col gap-1" id="stock-price-wrap"><label class="stat-label text-[10px]">成交單價</label><input type="number" step="0.01" id="stock-buy-price"></div>
                     <div class="flex flex-col gap-1" id="stock-cost-wrap"><label class="stat-label text-[10px]">總投入成本</label><input type="number" id="stock-cost" placeholder="空白則單價×股數"></div>
                     <div id="stock-div-field" class="hidden flex flex-col gap-1"><label class="stat-label text-[10px] c-sage">配發股利</label><input type="number" id="stock-div-amount" title="再投入時請與成本同額；現金股利僅填此欄"></div>
+                    </div>
+                    <div class="entry-actions">
+                        <button id="stock-btn" onclick="saveStock()" class="btn-primary font-bold tracking-wide">確認登錄</button>
+                    </div>
                 </div>
-                <p class="text-[10px] text-muted mt-3">成本空白＝單價×股數。再投入：成本與股利同額。現金股利：不增加股數與成本。</p>
-                <div class="flex gap-3 mt-4">
-                    <button id="stock-btn" onclick="saveStock()" class="flex-1 btn-primary py-4 rounded-xl font-bold tracking-wide text-sm">確認登錄資料</button>
-                </div>
+                <p class="entry-hint">成本空白＝單價×股數。再投入：成本與股利同額。現金股利：不增加股數與成本。</p>
             </div>
-            <div class="card overflow-hidden p-0">
+            <div class="card overflow-hidden p-0 record-table">
                 <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[720px]">
                     <thead class="thead-bar font-bold">
@@ -2294,9 +2698,10 @@
             </div>
             </div>
             <div id="stock-panel-sell" class="hidden">
-                <div id="stock-sell-input-card" class="card mb-8 panel-sell">
-                    <p class="stat-label text-[10px] c-sell mb-3">登錄賣出後將以 FIFO 自動自持倉扣除；買入成本空白則自動計算。</p>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div id="stock-sell-input-card" class="card entry-card panel-sell">
+                    <p class="entry-hint" style="margin-top:0;margin-bottom:0.4rem">登錄賣出後將以 FIFO 自動自持倉扣除；買入成本空白則自動計算。</p>
+                    <div class="entry-row">
+                    <div class="entry-grid">
                         <input type="hidden" id="stock-sell-edit-idx" value="-1">
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">賣出日期</label><input type="date" id="stock-sell-date"></div>
                         <div class="flex flex-col gap-1">
@@ -2313,12 +2718,13 @@
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">賣出金額</label><input type="number" step="0.01" id="stock-sell-amount"></div>
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">買入成本</label><input type="number" step="0.01" id="stock-sell-cost" title="空白＝FIFO 自動" placeholder="空白＝自動"></div>
                     </div>
-                    <div class="flex gap-3 mt-6">
-                        <button type="button" onclick="saveStockSell()" class="flex-1 btn-sell py-4 rounded-xl font-bold tracking-wide text-sm">確認賣出紀錄</button>
-                        <button type="button" id="stock-sell-cancel" onclick="clearStockSellForm()" class="hidden btn-surface px-8 rounded-xl font-bold">取消</button>
+                    <div class="entry-actions">
+                        <button type="button" onclick="saveStockSell()" class="btn-sell font-bold tracking-wide">確認賣出</button>
+                        <button type="button" id="stock-sell-cancel" onclick="clearStockSellForm()" class="hidden btn-surface font-bold">取消</button>
+                    </div>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8">
+                <div class="card overflow-hidden p-0 record-table">
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="thead-bar font-bold">
@@ -2330,7 +2736,7 @@
                 </div>
             </div>
             <div id="stock-panel-sum" class="hidden">
-                <div class="card overflow-hidden p-0 mb-8">
+                <div class="card overflow-hidden p-0 record-table">
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[900px]">
                         <thead class="thead-bar font-bold">
@@ -2421,12 +2827,13 @@
 
         <div id="section-gold" class="hidden">
             <div class="flex gap-2 mb-4">
-                <button type="button" id="sub-gold-hold" onclick="switchGoldSub('hold')" class="px-4 py-2 rounded-xl text-xs font-bold sub-on-gold">持倉登錄</button>
-                <button type="button" id="sub-gold-sell" onclick="switchGoldSub('sell')" class="px-4 py-2 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
+                <button type="button" id="sub-gold-hold" onclick="switchGoldSub('hold')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-on-gold">持倉登錄</button>
+                <button type="button" id="sub-gold-sell" onclick="switchGoldSub('sell')" class="px-3 py-1.5 rounded-xl text-xs font-bold sub-off">賣出／已實現</button>
             </div>
             <div id="gold-panel-hold">
-            <div id="gold-input-card" class="card mb-8">
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div id="gold-input-card" class="card entry-card">
+                <div class="entry-row">
+                    <div class="entry-grid">
                     <input type="hidden" id="gold-edit-idx" value="-1">
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">資產名稱</label><input type="text" id="gold-name" placeholder="實體金條/黃金存摺"></div>
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">購買日期</label><input type="date" id="gold-date"></div>
@@ -2434,14 +2841,15 @@
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">單位</label><select id="gold-unit"><option value="g">公克</option><option value="ts">台錢</option></select></div>
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">總購入成本</label><input type="number" id="gold-cost" placeholder="實付總額"></div>
                     <div class="flex flex-col gap-1"><label class="stat-label text-[10px]" title="購買當日每公克金價（新台幣）">購入金價／公克</label><input type="number" step="0.01" id="gold-buy-price-g" placeholder="NT$/公克"></div>
+                    </div>
+                    <div class="entry-actions">
+                        <button id="gold-btn" onclick="saveGold()" class="btn-gold font-bold tracking-wide">登錄黃金</button>
+                        <button id="gold-cancel" onclick="clearGoldForm()" class="hidden btn-surface font-bold">取消</button>
+                    </div>
                 </div>
-                <p class="text-[10px] text-muted mt-3">工費＝購入成本 −（公克數 × 購入金價／公克）。未填購入金價時表格工費顯示為 —。</p>
-                <div class="flex gap-3 mt-4">
-                    <button id="gold-btn" onclick="saveGold()" class="flex-1 btn-gold py-4 rounded-xl font-bold tracking-wide text-sm">登錄黃金紀錄</button>
-                    <button id="gold-cancel" onclick="clearGoldForm()" class="hidden btn-surface px-8 rounded-xl font-bold">取消</button>
-                </div>
+                <p class="entry-hint">工費＝購入成本 −（公克數 × 購入金價／公克）。未填購入金價時表格工費顯示為 —。</p>
             </div>
-            <div class="card overflow-hidden p-0">
+            <div class="card overflow-hidden p-0 record-table">
                 <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[900px]">
                     <thead class="thead-bar font-bold">
@@ -2462,9 +2870,10 @@
             </div>
             </div>
             <div id="gold-panel-sell" class="hidden">
-                <div id="gold-sell-input-card" class="card mb-8 panel-sell">
-                    <p class="stat-label text-[10px] c-sell mb-3">登錄後以 FIFO 自動自持倉扣除重量；買入成本空白則自動計算。</p>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div id="gold-sell-input-card" class="card entry-card panel-sell">
+                    <p class="entry-hint" style="margin-top:0;margin-bottom:0.4rem">登錄後以 FIFO 自動自持倉扣除重量；買入成本空白則自動計算。</p>
+                    <div class="entry-row">
+                    <div class="entry-grid">
                         <input type="hidden" id="gold-sell-edit-idx" value="-1">
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">賣出日期</label><input type="date" id="gold-sell-date"></div>
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">備註名稱</label><input type="text" id="gold-sell-name" placeholder="選填"></div>
@@ -2473,12 +2882,13 @@
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">賣出金額</label><input type="number" step="0.01" id="gold-sell-amount"></div>
                         <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">買入成本</label><input type="number" step="0.01" id="gold-sell-cost" placeholder="空白＝自動"></div>
                     </div>
-                    <div class="flex gap-3 mt-6">
-                        <button type="button" onclick="saveGoldSell()" class="flex-1 btn-sell py-4 rounded-xl font-bold tracking-wide text-sm">確認賣出紀錄</button>
-                        <button type="button" id="gold-sell-cancel" onclick="clearGoldSellForm()" class="hidden btn-surface px-8 rounded-xl font-bold">取消</button>
+                    <div class="entry-actions">
+                        <button type="button" onclick="saveGoldSell()" class="btn-sell font-bold tracking-wide">確認賣出</button>
+                        <button type="button" id="gold-sell-cancel" onclick="clearGoldSellForm()" class="hidden btn-surface font-bold">取消</button>
+                    </div>
                     </div>
                 </div>
-                <div class="card overflow-hidden p-0 mb-8">
+                <div class="card overflow-hidden p-0 record-table">
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="thead-bar font-bold">
@@ -2750,11 +3160,42 @@
         </div>
     </div>
 
+    <div id="greeting-modal" class="fixed inset-0 z-[104] hidden flex flex-col items-center justify-center overflow-y-auto modal-overlay-safe" role="dialog" aria-modal="true" aria-labelledby="greeting-modal-title" onclick="if(event.target===this)closeGreetingModal()">
+        <div class="card greet-modal-card w-full p-6 mx-4 modal-panel-bottom-space shrink-0" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-start gap-3 mb-4">
+                <div>
+                    <h2 id="greeting-modal-title" class="stat-label mb-1">今日速覽</h2>
+                    <p class="text-[11px] text-muted">最後買入至今漲跌，以及總資產近 30 日變化</p>
+                </div>
+                <button type="button" onclick="closeGreetingModal()" class="text-muted hover:text-ink text-xl leading-none px-1" aria-label="關閉">✕</button>
+            </div>
+            <div class="space-y-2.5">
+                <div class="greet-row">
+                    <div class="greet-kicker c-stock">股票</div>
+                    <div class="greet-main" id="greet-stock-pct">--</div>
+                    <div class="greet-sub" id="greet-stock-sub"></div>
+                </div>
+                <div class="greet-row">
+                    <div class="greet-kicker c-gold">黃金</div>
+                    <div class="greet-main" id="greet-gold-pct">--</div>
+                    <div class="greet-sub" id="greet-gold-sub"></div>
+                </div>
+                <div class="greet-row">
+                    <div class="greet-kicker" id="greet-day-kicker">總資產 · 近 30 日</div>
+                    <div class="greet-main" id="greet-day-pct">--</div>
+                    <div class="greet-sub" id="greet-day-sub"></div>
+                </div>
+            </div>
+            <button type="button" onclick="closeGreetingModal()" class="w-full mt-4 btn-primary py-3 rounded-xl font-bold text-sm">知道了</button>
+        </div>
+    </div>
+
     <script>
         const K_STK = 'WV20_STK', K_GLD = 'WV20_GLD', K_PRC = 'WV20_PRC', K_PRC_META = 'WV20_PRC_META', K_PWD = 'WV20_PWD', K_PRIV = 'WV20_PRIV';
         const K_COLL = 'WV20_COLL', K_STK_SELL = 'WV20_STK_SELL', K_GLD_SELL = 'WV20_GLD_SELL', K_COLL_SELL = 'WV20_COLL_SELL', K_INC = 'WV20_INC';
         const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL';
         const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE';
+        const K_WORTH_SNAP = 'WV20_WORTH_SNAP';
         const I18N = {
                 'app.title': '資產管理',
                 'header.kicker': 'Portfolio',
@@ -2979,6 +3420,199 @@
         }
         function cloneRec(r) { return JSON.parse(JSON.stringify(r)); }
 
+        function currentGoldTwdPerGram() {
+            return curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
+        }
+        function computeAssetWorth() {
+            const goldTWD_g = currentGoldTwdPerGram();
+            const inc = includeFlags;
+            let sV = 0, gV = 0;
+            stockRecs.forEach((r) => {
+                const nowP = marketPrices[r.code] || r.buyPrice || 0;
+                sV += nowP * num(r.shares);
+            });
+            goldRecs.forEach((r) => {
+                gV += goldToGrams(r.weight, r.unit) * goldTWD_g;
+            });
+            const tV = (inc.stockWorth ? sV : 0) + (inc.goldWorth ? gV : 0);
+            return { sV, gV, tV, goldTWD_g };
+        }
+        function recDateMs(r) {
+            const d = new Date(r && r.date);
+            return isNaN(d.getTime()) ? 0 : d.getTime();
+        }
+        function lastStockBuy() {
+            let best = null, bestT = -1, bestI = -1;
+            stockRecs.forEach((r, i) => {
+                if ((r.type || 'buy') !== 'buy') return;
+                if (!r.code || num(r.buyPrice) <= 0) return;
+                const t = recDateMs(r);
+                if (t > bestT || (t === bestT && i > bestI)) {
+                    best = r; bestT = t; bestI = i;
+                }
+            });
+            return best;
+        }
+        function lastGoldBuy() {
+            let best = null, bestT = -1, bestI = -1;
+            goldRecs.forEach((r, i) => {
+                const t = recDateMs(r);
+                if (t > bestT || (t === bestT && i > bestI)) {
+                    best = r; bestT = t; bestI = i;
+                }
+            });
+            return best;
+        }
+        function pctFrom(from, to) {
+            if (!(from > 0) || to == null || !isFinite(Number(to))) return null;
+            return ((Number(to) - from) / from) * 100;
+        }
+        function fmtGreetPct(p) {
+            if (p == null || !isFinite(p)) return '—';
+            return (p > 0 ? '+' : '') + p.toFixed(2) + '%';
+        }
+        function fmtGreetMoney(n) {
+            if (isPrivacyMode) return '****';
+            return 'NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
+        }
+        function localDateKey(d) {
+            const x = d || new Date();
+            return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+        }
+        function shiftLocalDateKey(deltaDays, fromKey) {
+            const d = fromKey ? new Date(fromKey + 'T12:00:00') : new Date();
+            d.setDate(d.getDate() + deltaDays);
+            return localDateKey(d);
+        }
+        function daysBetweenKeys(a, b) {
+            const da = new Date(String(a) + 'T12:00:00');
+            const db = new Date(String(b) + 'T12:00:00');
+            return Math.round((db - da) / 86400000);
+        }
+        function fmtGreetDate(key) {
+            const m = String(key || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            return m ? (Number(m[2]) + '/' + Number(m[3])) : String(key || '');
+        }
+        function loadWorthSnaps() {
+            try {
+                const o = JSON.parse(localStorage.getItem(K_WORTH_SNAP) || '{}');
+                return (o && typeof o === 'object') ? o : {};
+            } catch (e) { return {}; }
+        }
+        function worthSnapOnOrBefore(snaps, dateKey, beforeKey) {
+            const keys = Object.keys(snaps).filter((k) => k <= dateKey && (!beforeKey || k < beforeKey)).sort();
+            if (!keys.length) return null;
+            const k = keys[keys.length - 1];
+            return { date: k, worth: num((snaps[k] || {}).worth) };
+        }
+        function greetingWorthBaseline(snaps, todayKey) {
+            const target = shiftLocalDateKey(-30, todayKey);
+            let prev = worthSnapOnOrBefore(snaps, target, todayKey);
+            if (!prev || !(prev.worth > 0)) prev = worthSnapOnOrBefore(snaps, shiftLocalDateKey(-1, todayKey), todayKey);
+            return prev && prev.worth > 0 ? prev : null;
+        }
+        function saveWorthSnap(worth) {
+            if (!isFinite(Number(worth))) return;
+            if (!(stockRecs.length || goldRecs.length || Number(worth) > 0)) return;
+            const snaps = loadWorthSnaps();
+            const today = localDateKey();
+            snaps[today] = { worth: Number(worth), at: new Date().toISOString() };
+            Object.keys(snaps).sort().slice(0, Math.max(0, Object.keys(snaps).length - 400)).forEach((k) => { delete snaps[k]; });
+            localStorage.setItem(K_WORTH_SNAP, JSON.stringify(snaps));
+        }
+        function setGreetPct(el, p) {
+            if (!el) return;
+            el.textContent = fmtGreetPct(p);
+            el.classList.remove('c-gain', 'c-drop');
+            if (p != null && isFinite(p) && p !== 0) el.classList.add(p > 0 ? 'c-gain' : 'c-drop');
+        }
+        function fillGreetingModal() {
+            const worth = computeAssetWorth();
+            const snaps = loadWorthSnaps();
+            const today = localDateKey();
+
+            const stockBuy = lastStockBuy();
+            const stockPctEl = document.getElementById('greet-stock-pct');
+            const stockSubEl = document.getElementById('greet-stock-sub');
+            if (!stockBuy) {
+                setGreetPct(stockPctEl, null);
+                if (stockSubEl) stockSubEl.textContent = '尚無股票買入紀錄';
+            } else {
+                const code = String(stockBuy.code || '').toUpperCase();
+                const buyP = num(stockBuy.buyPrice);
+                const nowP = marketPrices[code] != null ? num(marketPrices[code]) : null;
+                const pct = nowP != null && nowP > 0 ? pctFrom(buyP, nowP) : null;
+                setGreetPct(stockPctEl, pct);
+                if (stockSubEl) {
+                    if (nowP == null || !(nowP > 0)) {
+                        stockSubEl.textContent = '最後買入 ' + code + '（' + (stockBuy.date || '—') + '）· 尚無現價，請先刷新';
+                    } else {
+                        stockSubEl.textContent = '最後買入 ' + code + '（' + (stockBuy.date || '—') + '）· 買入 ' + fmtGreetMoney(buyP) + ' → 現價 ' + fmtGreetMoney(nowP);
+                    }
+                }
+            }
+
+            const goldBuy = lastGoldBuy();
+            const goldPctEl = document.getElementById('greet-gold-pct');
+            const goldSubEl = document.getElementById('greet-gold-sub');
+            if (!goldBuy) {
+                setGreetPct(goldPctEl, null);
+                if (goldSubEl) goldSubEl.textContent = '尚無黃金買入紀錄';
+            } else {
+                const grams = goldToGrams(goldBuy.weight, goldBuy.unit);
+                let buyG = num(goldBuy.buyPriceG);
+                if (!(buyG > 0) && grams > 0 && num(goldBuy.cost) > 0) buyG = num(goldBuy.cost) / grams;
+                const nowG = worth.goldTWD_g;
+                const pct = nowG > 0 && buyG > 0 ? pctFrom(buyG, nowG) : null;
+                setGreetPct(goldPctEl, pct);
+                if (goldSubEl) {
+                    if (!(nowG > 0)) {
+                        goldSubEl.textContent = '最後買入（' + (goldBuy.date || '—') + '）· 尚無金價，請先刷新';
+                    } else if (!(buyG > 0)) {
+                        goldSubEl.textContent = '最後買入（' + (goldBuy.date || '—') + '）· 未填購入金價，無法比較';
+                    } else {
+                        goldSubEl.textContent = '最後買入（' + (goldBuy.date || '—') + '）· 購入 ' + fmtGreetMoney(buyG) + '／公克 → 現價 ' + fmtGreetMoney(nowG);
+                    }
+                }
+            }
+
+            const dayPctEl = document.getElementById('greet-day-pct');
+            const daySubEl = document.getElementById('greet-day-sub');
+            const dayKickerEl = document.getElementById('greet-day-kicker');
+            const prev = greetingWorthBaseline(snaps, today);
+            if (!prev || !(prev.worth > 0)) {
+                setGreetPct(dayPctEl, null);
+                if (dayKickerEl) dayKickerEl.textContent = '總資產 · 近 30 日';
+                if (daySubEl) daySubEl.textContent = '尚無對照紀錄。已開始記錄今日淨值，之後開啟即可看近 30 日變化。';
+            } else {
+                const pct = pctFrom(prev.worth, worth.tV);
+                const n = Math.max(1, daysBetweenKeys(prev.date, today));
+                setGreetPct(dayPctEl, pct);
+                if (dayKickerEl) dayKickerEl.textContent = n <= 1 ? '總資產 · 昨至今' : ('總資產 · 近 ' + n + ' 日');
+                let verb = '持平';
+                if (pct > 0.005) verb = '成長';
+                else if (pct < -0.005) verb = '減少';
+                if (daySubEl) {
+                    daySubEl.textContent = '較 ' + fmtGreetDate(prev.date) + ' ' + verb
+                        + (isPrivacyMode ? '' : (' · ' + fmtGreetMoney(prev.worth) + ' → ' + fmtGreetMoney(worth.tV)));
+                }
+            }
+            saveWorthSnap(worth.tV);
+        }
+        function openGreetingModal() {
+            fillGreetingModal();
+            const el = document.getElementById('greeting-modal');
+            if (!el) return;
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        }
+        function closeGreetingModal() {
+            const el = document.getElementById('greeting-modal');
+            if (!el) return;
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+        }
+
         function collectStockCodes() {
             const set = new Set(stockCodes.map(c => String(c).toUpperCase()).filter(Boolean));
             stockRecs.forEach(r => { if (r.code) set.add(String(r.code).toUpperCase()); });
@@ -3021,15 +3655,84 @@
         }
         const CODE_SELECT_IDS = { 'market-code': 1, 'stock-code': 1, 'stock-sell-code': 1, 'es-stock-code': 1, 'div-code': 1, 'goal-code': 1 };
         function isCodeSelect(el) { return !!(el && CODE_SELECT_IDS[el.id]); }
+        let codePickState = null;
         function enhanceAllSelects() {
             document.querySelectorAll('select').forEach(syncCodePicker);
         }
+        function getCodePop() {
+            let pop = document.getElementById('code-pick-pop');
+            if (pop) return pop;
+            pop = document.createElement('div');
+            pop.id = 'code-pick-pop';
+            pop.className = 'code-pick-menu is-hidden';
+            pop.setAttribute('role', 'listbox');
+            document.body.appendChild(pop);
+            pop.addEventListener('mousedown', (e) => e.stopPropagation());
+            pop.addEventListener('click', (e) => e.stopPropagation());
+            return pop;
+        }
         function closeAllCodePickers() {
-            document.querySelectorAll('.code-pick').forEach((pick) => {
-                pick.classList.remove('is-open');
-                const menu = pick.querySelector('.code-pick-menu');
-                if (menu) menu.classList.add('is-hidden');
+            document.querySelectorAll('.code-pick').forEach((pick) => pick.classList.remove('is-open'));
+            const pop = document.getElementById('code-pick-pop');
+            if (pop) pop.classList.add('is-hidden');
+            codePickState = null;
+        }
+        function positionCodeMenu(wrap) {
+            const pop = getCodePop();
+            const btn = wrap && wrap.querySelector('.code-pick-btn');
+            if (!btn || pop.classList.contains('is-hidden')) return;
+            const r = btn.getBoundingClientRect();
+            const maxW = Math.min(288, window.innerWidth - 24);
+            pop.style.width = 'max-content';
+            pop.style.minWidth = r.width + 'px';
+            pop.style.maxWidth = maxW + 'px';
+            pop.style.left = '12px';
+            pop.style.top = '0px';
+            const mw = Math.max(r.width, Math.min(pop.offsetWidth, maxW));
+            let left = r.left;
+            if (left + mw > window.innerWidth - 12) left = window.innerWidth - mw - 12;
+            if (left < 12) left = 12;
+            pop.style.width = mw + 'px';
+            pop.style.left = left + 'px';
+            const ph = pop.offsetHeight;
+            const below = r.bottom + 6;
+            const above = r.top - 6 - ph;
+            const top = (below + ph < window.innerHeight - 12 || above < 12) ? below : above;
+            pop.style.top = Math.max(12, top) + 'px';
+        }
+        function fillCodePop(el) {
+            const pop = getCodePop();
+            const isCode = isCodeSelect(el);
+            const val = el.value || '';
+            const opts = Array.from(el.options).filter((o) => isCode ? o.value : true);
+            if (isCode) {
+                pop.innerHTML = opts.length
+                    ? (val ? '<button type="button" class="code-pick-item is-clear" data-value="">清除選擇</button>' : '') +
+                        opts.map((o) => '<button type="button" class="code-pick-item' + (o.value === val ? ' is-on' : '') + '" data-value="' + escapeHtml(o.value) + '" role="option" aria-selected="' + (o.value === val ? 'true' : 'false') + '">' + escapeHtml(o.text) + '</button>').join('')
+                    : '<div class="code-pick-empty">尚無代號，請按 ＋ 新增</div>';
+            } else {
+                pop.innerHTML = opts.map((o) => '<button type="button" class="code-pick-item' + (o.value === val ? ' is-on' : '') + '" data-value="' + escapeHtml(o.value) + '" role="option" aria-selected="' + (o.value === val ? 'true' : 'false') + '">' + escapeHtml(o.text) + '</button>').join('');
+            }
+            pop.querySelectorAll('.code-pick-item').forEach((item) => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    el.value = item.getAttribute('data-value') || '';
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                    syncCodePicker(el);
+                    closeAllCodePickers();
+                });
             });
+        }
+        function openCodePicker(el, wrap) {
+            closeAllCodePickers();
+            closeDatePicker();
+            wrap.classList.add('is-open');
+            codePickState = { el: el, wrap: wrap };
+            fillCodePop(el);
+            const pop = getCodePop();
+            pop.classList.remove('is-hidden');
+            positionCodeMenu(wrap);
         }
         function ensureCodePicker(el) {
             if (!el || el.closest('.code-pick')) return el.closest('.code-pick');
@@ -3041,21 +3744,15 @@
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'code-pick-btn';
+            btn.setAttribute('aria-haspopup', 'listbox');
             btn.innerHTML = '<span class="code-pick-label"></span><svg class="code-pick-chevron" viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M3 4.5 6 8l3-3.5"/></svg>';
-            const menu = document.createElement('div');
-            menu.className = 'code-pick-menu is-hidden';
             wrap.appendChild(btn);
-            wrap.appendChild(menu);
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const willOpen = menu.classList.contains('is-hidden');
-                closeAllCodePickers();
-                closeDatePicker();
-                if (willOpen) {
-                    wrap.classList.add('is-open');
-                    menu.classList.remove('is-hidden');
-                }
+                const willOpen = !wrap.classList.contains('is-open');
+                if (willOpen) openCodePicker(el, wrap);
+                else closeAllCodePickers();
             });
             return wrap;
         }
@@ -3065,7 +3762,6 @@
             if (!wrap) return;
             const btn = wrap.querySelector('.code-pick-btn');
             const label = wrap.querySelector('.code-pick-label');
-            const menu = wrap.querySelector('.code-pick-menu');
             const isCode = isCodeSelect(el);
             const val = el.value || '';
             const selectedOpt = el.options[el.selectedIndex];
@@ -3073,31 +3769,19 @@
                 ? selectedOpt.text
                 : (isCode ? t('select.code') : ((selectedOpt && selectedOpt.text) || ''));
             if (label) label.textContent = display;
-            if (btn) btn.classList.toggle('is-empty', isCode && !val);
-            const opts = Array.from(el.options).filter((o) => isCode ? o.value : true);
-            if (isCode) {
-                menu.innerHTML = opts.length
-                    ? (val ? '<button type="button" class="code-pick-item is-clear" data-value="">清除選擇</button>' : '') +
-                        opts.map((o) => '<button type="button" class="code-pick-item' + (o.value === val ? ' is-on' : '') + '" data-value="' + escapeHtml(o.value) + '">' + escapeHtml(o.text) + '</button>').join('')
-                    : '<div class="code-pick-empty">尚無代號，請按 ＋ 新增</div>';
-            } else {
-                menu.innerHTML = opts.map((o) => '<button type="button" class="code-pick-item' + (o.value === val ? ' is-on' : '') + '" data-value="' + escapeHtml(o.value) + '">' + escapeHtml(o.text) + '</button>').join('');
+            if (btn) {
+                btn.classList.toggle('is-empty', isCode && !val);
+                btn.setAttribute('aria-expanded', wrap.classList.contains('is-open') ? 'true' : 'false');
             }
-            menu.querySelectorAll('.code-pick-item').forEach((item) => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    el.value = item.getAttribute('data-value') || '';
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
-                    syncCodePicker(el);
-                    closeAllCodePickers();
-                });
-            });
+            if (codePickState && codePickState.el === el) {
+                fillCodePop(el);
+                positionCodeMenu(wrap);
+            }
         }
         if (!window._codePickBound) {
             window._codePickBound = true;
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('.code-pick')) closeAllCodePickers();
+                if (!e.target.closest('.code-pick') && !e.target.closest('#code-pick-pop')) closeAllCodePickers();
             });
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
@@ -3105,6 +3789,12 @@
                     closeDatePicker();
                 }
             });
+            window.addEventListener('resize', () => {
+                if (codePickState) positionCodeMenu(codePickState.wrap);
+            });
+            window.addEventListener('scroll', () => {
+                if (codePickState) positionCodeMenu(codePickState.wrap);
+            }, true);
         }
         const DATE_WEEK = ['日', '一', '二', '三', '四', '五', '六'];
         const DATE_MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
@@ -3909,7 +4599,7 @@
             peerBirthYear = 0;
             peerCash = 0;
             goalPlan = { reinvest: true };
-            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_BIRTH, K_CASH, K_GOAL].forEach(k => localStorage.removeItem(k));
+            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_BIRTH, K_CASH, K_GOAL, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
             saveAll();
             try { clearStockForm(); } catch (e) {}
             try { clearGoldForm(); } catch (e) {}
@@ -3954,11 +4644,13 @@
         }
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Escape') return;
+            const greetM = document.getElementById('greeting-modal');
             const editM = document.getElementById('stock-edit-modal');
             const clearM = document.getElementById('clear-data-modal');
             const p = document.getElementById('privacy-modal');
             const s = document.getElementById('settings-modal');
-            if (editM && !editM.classList.contains('hidden')) closeStockEditModal();
+            if (greetM && !greetM.classList.contains('hidden')) closeGreetingModal();
+            else if (editM && !editM.classList.contains('hidden')) closeStockEditModal();
             else if (clearM && !clearM.classList.contains('hidden')) closeClearDataModal();
             else if (!p.classList.contains('hidden')) closePrivacyPasswordModal();
             else if (!s.classList.contains('hidden')) closeSettingsModal();
@@ -4118,23 +4810,164 @@
             };
             try { localStorage.setItem(K_GOAL, JSON.stringify(goalPlan)); } catch (e) {}
         }
-        function annualCashDivFromEvents(events) {
-            const list = events || [];
-            const cutoff = new Date();
-            cutoff.setFullYear(cutoff.getFullYear() - 1);
-            const cut = cutoff.toISOString().slice(0, 10);
-            let s = 0;
-            list.forEach(e => {
-                if (num(e.cash) > 0 && e.cashEx && e.cashEx >= cut) s += num(e.cash);
+        let goalDpsMeta = { years: [], avgYield: 0, avgCash: 0, typical: 0 };
+        let goalDivEvents = [];
+        const goalDivFetchAt = {};
+        const GOAL_DIV_STALE_MS = 6 * 60 * 60 * 1000;
+        function cashDivYearRows(events) {
+            const byDate = {};
+            (events || []).forEach(e => {
+                const cash = num(e.cash);
+                const cashEx = String(e.cashEx || '').slice(0, 10);
+                if (!(cash > 0) || cashEx.length < 8) return;
+                const before = num(e.beforeCash) > 0 ? num(e.beforeCash) : 0;
+                const prev = byDate[cashEx];
+                if (!prev || cash > prev.cash) byDate[cashEx] = { cash, before };
+                else if (prev && !(prev.before > 0) && before > 0) prev.before = before;
             });
-            if (s > 0) return s;
             const byYear = {};
-            list.forEach(e => {
-                const y = String(e.cashEx || '').slice(0, 4);
-                if (y && num(e.cash) > 0) byYear[y] = (byYear[y] || 0) + num(e.cash);
+            Object.keys(byDate).forEach(cashEx => {
+                const y = Number(cashEx.slice(0, 4));
+                if (!y) return;
+                const rec = byDate[cashEx];
+                if (!byYear[y]) byYear[y] = { year: y, cash: 0, count: 0, beforeSum: 0, beforeN: 0, yield: 0 };
+                byYear[y].cash += rec.cash;
+                byYear[y].count += 1;
+                if (rec.before > 0) {
+                    byYear[y].beforeSum += rec.before;
+                    byYear[y].beforeN += 1;
+                }
             });
-            const ys = Object.keys(byYear).sort();
-            return ys.length ? byYear[ys[ys.length - 1]] : 0;
+            return Object.keys(byYear).map(Number).sort((a, b) => a - b).map(y => {
+                const r = byYear[y];
+                const avgBefore = r.beforeN ? r.beforeSum / r.beforeN : 0;
+                r.yield = (r.cash > 0 && avgBefore > 0) ? r.cash / avgBefore : 0;
+                return r;
+            });
+        }
+        function typicalCashDivCount(yearRows, thisYear) {
+            const recent = (yearRows || []).filter(r => r.year < thisYear).slice(-3).map(r => r.count);
+            if (!recent.length) return 0;
+            const freq = {};
+            let best = 0, bestN = -1;
+            recent.forEach(c => {
+                freq[c] = (freq[c] || 0) + 1;
+                if (freq[c] > bestN || (freq[c] === bestN && c > best)) {
+                    bestN = freq[c];
+                    best = c;
+                }
+            });
+            return best;
+        }
+        function completeCashDivYears(events) {
+            const rows = cashDivYearRows(events);
+            if (!rows.length) return { complete: [], typical: 0 };
+            const thisYear = new Date().getFullYear();
+            const typical = typicalCashDivCount(rows, thisYear);
+            const minCount = typical >= 2 ? Math.ceil(typical / 2) : 1;
+            let complete = rows.filter(r => {
+                if (!(r.cash > 0) || r.count < minCount) return false;
+                if (r.year < thisYear) return true;
+                return typical > 0 && r.count >= typical;
+            });
+            if (!complete.length) complete = rows.filter(r => r.year < thisYear && r.cash > 0);
+            if (!complete.length) complete = rows.slice(-1);
+            return { complete, typical };
+        }
+        function goalDivStatsFromEvents(events) {
+            const { complete, typical } = completeCashDivYears(events);
+            const yieldRows = complete.filter(r => r.yield > 0);
+            const avgYield = yieldRows.length
+                ? yieldRows.reduce((s, r) => s + r.yield, 0) / yieldRows.length
+                : 0;
+            const avgCash = complete.length
+                ? complete.reduce((s, r) => s + r.cash, 0) / complete.length
+                : 0;
+            const years = (yieldRows.length ? yieldRows : complete).map(r => r.year);
+            goalDpsMeta = { years, avgYield, avgCash, typical };
+            return goalDpsMeta;
+        }
+        function autoGoalDps(price) {
+            if (goalDpsMeta.avgYield > 0 && price > 0) return price * goalDpsMeta.avgYield;
+            return goalDpsMeta.avgCash || 0;
+        }
+        function updateGoalDpsHint() {
+            const el = document.getElementById('goal-dps-hint');
+            if (!el) return;
+            const ys = (goalDpsMeta && goalDpsMeta.years) || [];
+            const yTxt = !ys.length ? ''
+                : (ys.length === 1 ? (ys[0] + ' 年') : (ys[0] + '–' + ys[ys.length - 1] + ' 共 ' + ys.length + ' 年'));
+            if (goalDpsMeta.avgYield > 0) {
+                el.textContent = '平均殖利率 ' + (goalDpsMeta.avgYield * 100).toFixed(2) + '%' + (yTxt ? '（' + yTxt + '）' : '');
+                return;
+            }
+            if (yTxt && goalDpsMeta.avgCash > 0) {
+                el.textContent = yTxt + '平均配息';
+                return;
+            }
+            el.textContent = '';
+        }
+        function onGoalDpsInput() {
+            const hint = document.getElementById('goal-dps-hint');
+            if (hint && (goalDpsMeta.avgYield > 0 || goalDpsMeta.avgCash > 0)) {
+                const cur = num(document.getElementById('goal-dps') && document.getElementById('goal-dps').value);
+                const price = num(document.getElementById('goal-price') && document.getElementById('goal-price').value);
+                const auto = Math.round(autoGoalDps(price) * 10000) / 10000;
+                if (auto > 0 && Math.abs(cur - auto) > 1e-9) hint.textContent = '已手動調整';
+                else updateGoalDpsHint();
+            }
+            saveGoalPlan();
+            renderGoalCalc();
+        }
+        function onGoalPriceInput() {
+            saveGoalPlan();
+            if (goalDivEvents && goalDivEvents.length) applyGoalDpsFromEvents(goalDivEvents);
+            else renderGoalCalc();
+        }
+        function applyGoalDpsFromEvents(events, code) {
+            const cur = stripTwStockCode((document.getElementById('goal-code') || {}).value);
+            if (code && cur && cur !== stripTwStockCode(code)) return 0;
+            goalDivEvents = events || [];
+            goalDivStatsFromEvents(goalDivEvents);
+            const price = num(document.getElementById('goal-price') && document.getElementById('goal-price').value);
+            const dps = autoGoalDps(price);
+            const dpsEl = document.getElementById('goal-dps');
+            if (dpsEl && dps > 0) dpsEl.value = String(Math.round(dps * 10000) / 10000);
+            updateGoalDpsHint();
+            saveGoalPlan();
+            renderGoalCalc();
+            return dps;
+        }
+        async function refreshGoalDps(code) {
+            const c = stripTwStockCode(code);
+            if (!c) {
+                goalDpsMeta = { years: [], avgYield: 0, avgCash: 0, typical: 0 };
+                goalDivEvents = [];
+                updateGoalDpsHint();
+                return;
+            }
+            let events = [];
+            if (typeof flattenDivEvents === 'function' && divHistoryCache[c]) {
+                events = flattenDivEvents(divHistoryCache[c]);
+            }
+            if (events.length) applyGoalDpsFromEvents(events, c);
+            const hasBefore = events.some(e => num(e.beforeCash) > 0);
+            const stale = !goalDivFetchAt[c] || (Date.now() - goalDivFetchAt[c] > GOAL_DIV_STALE_MS);
+            if (!looksLikeTwStock(c) || (!stale && events.length && hasBefore)) return;
+            const hint = document.getElementById('goal-dps-hint');
+            if (hint && !events.length) hint.textContent = '載入股利中…';
+            try {
+                const start = String(new Date().getFullYear() - 8) + '-01-01';
+                const [policy, results] = await Promise.all([
+                    fetchFinMindDataset('TaiwanStockDividend', c, start),
+                    fetchFinMindDataset('TaiwanStockDividendResult', c, start)
+                ]);
+                events = policyToLightEvents(policy, results);
+                goalDivFetchAt[c] = Date.now();
+                applyGoalDpsFromEvents(events, c);
+            } catch (e) {
+                if (!events.length && hint) hint.textContent = '股利資料載入失敗';
+            }
         }
         function monthDivFromShares(shares, annualDps) {
             return annualDps > 0 ? shares * annualDps / 12 : 0;
@@ -4415,7 +5248,9 @@
                 destroyGoalChart();
                 empty.textContent = !(targetMonthly > 0)
                     ? '請填目標月領（台幣），即可反推需存股數與完成時間。'
-                    : '請填每股年配息，才能從月領目標反推需存股數。';
+                    : ((goalDpsMeta.avgYield > 0 && !(price > 0))
+                        ? '請填現價，才能用平均殖利率推估每股年配息。'
+                        : '請填每股年配息，才能從月領目標反推需存股數。');
                 return;
             }
             empty.classList.add('hidden');
@@ -4473,6 +5308,14 @@
                 ? '****'
                 : (fNum(nowDiv) + ' / ' + fNum(targetMonthly));
             let note = '需存股數＝目標月領 × 12 ÷ 每股年配息。預估本金＝需存股數 × 現價。1 張＝1000 股。完成時間以每月投入買進、每年配息一次估算。';
+            const dpsYears = (goalDpsMeta && goalDpsMeta.years) || [];
+            if (goalDpsMeta.avgYield > 0 && dpsYears.length) {
+                const yTxt = dpsYears.length === 1
+                    ? (dpsYears[0] + ' 年')
+                    : (dpsYears[0] + '–' + dpsYears[dpsYears.length - 1] + ' 共 ' + dpsYears.length + ' 個完整配息年');
+                note += '每股年配息＝現價 × 平均殖利率（' + yTxt + '，' + (goalDpsMeta.avgYield * 100).toFixed(2) + '%）。';
+            } else if (dpsYears.length > 1) note += '每股年配息依 ' + dpsYears[0] + '–' + dpsYears[dpsYears.length - 1] + ' 共 ' + dpsYears.length + ' 個完整配息年平均。';
+            else if (dpsYears.length === 1) note += '每股年配息依 ' + dpsYears[0] + ' 年現金股利。';
             if (goalPlan.reinvest) note += '再投入時，年度現金股利會以現價加買股數，達標通常較快。';
             else note += '領出現金時，股利不增加持股，達標只靠每月投入。';
             document.getElementById('goal-note').textContent = note;
@@ -4492,14 +5335,9 @@
                 if (nowEl && hold && (overwrite || !num(nowEl.value))) nowEl.value = String(Math.round(hold.shares * 1000) / 1000);
                 const priceEl = document.getElementById('goal-price');
                 if (priceEl && marketPrices[c] != null && (overwrite || !num(priceEl.value))) priceEl.value = marketPrices[c];
-                let events = [];
-                if (typeof flattenDivEvents === 'function' && divHistoryCache[c]) events = flattenDivEvents(divHistoryCache[c]);
-                if (!events.length && typeof ensureDivEventsForCode === 'function' && looksLikeTwStock(c)) {
-                    try { events = await ensureDivEventsForCode(c); } catch (e) {}
-                }
-                const dps = annualCashDivFromEvents(events);
-                const dpsEl = document.getElementById('goal-dps');
-                if (dpsEl && dps > 0 && (overwrite || !num(dpsEl.value))) dpsEl.value = String(Math.round(dps * 10000) / 10000);
+                await refreshGoalDps(c);
+            } else {
+                await refreshGoalDps('');
             }
             saveGoalPlan();
             renderGoalCalc();
@@ -4568,10 +5406,10 @@
                 const amtStr = isPrivacyMode ? '****' : 'NT$' + Math.round(r.cur).toLocaleString('zh-TW');
                 const tgt = Math.max(0, Math.min(100, r.target));
                 const delta = tot > 0 && !isPrivacyMode ? (pct - tgt) : null;
-                let deltaStr = '目標 ' + (tgt > 0 ? tgt.toFixed(0) + '%' : '—');
+                let deltaStr = tgt > 0 ? ('目標 ' + tgt.toFixed(0) + '%') : '目標 —';
                 if (delta != null && tgt > 0) {
-                    const sign = delta > 0.05 ? '+' : delta < -0.05 ? '' : '±';
-                    deltaStr = '目標 ' + tgt.toFixed(0) + '% · 偏離 ' + sign + Math.abs(delta).toFixed(1) + '%';
+                    const sign = delta > 0.05 ? '+' : delta < -0.05 ? '−' : '±';
+                    deltaStr = tgt.toFixed(0) + '% · ' + sign + Math.abs(delta).toFixed(0) + '%';
                 }
                 const active = allocFocusIndex === idx ? ' is-active' : '';
                 const dim = allocFocusIndex != null && allocFocusIndex !== idx ? ' is-dim' : '';
@@ -4579,17 +5417,17 @@
                     <div class="alloc-legend-top">
                         <span class="alloc-legend-swatch" style="background:${r.grad}"></span>
                         <span class="alloc-legend-name ${r.cls}">${r.name}</span>
+                        <span class="alloc-legend-pct">${pctStr}</span>
                     </div>
-                    <span class="alloc-legend-pct">${pctStr}</span>
                     <div class="alloc-legend-meta">
                         <div class="alloc-bar">
                             <i style="width:${Math.min(100, pct)}%;background:${r.grad}"></i>
                             ${tgt > 0 ? `<span class="alloc-bar-target" style="left:${tgt}%"></span>` : ''}
                         </div>
-                        <div class="alloc-legend-foot">
-                            <span>${amtStr}</span>
-                            <span>${deltaStr}</span>
-                        </div>
+                    </div>
+                    <div class="alloc-legend-detail">
+                        <span class="alloc-legend-amt">${amtStr}</span>
+                        <span class="alloc-legend-foot">${deltaStr}</span>
                     </div>
                 </button>`;
             }).join('');
@@ -4799,22 +5637,24 @@
             if (inc.goldWorth) tUnreal += gV - gC;
             const tXirr = xirr(buildTotalCashflows(sV, gV, cV, inc));
             setUnrealText('total-unreal', tUnreal);
-            document.getElementById('total-realized').innerText = fNum(tReal);
+            const tRealEl = document.getElementById('total-realized');
+            if (tRealEl) tRealEl.innerText = fNum(tReal);
             document.getElementById('total-all-perf').innerText = fNum(tPerf, false);
             document.getElementById('total-xirr').innerText = fXirr(tXirr);
 
             renderCharts(gV, sV, cV, inc);
             if (currentView === 'overview') setTimeout(resizeOverviewCharts, 40);
             refreshCodeSelects();
-            enhanceAllSelects();
-            enhanceAllDateInputs();
-            renderReport();
-            renderPeerCompare(tV);
-            if (currentView === 'peer') renderGoalCalc();
+            if (currentView === 'report') renderReport();
+            if (currentView === 'peer') {
+                renderPeerCompare(tV);
+                renderGoalCalc();
+            }
         }
 
         let trendChartObj, allocChartObj, goalChartObj;
         let lastChartArgs = null;
+        let lastChartSig = '';
         let allocFocusIndex = null;
         let allocCenterDefault = { label: '淨值', value: '--', sub: '' };
 
@@ -5057,8 +5897,20 @@
             if (el) el.classList.add('is-hidden');
         }
         function renderCharts(gV, sV, cV, inc) {
+            const sig = JSON.stringify({
+                gV, sV, cV, inc, p: !!isPrivacyMode,
+                gold: curGoldUSD, rate: rateUSD, px: marketPrices,
+                s: stockRecs.map((r) => [r.date, r.code, r.cost, r.shares, r.type, r.buyPrice]),
+                g: goldRecs.map((r) => [r.date, r.weight, r.unit, r.cost])
+            });
+            if (sig === lastChartSig && allocChartObj && trendChartObj) {
+                renderAllocTargets(sV, gV, cV, inc);
+                return;
+            }
             hideSolidChartTip();
             lastChartArgs = { gV, sV, cV, inc };
+            lastChartSig = sig;
+            const chartMotion = (allocChartObj && trendChartObj) ? 0 : 280;
             Chart.defaults.color = '#6e6e73';
             Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans TC', sans-serif";
             const chartTooltipTheme = {
@@ -5112,11 +5964,11 @@
                             return makeAllocGradient(ctx, chartArea, pair[0], pair[1]);
                         },
                         borderColor: 'rgba(255,255,255,0.95)',
-                        borderWidth: ad.length > 1 ? 5 : 0,
-                        hoverBorderWidth: ad.length > 1 ? 5 : 0,
-                        borderRadius: 20,
-                        hoverOffset: 14,
-                        spacing: ad.length > 1 ? 4 : 0
+                        borderWidth: ad.length > 1 ? 4 : 0,
+                        hoverBorderWidth: ad.length > 1 ? 4 : 0,
+                        borderRadius: 12,
+                        hoverOffset: 6,
+                        spacing: ad.length > 1 ? 3 : 0
                     }]
                 },
                 options: {
@@ -5124,7 +5976,7 @@
                     maintainAspectRatio: false,
                     cutout: '76%',
                     rotation: -90,
-                    layout: { padding: 6 },
+                    layout: { padding: 4 },
                     onClick: (evt, elements) => {
                         if (!elements.length || alUse[0] === t('chart.noItem')) {
                             resetAllocCenter();
@@ -5158,8 +6010,8 @@
                         }
                     },
                     animation: {
-                        animateRotate: true,
-                        duration: 900,
+                        animateRotate: chartMotion > 0,
+                        duration: chartMotion,
                         easing: 'easeOutQuart'
                     }
                 }
@@ -5384,7 +6236,7 @@
                             afterFit: (scale) => { scale.width = Math.max(scale.width, 88); }
                         }
                     },
-                    animation: { duration: 550, easing: 'easeOutQuart' }
+                    animation: { duration: chartMotion, easing: 'easeOutQuart' }
                 }
             });
 
@@ -6109,6 +6961,7 @@
             if (t === 'report') renderReport();
             if (t === 'peer') {
                 openGoalPage();
+                renderPeerCompare(computeAssetWorth().tV);
                 setTimeout(resizeGoalChart, 40);
             }
             closeSidebar();
@@ -6120,8 +6973,8 @@
             document.getElementById('stock-panel-sell').classList.toggle('hidden', mode !== 'sell');
             document.getElementById('stock-panel-sum').classList.toggle('hidden', mode !== 'sum');
             document.getElementById('stock-panel-div').classList.toggle('hidden', mode !== 'div');
-            const on = 'px-4 py-2 rounded-xl text-xs font-bold sub-on-stock';
-            const off = 'px-4 py-2 rounded-xl text-xs font-bold sub-off';
+            const on = 'px-3 py-1.5 rounded-xl text-xs font-bold sub-on-stock';
+            const off = 'px-3 py-1.5 rounded-xl text-xs font-bold sub-off';
             document.getElementById('sub-stock-hold').className = mode === 'hold' ? on : off;
             document.getElementById('sub-stock-sell').className = mode === 'sell' ? on : off;
             document.getElementById('sub-stock-sum').className = mode === 'sum' ? on : off;
@@ -6146,8 +6999,8 @@
         function switchGoldSub(mode) {
             document.getElementById('gold-panel-hold').classList.toggle('hidden', mode !== 'hold');
             document.getElementById('gold-panel-sell').classList.toggle('hidden', mode !== 'sell');
-            const on = 'px-4 py-2 rounded-xl text-xs font-bold sub-on-gold';
-            const off = 'px-4 py-2 rounded-xl text-xs font-bold sub-off';
+            const on = 'px-3 py-1.5 rounded-xl text-xs font-bold sub-on-gold';
+            const off = 'px-3 py-1.5 rounded-xl text-xs font-bold sub-off';
             document.getElementById('sub-gold-hold').className = mode === 'hold' ? on : off;
             document.getElementById('sub-gold-sell').className = mode === 'sell' ? on : off;
         }
@@ -6450,8 +7303,11 @@
                 const groups = buildDividendRows(policy, results, priceMap);
                 divHistoryCache[code] = groups;
                 persistDividendState();
+                goalDivFetchAt[code] = Date.now();
                 renderDividendTable(groups);
                 renderHoldingPeriodDividendsFromCache();
+                const goalCode = stripTwStockCode((document.getElementById('goal-code') || {}).value);
+                if (goalCode === code) applyGoalDpsFromEvents(flattenDivEvents(groups), code);
                 if (status) status.textContent = code + ' · 共 ' + groups.reduce((s, g) => s + g.rows.length, 0) + ' 筆';
             } catch (e) {
                 console.error(e);
@@ -6499,16 +7355,23 @@
             const latest = withCash.slice().sort((a, b) => String(b.cashEx).localeCompare(String(a.cashEx)));
             return { ...latest[0], reason: '最近一期（參考）' };
         }
-        function policyToLightEvents(policyRows) {
+        function policyToLightEvents(policyRows, resultRows) {
+            const resultByDate = {};
+            (resultRows || []).forEach(r => {
+                if (r && r.date) resultByDate[r.date] = r;
+            });
             const events = [];
             (policyRows || []).forEach(r => {
                 const cash = num(r.CashEarningsDistribution) + num(r.CashStatutorySurplus);
                 const cashEx = r.CashExDividendTradingDate || '';
                 if (!(cash > 0) || !cashEx) return;
+                const cashRes = resultByDate[cashEx];
+                const beforeCash = cashRes && cashRes.before_price != null ? Number(cashRes.before_price) : null;
                 events.push({
                     cash,
                     cashEx,
-                    cashPay: r.CashDividendPaymentDate || ''
+                    cashPay: r.CashDividendPaymentDate || '',
+                    beforeCash: isFinite(beforeCash) && beforeCash > 0 ? beforeCash : null
                 });
             });
             return events;
@@ -6516,7 +7379,7 @@
         async function ensureDivEventsForCode(code) {
             const c = stripTwStockCode(code);
             if (divHistoryCache[c]) return flattenDivEvents(divHistoryCache[c]);
-            const start = String(new Date().getFullYear() - 3) + '-01-01';
+            const start = String(new Date().getFullYear() - 8) + '-01-01';
             const policy = await fetchFinMindDataset('TaiwanStockDividend', c, start);
             return policyToLightEvents(policy);
         }
@@ -6653,7 +7516,21 @@
         updateUI();
         enhanceAllSelects();
         enhanceAllDateInputs();
-        fetchAllPrices();
+        (function bootGreeting() {
+            let opened = false;
+            const show = () => {
+                if (!opened) {
+                    opened = true;
+                    openGreetingModal();
+                    return;
+                }
+                const el = document.getElementById('greeting-modal');
+                if (el && !el.classList.contains('hidden')) fillGreetingModal();
+                else saveWorthSnap(computeAssetWorth().tV);
+            };
+            fetchAllPrices().finally(show);
+            setTimeout(show, 1800);
+        })();
         if (typeof initExtras === 'function') initExtras();
     </script>
 
