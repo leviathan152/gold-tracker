@@ -2688,9 +2688,9 @@
             </div>
             <div class="card overflow-hidden p-0 record-table">
                 <div class="table-scroll">
-                <table class="w-full text-xs text-left min-w-[720px]">
+                <table class="w-full text-xs text-left min-w-[820px]">
                     <thead class="thead-bar font-bold">
-                        <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5">類型</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">股利</th><th class="p-5 text-right">市場現值</th><th class="p-5 text-center">管理</th></tr>
+                        <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5">類型</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">成交單價</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">股利</th><th class="p-5 text-right">市場現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
                     <tbody id="stock-list" class="divide-y"></tbody>
                 </table>
@@ -5482,11 +5482,16 @@
                 const divCell = divAmt > 0
                     ? `<span class="c-sage font-bold">${fNum(divAmt)}</span>`
                     : `<span class="text-faint">—</span>`;
+                const unitPx = num(r.buyPrice) > 0 ? num(r.buyPrice) : (sh > 1e-9 ? num(r.cost) / sh : 0);
+                const unitCell = unitPx > 0
+                    ? (isPrivacyMode ? '****' : ('NT$' + unitPx.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })))
+                    : '<span class="text-faint">—</span>';
                 sH += `<tr class="row-hover">
                     <td class="p-5 text-muted">${r.date}</td>
                     <td class="p-5 font-bold c-stock">${r.code}</td>
                     <td class="p-5 text-muted">${stockTypeLabel(r.type)}</td>
                     <td class="p-5 text-right">${isPrivacyMode ? '***' : sh.toLocaleString()}</td>
+                    <td class="p-5 text-right">${unitCell}</td>
                     <td class="p-5 text-right">${fNum(num(r.cost))}</td>
                     <td class="p-5 text-right">${isPrivacyMode && divAmt > 0 ? '****' : divCell}</td>
                     <td class="p-5 text-right"><div class="font-bold">${fNum(val)}</div><div class="${pnlCls(profit)} text-[10px] font-bold">${isPrivacyMode ? '***' : (profit>=0?'+':'')+Math.round(profit).toLocaleString()}</div></td>
@@ -5494,7 +5499,7 @@
                 </tr>`;
             });
             const stockListEl = document.getElementById('stock-list');
-            if (stockListEl) stockListEl.innerHTML = sH || '<tr><td colspan="8" class="p-10 text-center text-faint">' + t('empty.data') + '</td></tr>';
+            if (stockListEl) stockListEl.innerHTML = sH || '<tr><td colspan="9" class="p-10 text-center text-faint">' + t('empty.data') + '</td></tr>';
 
             let ssH = '', sSellSum = 0;
             stockSells.map((r, i) => ({...r, ori: i})).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(r => {
