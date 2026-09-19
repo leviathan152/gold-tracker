@@ -291,6 +291,7 @@ t\_i    = (日期\_i − 最早日期) / 365.25 年
 `WV20\_CASH`	同齡對照銀行存款
 `WV20\_GOAL`	目標計算機（代號、持股、月領、現價、DPS、每月投入、再投入）
 `WV20\_DIV\_CACHE`	股利年表快取
+`WV20\_DIV\_META`	股利快取時間戳（逾 12 小時視為過期）
 `WV20\_DIV\_LAST`	上次查詢股利代號
 舊版 `WV20\_LANG` / `WV20\_THEME` / `WV20\_FONT` 啟動時會清掉。
 股票紀錄欄位：`code, date, type(buy|dividend|cash\_div), shares, buyPrice, cost, dividend`  

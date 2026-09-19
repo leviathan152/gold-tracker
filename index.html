@@ -2760,7 +2760,7 @@
                                 <button type="button" onclick="promptAddStockCode('div-code')" class="btn-surface px-3 rounded-xl text-sm font-bold shrink-0" title="新增並記錄代號">＋</button>
                             </div>
                         </div>
-                        <button type="button" id="div-fetch-btn" onclick="loadDividendHistory()" class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold sm:self-end shrink-0">查詢股利</button>
+                        <button type="button" id="div-fetch-btn" onclick="loadDividendHistory(true)" class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold sm:self-end shrink-0">查詢股利</button>
                         <span id="div-status" class="text-[11px] text-muted sm:self-end pb-1"></span>
                     </div>
                 </div>
@@ -3194,7 +3194,8 @@
         const K_STK = 'WV20_STK', K_GLD = 'WV20_GLD', K_PRC = 'WV20_PRC', K_PRC_META = 'WV20_PRC_META', K_PWD = 'WV20_PWD', K_PRIV = 'WV20_PRIV';
         const K_COLL = 'WV20_COLL', K_STK_SELL = 'WV20_STK_SELL', K_GLD_SELL = 'WV20_GLD_SELL', K_COLL_SELL = 'WV20_COLL_SELL', K_INC = 'WV20_INC';
         const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL';
-        const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE';
+        const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE', K_DIV_META = 'WV20_DIV_META';
+        const DIV_STALE_MS = 12 * 60 * 60 * 1000;
         const K_WORTH_SNAP = 'WV20_WORTH_SNAP';
         const I18N = {
                 'app.title': '資產管理',
@@ -4205,6 +4206,17 @@
             try {
                 if (codesToFetch().length) await fetchStockPricesOnly(true);
             } catch (e) { console.error(e); }
+            try {
+                const divEl = document.getElementById('div-code');
+                const divCode = stripTwStockCode((divEl && divEl.value) || lastDivCode);
+                if (divCode && looksLikeTwStock(divCode) && typeof loadDividendHistory === 'function') {
+                    if (divEl && !stripTwStockCode(divEl.value)) {
+                        divEl.value = divCode;
+                        if (typeof syncCodePicker === 'function') syncCodePicker(divEl);
+                    }
+                    await loadDividendHistory(true);
+                }
+            } catch (e) { console.error('股利年表更新失敗', e); }
             finally {
                 if (refreshBtn) refreshBtn.classList.remove('is-busy');
             }
@@ -4600,13 +4612,14 @@
             allocTargets.coll = 0;
             stockCodes = [];
             Object.keys(divHistoryCache).forEach(k => { delete divHistoryCache[k]; });
+            Object.keys(divFetchAt).forEach(k => { delete divFetchAt[k]; });
             lastDivCode = '';
             isPrivacyMode = true;
             persistPrivacyMode();
             peerBirthYear = 0;
             peerCash = 0;
             goalPlan = { reinvest: true };
-            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_BIRTH, K_CASH, K_GOAL, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
+            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_DIV_META, K_BIRTH, K_CASH, K_GOAL, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
             saveAll();
             try { clearStockForm(); } catch (e) {}
             try { clearGoldForm(); } catch (e) {}
@@ -7050,6 +7063,7 @@
             try { localStorage.setItem(K_GOAL, JSON.stringify(goalPlan)); } catch (e) {}
             if (lastDivCode) localStorage.setItem(K_DIV_LAST, lastDivCode);
             try { localStorage.setItem(K_DIV_CACHE, JSON.stringify(divHistoryCache)); } catch (e) { /* quota */ }
+            try { localStorage.setItem(K_DIV_META, JSON.stringify(divFetchAt)); } catch (e) { /* quota */ }
         }
 
         async function fetchViaProxy(url) {
@@ -7140,16 +7154,28 @@
                 return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
             } catch (e) { return {}; }
         })();
+        const divFetchAt = (function() {
+            try {
+                const o = JSON.parse(localStorage.getItem(K_DIV_META) || '{}');
+                return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+            } catch (e) { return {}; }
+        })();
         let lastDivCode = (function() {
             try {
                 const c = String(localStorage.getItem(K_DIV_LAST) || '').toUpperCase().trim();
                 return c || '';
             } catch (e) { return ''; }
         })();
+        function isDivCacheFresh(code) {
+            const c = stripTwStockCode(code);
+            const at = Number(divFetchAt[c] || 0);
+            return !!(c && divHistoryCache[c] && at > 0 && (Date.now() - at) < DIV_STALE_MS);
+        }
         function persistDividendState() {
             if (lastDivCode) localStorage.setItem(K_DIV_LAST, lastDivCode);
             else localStorage.removeItem(K_DIV_LAST);
             try { localStorage.setItem(K_DIV_CACHE, JSON.stringify(divHistoryCache)); } catch (e) { console.warn('股利快取寫入失敗', e); }
+            try { localStorage.setItem(K_DIV_META, JSON.stringify(divFetchAt)); } catch (e) { console.warn('股利時間戳寫入失敗', e); }
         }
         function restoreDividendPanel() {
             const divEl = document.getElementById('div-code');
@@ -7162,7 +7188,8 @@
             }
             if (divHistoryCache[code]) {
                 renderDividendTable(divHistoryCache[code]);
-                if (status) status.textContent = code + '（已還原）';
+                if (status) status.textContent = code + (isDivCacheFresh(code) ? '（已還原）' : '（快取偏舊，更新中…）');
+                if (!isDivCacheFresh(code)) loadDividendHistory(true);
             }
         }
         function fmtDivDate(s) {
@@ -7291,7 +7318,7 @@
             rememberStockCode(code);
             lastDivCode = code;
             persistDividendState();
-            if (!forceRefresh && divHistoryCache[code]) {
+            if (!forceRefresh && isDivCacheFresh(code)) {
                 renderDividendTable(divHistoryCache[code]);
                 if (status) status.textContent = code + '（已儲存）';
                 return;
@@ -7311,6 +7338,7 @@
                 });
                 const groups = buildDividendRows(policy, results, priceMap);
                 divHistoryCache[code] = groups;
+                divFetchAt[code] = Date.now();
                 persistDividendState();
                 goalDivFetchAt[code] = Date.now();
                 renderDividendTable(groups);
@@ -7387,10 +7415,23 @@
         }
         async function ensureDivEventsForCode(code) {
             const c = stripTwStockCode(code);
-            if (divHistoryCache[c]) return flattenDivEvents(divHistoryCache[c]);
+            if (isDivCacheFresh(c)) return flattenDivEvents(divHistoryCache[c]);
             const start = String(new Date().getFullYear() - 8) + '-01-01';
-            const policy = await fetchFinMindDataset('TaiwanStockDividend', c, start);
-            return policyToLightEvents(policy);
+            const [policy, results, prices] = await Promise.all([
+                fetchFinMindDataset('TaiwanStockDividend', c, start),
+                fetchFinMindDataset('TaiwanStockDividendResult', c, start),
+                fetchFinMindDataset('TaiwanStockPrice', c, start)
+            ]);
+            const priceMap = {};
+            (prices || []).forEach(p => {
+                if (p && p.date && p.close != null) priceMap[p.date] = Number(p.close);
+            });
+            const groups = buildDividendRows(policy, results, priceMap);
+            divHistoryCache[c] = groups;
+            divFetchAt[c] = Date.now();
+            persistDividendState();
+            goalDivFetchAt[c] = Date.now();
+            return flattenDivEvents(groups);
         }
         function renderExpectDividendRows(rows) {
             const tbody = document.getElementById('div-expect-list');
