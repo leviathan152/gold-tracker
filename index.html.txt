@@ -173,6 +173,18 @@
         .stat-card.gold { background: linear-gradient(160deg, rgba(255,255,255,0.68), var(--gold-soft)); }
         .stat-card.coll { background: linear-gradient(160deg, rgba(255,255,255,0.68), var(--coll-soft)); }
         .stat-card.overview { background: linear-gradient(160deg, rgba(255,255,255,0.68), var(--sage-soft)); }
+        body.asset-off-stock #view-overview .stat-card.stock,
+        body.asset-off-gold #view-overview .stat-card.gold,
+        body.asset-off-stock .header-mark-dot.stock,
+        body.asset-off-gold .header-mark-dot.gold,
+        body.asset-off-stock .greet-row.is-stock,
+        body.asset-off-gold .greet-row.is-gold,
+        body.asset-off-stock #inc-block-stock,
+        body.asset-off-gold #inc-block-gold,
+        body.asset-off-stock #alloc-wrap-stock,
+        body.asset-off-gold #alloc-wrap-gold,
+        body.asset-single #alloc-vs-label,
+        body.asset-single #alloc-fold { display: none !important; }
 
         .stat-label {
             color: var(--muted);
@@ -1954,6 +1966,7 @@
             background: rgba(10, 90, 212, 0.12);
             color: var(--stock-deep);
         }
+        .app-nav-btn.is-asset-off { display: none !important; }
         .app-nav-btn.is-on::before {
             content: '';
             position: absolute;
@@ -2095,6 +2108,10 @@
             }
             #view-overview .stat-card.gold {
                 grid-column: 3 / span 2;
+            }
+            body.asset-off-gold:not(.asset-off-stock) #view-overview .stat-card.stock,
+            body.asset-off-stock:not(.asset-off-gold) #view-overview .stat-card.gold {
+                grid-column: 1 / span 4;
             }
         }
         #view-overview .ov-charts > .card,
@@ -2326,6 +2343,10 @@
                 gap: 0.45rem;
                 flex: 0 0 auto;
             }
+            body.asset-off-gold:not(.asset-off-stock) #view-overview .stat-card.stock,
+            body.asset-off-stock:not(.asset-off-gold) #view-overview .stat-card.gold {
+                grid-column: 1 / -1;
+            }
             #view-overview .ov-stats > .card {
                 padding: 0.4rem 0.5rem;
             }
@@ -2432,7 +2453,7 @@
             <div class="card alloc-panel">
                 <div class="alloc-panel-head">
                     <h3 class="stat-label mb-0" data-i18n="chart.alloc">資產配置</h3>
-                    <span class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
+                    <span id="alloc-vs-label" class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
                 </div>
                 <div class="alloc-stage">
                     <div class="alloc-chart-wrap" id="alloc-chart-wrap" title="點擊區塊或下方圖例檢視細節">
@@ -2688,9 +2709,9 @@
             </div>
             <div class="card overflow-hidden p-0 record-table">
                 <div class="table-scroll">
-                <table class="w-full text-xs text-left min-w-[720px]">
+                <table class="w-full text-xs text-left min-w-[820px]">
                     <thead class="thead-bar font-bold">
-                        <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5">類型</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">股利</th><th class="p-5 text-right">市場現值</th><th class="p-5 text-center">管理</th></tr>
+                        <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5">類型</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">成交單價</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">股利</th><th class="p-5 text-right">市場現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
                     <tbody id="stock-list" class="divide-y"></tbody>
                 </table>
@@ -2760,7 +2781,7 @@
                                 <button type="button" onclick="promptAddStockCode('div-code')" class="btn-surface px-3 rounded-xl text-sm font-bold shrink-0" title="新增並記錄代號">＋</button>
                             </div>
                         </div>
-                        <button type="button" id="div-fetch-btn" onclick="loadDividendHistory()" class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold sm:self-end shrink-0">查詢股利</button>
+                        <button type="button" id="div-fetch-btn" onclick="loadDividendHistory(true)" class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold sm:self-end shrink-0">查詢股利</button>
                         <span id="div-status" class="text-[11px] text-muted sm:self-end pb-1"></span>
                     </div>
                 </div>
@@ -2985,6 +3006,33 @@
                 <details class="settings-fold">
                     <summary>
                         <div class="settings-fold-title">
+                            <span class="t c-stock">啟用資產</span>
+                            <span class="d">關閉用不到的類別</span>
+                        </div>
+                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                    </summary>
+                    <div class="settings-fold-body">
+                        <p class="text-xs text-muted mb-4">關閉後，該資產會從選單、總覽、報表與今日速覽移除，也不能再登帳。原有紀錄會保留，重新打開就會回來。至少要留一項。</p>
+                        <div class="space-y-3 text-xs">
+                            <label class="setting-switch">
+                                <input type="checkbox" id="asset-stock" checked onchange="saveAssetEnabled(this)">
+                                <span class="setting-switch-ui" aria-hidden="true"></span>
+                                <span class="setting-switch-label">股票</span>
+                                <span class="setting-switch-state" data-for="asset-stock">關</span>
+                            </label>
+                            <label class="setting-switch">
+                                <input type="checkbox" id="asset-gold" checked onchange="saveAssetEnabled(this)">
+                                <span class="setting-switch-ui" aria-hidden="true"></span>
+                                <span class="setting-switch-label">黃金</span>
+                                <span class="setting-switch-state" data-for="asset-gold">關</span>
+                            </label>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="settings-fold">
+                    <summary>
+                        <div class="settings-fold-title">
                             <span class="t c-sage" data-i18n="inc.title">總覽計入設定</span>
                             <span class="d" data-i18n="inc.desc">決定哪些資產計入首頁總覽</span>
                         </div>
@@ -2993,7 +3041,7 @@
                     <div class="settings-fold-body">
                         <p class="text-xs text-muted mb-4">決定各類資產是否計入首頁「總覽」的總資產現值，以及總成本／總報酬率。開關為綠色＝已啟用。</p>
                         <div class="space-y-3 text-xs">
-                            <div class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
+                            <div id="inc-block-stock" class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
                                 <div class="font-bold c-stock mb-1">股票</div>
                                 <label class="setting-switch">
                                     <input type="checkbox" id="inc-stock-worth" onchange="saveIncludeFlags(this)">
@@ -3008,7 +3056,7 @@
                                     <span class="setting-switch-state" data-for="inc-stock-perf">關</span>
                                 </label>
                             </div>
-                            <div class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
+                            <div id="inc-block-gold" class="rounded-xl border p-3 space-y-2" style="border-color: var(--line); background: var(--paper)">
                                 <div class="font-bold c-gold mb-1">黃金</div>
                                 <label class="setting-switch">
                                     <input type="checkbox" id="inc-gold-worth" onchange="saveIncludeFlags(this)">
@@ -3047,7 +3095,7 @@
                     </div>
                 </details>
 
-                <details class="settings-fold">
+                <details class="settings-fold" id="alloc-fold">
                     <summary>
                         <div class="settings-fold-title">
                             <span class="t c-gold" data-i18n="alloc.title">資產配置目標</span>
@@ -3058,8 +3106,8 @@
                     <div class="settings-fold-body">
                         <p class="text-xs text-muted mb-3">兩項合計建議為 100；用於與現況對比。</p>
                         <div class="grid grid-cols-2 gap-3">
-                            <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">股票</label><input type="number" id="alloc-stock" min="0" max="100" step="1"></div>
-                            <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">黃金</label><input type="number" id="alloc-gold" min="0" max="100" step="1"></div>
+                            <div id="alloc-wrap-stock" class="flex flex-col gap-1"><label class="stat-label text-[10px]">股票</label><input type="number" id="alloc-stock" min="0" max="100" step="1"></div>
+                            <div id="alloc-wrap-gold" class="flex flex-col gap-1"><label class="stat-label text-[10px]">黃金</label><input type="number" id="alloc-gold" min="0" max="100" step="1"></div>
                         </div>
                         <button type="button" onclick="saveAllocTargets()" class="w-full mt-3 btn-surface py-3 rounded-xl text-xs font-bold c-gold">儲存配置目標</button>
                     </div>
@@ -3170,12 +3218,12 @@
                 <button type="button" onclick="closeGreetingModal()" class="text-muted hover:text-ink text-xl leading-none px-1" aria-label="關閉">✕</button>
             </div>
             <div class="space-y-2.5">
-                <div class="greet-row">
+                <div class="greet-row is-stock">
                     <div class="greet-kicker c-stock">股票</div>
                     <div class="greet-main" id="greet-stock-pct">--</div>
                     <div class="greet-sub" id="greet-stock-sub"></div>
                 </div>
-                <div class="greet-row">
+                <div class="greet-row is-gold">
                     <div class="greet-kicker c-gold">黃金</div>
                     <div class="greet-main" id="greet-gold-pct">--</div>
                     <div class="greet-sub" id="greet-gold-sub"></div>
@@ -3193,8 +3241,9 @@
     <script>
         const K_STK = 'WV20_STK', K_GLD = 'WV20_GLD', K_PRC = 'WV20_PRC', K_PRC_META = 'WV20_PRC_META', K_PWD = 'WV20_PWD', K_PRIV = 'WV20_PRIV';
         const K_COLL = 'WV20_COLL', K_STK_SELL = 'WV20_STK_SELL', K_GLD_SELL = 'WV20_GLD_SELL', K_COLL_SELL = 'WV20_COLL_SELL', K_INC = 'WV20_INC';
-        const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL';
-        const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE';
+        const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL', K_ASSET = 'WV20_ASSET';
+        const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE', K_DIV_META = 'WV20_DIV_META';
+        const DIV_STALE_MS = 12 * 60 * 60 * 1000;
         const K_WORTH_SNAP = 'WV20_WORTH_SNAP';
         const I18N = {
                 'app.title': '資產管理',
@@ -3313,6 +3362,7 @@
         }
         const defaultInc = { stockWorth: true, stockPerf: true, goldWorth: true, goldPerf: true, collWorth: false, collPerf: false };
         const defaultAlloc = { stock: 50, gold: 50, coll: 0 };
+        const defaultAssets = { stock: true, gold: true };
 
         let stockRecs = JSON.parse(localStorage.getItem(K_STK)) || [];
         let goldRecs = JSON.parse(localStorage.getItem(K_GLD)) || [];
@@ -3326,6 +3376,15 @@
         Object.keys(defaultInc).forEach(k => { if (includeFlags[k] === undefined) includeFlags[k] = defaultInc[k]; });
         includeFlags.collWorth = false;
         includeFlags.collPerf = false;
+        let assetOn = { ...defaultAssets };
+        try {
+            const savedAssets = JSON.parse(localStorage.getItem(K_ASSET) || '{}');
+            if (savedAssets && typeof savedAssets === 'object') {
+                assetOn.stock = savedAssets.stock !== false;
+                assetOn.gold = savedAssets.gold !== false;
+            }
+        } catch (e) {}
+        if (!assetOn.stock && !assetOn.gold) assetOn = { ...defaultAssets };
         let allocTargets = { ...defaultAlloc, ...JSON.parse(localStorage.getItem(K_ALLOC) || '{}') };
         allocTargets.coll = 0;
         let peerBirthYear = parseInt(localStorage.getItem(K_BIRTH) || '', 10) || 0;
@@ -3423,9 +3482,18 @@
         function currentGoldTwdPerGram() {
             return curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
         }
+        function assetEnabled(kind) {
+            return !!(assetOn && assetOn[kind]);
+        }
+        function activeInc() {
+            const inc = { ...includeFlags, collWorth: false, collPerf: false };
+            if (!assetEnabled('stock')) { inc.stockWorth = false; inc.stockPerf = false; }
+            if (!assetEnabled('gold')) { inc.goldWorth = false; inc.goldPerf = false; }
+            return inc;
+        }
         function computeAssetWorth() {
             const goldTWD_g = currentGoldTwdPerGram();
-            const inc = includeFlags;
+            const inc = activeInc();
             let sV = 0, gV = 0;
             stockRecs.forEach((r) => {
                 const nowP = marketPrices[r.code] || r.buyPrice || 0;
@@ -4187,25 +4255,41 @@
             const refreshBtn = document.querySelector('.header-btn.is-primary');
             if (refreshBtn) refreshBtn.classList.add('is-busy');
             try {
-                const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
-                const d = await res.json();
-                curGoldUSD = parseFloat(d.price);
-            } catch (e) { console.error('金價更新失敗', e); }
-            try {
-                const res = await fetch('https://open.er-api.com/v6/latest/USD');
-                const d = await res.json();
-                if (d && d.rates && d.rates.TWD) rateUSD = Number(d.rates.TWD);
-            } catch (e) {
-                try {
-                    const d = await fetchViaProxy('https://api.exchangerate.host/latest?base=USD&symbols=TWD');
-                    if (d && d.rates && d.rates.TWD) rateUSD = Number(d.rates.TWD);
-                } catch (e2) { console.error('匯率更新失敗', e2); }
-            }
-            updateUI();
-            try {
-                if (codesToFetch().length) await fetchStockPricesOnly(true);
-            } catch (e) { console.error(e); }
-            finally {
+                if (assetEnabled('gold')) {
+                    try {
+                        const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
+                        const d = await res.json();
+                        curGoldUSD = parseFloat(d.price);
+                    } catch (e) { console.error('金價更新失敗', e); }
+                    try {
+                        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+                        const d = await res.json();
+                        if (d && d.rates && d.rates.TWD) rateUSD = Number(d.rates.TWD);
+                    } catch (e) {
+                        try {
+                            const d = await fetchViaProxy('https://api.exchangerate.host/latest?base=USD&symbols=TWD');
+                            if (d && d.rates && d.rates.TWD) rateUSD = Number(d.rates.TWD);
+                        } catch (e2) { console.error('匯率更新失敗', e2); }
+                    }
+                }
+                updateUI();
+                if (assetEnabled('stock')) {
+                    try {
+                        if (codesToFetch().length) await fetchStockPricesOnly(true);
+                    } catch (e) { console.error(e); }
+                    try {
+                        const divEl = document.getElementById('div-code');
+                        const divCode = stripTwStockCode((divEl && divEl.value) || lastDivCode);
+                        if (divCode && looksLikeTwStock(divCode) && typeof loadDividendHistory === 'function') {
+                            if (divEl && !stripTwStockCode(divEl.value)) {
+                                divEl.value = divCode;
+                                if (typeof syncCodePicker === 'function') syncCodePicker(divEl);
+                            }
+                            await loadDividendHistory(true);
+                        }
+                    } catch (e) { console.error('股利年表更新失敗', e); }
+                }
+            } finally {
                 if (refreshBtn) refreshBtn.classList.remove('is-busy');
             }
         }
@@ -4444,6 +4528,69 @@
             return Object.values(map).sort((a, b) => a.code.localeCompare(b.code, 'zh-TW'));
         }
 
+        function syncAssetToUI() {
+            const stockEl = document.getElementById('asset-stock');
+            const goldEl = document.getElementById('asset-gold');
+            if (stockEl) stockEl.checked = assetEnabled('stock');
+            if (goldEl) goldEl.checked = assetEnabled('gold');
+            refreshAssetSwitchLabels();
+        }
+        function refreshAssetSwitchLabels() {
+            ['asset-stock', 'asset-gold'].forEach((id) => {
+                const input = document.getElementById(id);
+                const state = document.querySelector('.setting-switch-state[data-for="' + id + '"]');
+                if (!input || !state) return;
+                state.textContent = input.checked ? t('on') : t('off');
+            });
+        }
+        function saveAssetEnabled(el) {
+            const stockEl = document.getElementById('asset-stock');
+            const goldEl = document.getElementById('asset-gold');
+            let stock = !!(stockEl && stockEl.checked);
+            let gold = !!(goldEl && goldEl.checked);
+            if (!stock && !gold) {
+                if (el) el.checked = true;
+                refreshAssetSwitchLabels();
+                alert('至少要保留一項資產可以操作。');
+                return;
+            }
+            assetOn = { stock, gold };
+            try { localStorage.setItem(K_ASSET, JSON.stringify(assetOn)); } catch (e) {}
+            refreshAssetSwitchLabels();
+            if (el && el.closest) {
+                const row = el.closest('.setting-switch');
+                if (row) {
+                    row.classList.remove('is-flash');
+                    void row.offsetWidth;
+                    row.classList.add('is-flash');
+                }
+            }
+            lastChartSig = '';
+            applyAssetVisibility();
+            updateUI();
+        }
+        function applyAssetVisibility() {
+            const stockOn = assetEnabled('stock');
+            const goldOn = assetEnabled('gold');
+            document.body.classList.toggle('asset-off-stock', !stockOn);
+            document.body.classList.toggle('asset-off-gold', !goldOn);
+            document.body.classList.toggle('asset-single', stockOn !== goldOn);
+            document.querySelectorAll('.app-nav-btn[data-view="stock"], .app-nav-btn[data-view="peer"]').forEach((btn) => {
+                btn.classList.toggle('is-asset-off', !stockOn);
+            });
+            document.querySelectorAll('.app-nav-btn[data-view="gold"]').forEach((btn) => {
+                btn.classList.toggle('is-asset-off', !goldOn);
+            });
+            const sub = document.querySelector('.sidebar-brand .header-subtitle');
+            if (sub) {
+                const names = [];
+                if (stockOn) names.push('股票');
+                if (goldOn) names.push('黃金');
+                sub.textContent = names.join('與') + ' · 即時總覽';
+            }
+            if (!goldOn && currentView === 'gold') switchView('overview');
+            else if (!stockOn && (currentView === 'stock' || currentView === 'peer')) switchView('overview');
+        }
         function syncIncludeToUI() {
             document.getElementById('inc-stock-worth').checked = !!includeFlags.stockWorth;
             document.getElementById('inc-stock-perf').checked = !!includeFlags.stockPerf;
@@ -4502,6 +4649,7 @@
             ['pwd-current', 'pwd-new', 'pwd-new2'].forEach(id => { document.getElementById(id).value = ''; });
             syncIncludeToUI();
             syncAllocToUI();
+            syncAssetToUI();
             initSettingsAccordion();
         }
         function closeSettingsModal() {
@@ -4596,17 +4744,19 @@
             includeFlags = { ...defaultInc };
             includeFlags.collWorth = false;
             includeFlags.collPerf = false;
+            assetOn = { ...defaultAssets };
             allocTargets = { ...defaultAlloc };
             allocTargets.coll = 0;
             stockCodes = [];
             Object.keys(divHistoryCache).forEach(k => { delete divHistoryCache[k]; });
+            Object.keys(divFetchAt).forEach(k => { delete divFetchAt[k]; });
             lastDivCode = '';
             isPrivacyMode = true;
             persistPrivacyMode();
             peerBirthYear = 0;
             peerCash = 0;
             goalPlan = { reinvest: true };
-            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_BIRTH, K_CASH, K_GOAL, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
+            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_ASSET, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_DIV_META, K_BIRTH, K_CASH, K_GOAL, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
             saveAll();
             try { clearStockForm(); } catch (e) {}
             try { clearGoldForm(); } catch (e) {}
@@ -4635,6 +4785,8 @@
             refreshCodeSelects({ market: '', stock: '', sell: '', es: '', div: '' });
             syncIncludeToUI();
             syncAllocToUI();
+            syncAssetToUI();
+            applyAssetVisibility();
             updateUI();
         }
         function submitClearDataPassword() {
@@ -5381,6 +5533,7 @@
             if (inc.stockWorth) tot += sV;
             if (inc.goldWorth) tot += gV;
             if (inc.collWorth) tot += cV;
+            const showBoth = assetEnabled('stock') && assetEnabled('gold');
             const rows = [
                 {
                     key: 'stock',
@@ -5388,7 +5541,7 @@
                     color: '#0a5ad4',
                     grad: 'linear-gradient(90deg, #0746a8, #1b7fd6)',
                     cur: inc.stockWorth ? sV : 0,
-                    target: num(allocTargets.stock),
+                    target: showBoth ? num(allocTargets.stock) : 0,
                     cls: 'c-stock'
                 },
                 {
@@ -5397,7 +5550,7 @@
                     color: '#ff9f0a',
                     grad: 'linear-gradient(90deg, #e08600, #ffd60a)',
                     cur: inc.goldWorth ? gV : 0,
-                    target: num(allocTargets.gold),
+                    target: showBoth ? num(allocTargets.gold) : 0,
                     cls: 'c-gold'
                 }
             ].filter(r => r.cur > 0);
@@ -5412,8 +5565,11 @@
                 const pctStr = isPrivacyMode ? '****' : (pct >= 99.95 ? '100' : pct.toFixed(1)) + '%';
                 const amtStr = isPrivacyMode ? '****' : 'NT$' + Math.round(r.cur).toLocaleString('zh-TW');
                 const tgt = Math.max(0, Math.min(100, r.target));
-                const delta = tot > 0 && !isPrivacyMode ? (pct - tgt) : null;
-                let deltaStr = tgt > 0 ? ('目標 ' + tgt.toFixed(0) + '%') : '目標 —';
+                const delta = showBoth && tot > 0 && !isPrivacyMode ? (pct - tgt) : null;
+                let deltaStr = '';
+                if (showBoth) {
+                    deltaStr = tgt > 0 ? ('目標 ' + tgt.toFixed(0) + '%') : '目標 —';
+                }
                 if (delta != null && tgt > 0) {
                     const sign = delta > 0.05 ? '+' : delta < -0.05 ? '−' : '±';
                     deltaStr = tgt.toFixed(0) + '% · ' + sign + Math.abs(delta).toFixed(0) + '%';
@@ -5434,7 +5590,7 @@
                     </div>
                     <div class="alloc-legend-detail">
                         <span class="alloc-legend-amt">${amtStr}</span>
-                        <span class="alloc-legend-foot">${deltaStr}</span>
+                        ${deltaStr ? `<span class="alloc-legend-foot">${deltaStr}</span>` : ''}
                     </div>
                 </button>`;
             }).join('');
@@ -5453,7 +5609,7 @@
 
         function updateUI() {
             const goldTWD_g = curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
-            const inc = includeFlags;
+            const inc = activeInc();
             let sV = 0, sC = 0, sD = 0, sShares = 0;
             let gV = 0, gC = 0, gW = 0;
             let cV = 0, cC = 0;
@@ -5469,11 +5625,16 @@
                 const divCell = divAmt > 0
                     ? `<span class="c-sage font-bold">${fNum(divAmt)}</span>`
                     : `<span class="text-faint">—</span>`;
+                const unitPx = num(r.buyPrice) > 0 ? num(r.buyPrice) : (sh > 1e-9 ? num(r.cost) / sh : 0);
+                const unitCell = unitPx > 0
+                    ? (isPrivacyMode ? '****' : ('NT$' + unitPx.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })))
+                    : '<span class="text-faint">—</span>';
                 sH += `<tr class="row-hover">
                     <td class="p-5 text-muted">${r.date}</td>
                     <td class="p-5 font-bold c-stock">${r.code}</td>
                     <td class="p-5 text-muted">${stockTypeLabel(r.type)}</td>
                     <td class="p-5 text-right">${isPrivacyMode ? '***' : sh.toLocaleString()}</td>
+                    <td class="p-5 text-right">${unitCell}</td>
                     <td class="p-5 text-right">${fNum(num(r.cost))}</td>
                     <td class="p-5 text-right">${isPrivacyMode && divAmt > 0 ? '****' : divCell}</td>
                     <td class="p-5 text-right"><div class="font-bold">${fNum(val)}</div><div class="${pnlCls(profit)} text-[10px] font-bold">${isPrivacyMode ? '***' : (profit>=0?'+':'')+Math.round(profit).toLocaleString()}</div></td>
@@ -5481,7 +5642,7 @@
                 </tr>`;
             });
             const stockListEl = document.getElementById('stock-list');
-            if (stockListEl) stockListEl.innerHTML = sH || '<tr><td colspan="8" class="p-10 text-center text-faint">' + t('empty.data') + '</td></tr>';
+            if (stockListEl) stockListEl.innerHTML = sH || '<tr><td colspan="9" class="p-10 text-center text-faint">' + t('empty.data') + '</td></tr>';
 
             let ssH = '', sSellSum = 0;
             stockSells.map((r, i) => ({...r, ori: i})).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(r => {
@@ -6288,16 +6449,18 @@
             const period = periodEl.value;
             const goldTWD_g = curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
 
+            const showS = assetEnabled('stock');
+            const showG = assetEnabled('gold');
             let sReal = 0, gReal = 0;
-            stockSells.forEach(r => { if (inReportPeriod(r.date, mode, period)) sReal += sellProfit(r); });
-            goldSells.forEach(r => { if (inReportPeriod(r.date, mode, period)) gReal += goldSellProfit(r); });
+            if (showS) stockSells.forEach(r => { if (inReportPeriod(r.date, mode, period)) sReal += sellProfit(r); });
+            if (showG) goldSells.forEach(r => { if (inReportPeriod(r.date, mode, period)) gReal += goldSellProfit(r); });
 
             let sUn = 0, gUn = 0;
-            stockRecs.forEach(r => {
+            if (showS) stockRecs.forEach(r => {
                 const nowP = marketPrices[r.code] || r.buyPrice || 0;
                 sUn += nowP * num(r.shares) - netHoldingCashCost(r);
             });
-            goldRecs.forEach(r => {
+            if (showG) goldRecs.forEach(r => {
                 gUn += goldToGrams(r.weight, r.unit) * goldTWD_g - goldMetalCost(r);
             });
 
@@ -6307,10 +6470,10 @@
             document.getElementById('report-unrealized').innerText = fNum(tUn);
             setSignedClass('report-unrealized', tUn);
             document.getElementById('report-total').innerText = fNum(tReal + tUn);
-            document.getElementById('report-list').innerHTML = [
-                [t('label.stock'), t('report.src'), sReal, sUn],
-                [t('label.gold'), t('report.src'), gReal, gUn]
-            ].map(([src, item, real, un]) => `<tr class="row-hover">
+            const reportRows = [];
+            if (showS) reportRows.push([t('label.stock'), t('report.src'), sReal, sUn]);
+            if (showG) reportRows.push([t('label.gold'), t('report.src'), gReal, gUn]);
+            document.getElementById('report-list').innerHTML = reportRows.map(([src, item, real, un]) => `<tr class="row-hover">
                 <td class="p-4 font-bold">${src}</td>
                 <td class="p-4 text-muted">${item}</td>
                 <td class="p-4 text-right c-sell">${fNum(real)}</td>
@@ -6336,6 +6499,7 @@
         }
 
         function saveStock() {
+            if (!assetEnabled('stock')) return;
             // 上方表單僅用於新增
             document.getElementById('stock-edit-idx').value = '-1';
             const type = document.getElementById('stock-type').value;
@@ -6410,6 +6574,7 @@
         }
 
         function saveGold() {
+            if (!assetEnabled('gold')) return;
             const idx = parseInt(document.getElementById('gold-edit-idx').value);
             const costRaw = document.getElementById('gold-cost').value;
             const buyRaw = document.getElementById('gold-buy-price-g').value;
@@ -6448,6 +6613,7 @@
         }
 
         function saveStockSell() {
+            if (!assetEnabled('stock')) return;
             const idx = parseInt(document.getElementById('stock-sell-edit-idx').value);
             const code = document.getElementById('stock-sell-code').value.toUpperCase();
             const qty = num(document.getElementById('stock-sell-qty').value);
@@ -6480,6 +6646,7 @@
         }
 
         function saveGoldSell() {
+            if (!assetEnabled('gold')) return;
             const idx = parseInt(document.getElementById('gold-sell-edit-idx').value);
             const weight = num(document.getElementById('gold-sell-qty').value);
             const unit = document.getElementById('gold-sell-unit').value;
@@ -6562,7 +6729,7 @@
                 }),
                 collects: collRecs,
                 stockSells, goldSells, collSells,
-                prices: marketPrices, priceMeta, includeFlags, allocTargets,
+                prices: marketPrices, priceMeta, includeFlags, allocTargets, assetEnabled: { stock: assetEnabled('stock'), gold: assetEnabled('gold') },
                 peerBirthYear, peerCash,
                 stockCodes: collectStockCodes(),
                 goldBuyPricesByDate
@@ -6603,6 +6770,14 @@
                 allocTargets.coll = 0;
                 touched = true;
             }
+            if (data.assetEnabled && typeof data.assetEnabled === 'object') {
+                const next = {
+                    stock: data.assetEnabled.stock !== false,
+                    gold: data.assetEnabled.gold !== false
+                };
+                assetOn = (next.stock || next.gold) ? next : { ...defaultAssets };
+                touched = true;
+            }
             if (Array.isArray(data.stockCodes)) {
                 stockCodes = data.stockCodes.map(c => String(c).toUpperCase()).filter(Boolean);
                 touched = true;
@@ -6635,6 +6810,8 @@
             saveAll();
             syncIncludeToUI();
             syncAllocToUI();
+            syncAssetToUI();
+            applyAssetVisibility();
             updateUI();
             if (!silent) {
                 alert('資料匯入成功！');
@@ -6937,6 +7114,8 @@
         }
         function switchView(t) {
             if (t === 'coll') t = 'stock';
+            if (t === 'gold' && !assetEnabled('gold')) t = 'overview';
+            if ((t === 'stock' || t === 'peer') && !assetEnabled('stock')) t = 'overview';
             if (t !== 'overview' && t !== 'peer' && t !== 'stock' && t !== 'gold' && t !== 'report') t = 'overview';
             currentView = t;
             document.body.dataset.view = t;
@@ -7042,6 +7221,7 @@
             localStorage.setItem(K_PRC_META, JSON.stringify(priceMeta));
             localStorage.setItem(K_INC, JSON.stringify(includeFlags));
             localStorage.setItem(K_ALLOC, JSON.stringify(allocTargets));
+            localStorage.setItem(K_ASSET, JSON.stringify({ stock: assetEnabled('stock'), gold: assetEnabled('gold') }));
             localStorage.setItem(K_CODES, JSON.stringify(stockCodes));
             if (peerBirthYear) localStorage.setItem(K_BIRTH, String(peerBirthYear));
             else localStorage.removeItem(K_BIRTH);
@@ -7050,6 +7230,7 @@
             try { localStorage.setItem(K_GOAL, JSON.stringify(goalPlan)); } catch (e) {}
             if (lastDivCode) localStorage.setItem(K_DIV_LAST, lastDivCode);
             try { localStorage.setItem(K_DIV_CACHE, JSON.stringify(divHistoryCache)); } catch (e) { /* quota */ }
+            try { localStorage.setItem(K_DIV_META, JSON.stringify(divFetchAt)); } catch (e) { /* quota */ }
         }
 
         async function fetchViaProxy(url) {
@@ -7140,16 +7321,28 @@
                 return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
             } catch (e) { return {}; }
         })();
+        const divFetchAt = (function() {
+            try {
+                const o = JSON.parse(localStorage.getItem(K_DIV_META) || '{}');
+                return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+            } catch (e) { return {}; }
+        })();
         let lastDivCode = (function() {
             try {
                 const c = String(localStorage.getItem(K_DIV_LAST) || '').toUpperCase().trim();
                 return c || '';
             } catch (e) { return ''; }
         })();
+        function isDivCacheFresh(code) {
+            const c = stripTwStockCode(code);
+            const at = Number(divFetchAt[c] || 0);
+            return !!(c && divHistoryCache[c] && at > 0 && (Date.now() - at) < DIV_STALE_MS);
+        }
         function persistDividendState() {
             if (lastDivCode) localStorage.setItem(K_DIV_LAST, lastDivCode);
             else localStorage.removeItem(K_DIV_LAST);
             try { localStorage.setItem(K_DIV_CACHE, JSON.stringify(divHistoryCache)); } catch (e) { console.warn('股利快取寫入失敗', e); }
+            try { localStorage.setItem(K_DIV_META, JSON.stringify(divFetchAt)); } catch (e) { console.warn('股利時間戳寫入失敗', e); }
         }
         function restoreDividendPanel() {
             const divEl = document.getElementById('div-code');
@@ -7162,7 +7355,8 @@
             }
             if (divHistoryCache[code]) {
                 renderDividendTable(divHistoryCache[code]);
-                if (status) status.textContent = code + '（已還原）';
+                if (status) status.textContent = code + (isDivCacheFresh(code) ? '（已還原）' : '（快取偏舊，更新中…）');
+                if (!isDivCacheFresh(code)) loadDividendHistory(true);
             }
         }
         function fmtDivDate(s) {
@@ -7291,7 +7485,7 @@
             rememberStockCode(code);
             lastDivCode = code;
             persistDividendState();
-            if (!forceRefresh && divHistoryCache[code]) {
+            if (!forceRefresh && isDivCacheFresh(code)) {
                 renderDividendTable(divHistoryCache[code]);
                 if (status) status.textContent = code + '（已儲存）';
                 return;
@@ -7311,6 +7505,7 @@
                 });
                 const groups = buildDividendRows(policy, results, priceMap);
                 divHistoryCache[code] = groups;
+                divFetchAt[code] = Date.now();
                 persistDividendState();
                 goalDivFetchAt[code] = Date.now();
                 renderDividendTable(groups);
@@ -7387,10 +7582,23 @@
         }
         async function ensureDivEventsForCode(code) {
             const c = stripTwStockCode(code);
-            if (divHistoryCache[c]) return flattenDivEvents(divHistoryCache[c]);
+            if (isDivCacheFresh(c)) return flattenDivEvents(divHistoryCache[c]);
             const start = String(new Date().getFullYear() - 8) + '-01-01';
-            const policy = await fetchFinMindDataset('TaiwanStockDividend', c, start);
-            return policyToLightEvents(policy);
+            const [policy, results, prices] = await Promise.all([
+                fetchFinMindDataset('TaiwanStockDividend', c, start),
+                fetchFinMindDataset('TaiwanStockDividendResult', c, start),
+                fetchFinMindDataset('TaiwanStockPrice', c, start)
+            ]);
+            const priceMap = {};
+            (prices || []).forEach(p => {
+                if (p && p.date && p.close != null) priceMap[p.date] = Number(p.close);
+            });
+            const groups = buildDividendRows(policy, results, priceMap);
+            divHistoryCache[c] = groups;
+            divFetchAt[c] = Date.now();
+            persistDividendState();
+            goalDivFetchAt[c] = Date.now();
+            return flattenDivEvents(groups);
         }
         function renderExpectDividendRows(rows) {
             const tbody = document.getElementById('div-expect-list');
@@ -7510,6 +7718,8 @@
         }
         syncIncludeToUI();
         syncAllocToUI();
+        syncAssetToUI();
+        applyAssetVisibility();
         if (document.getElementById('report-period')) {
             document.getElementById('report-period').value = new Date().toISOString().slice(0, 7);
         }
