@@ -2605,6 +2605,256 @@
         @media (max-width: 860px) {
             .app-sidebar { box-shadow: 18px 0 40px rgba(2, 6, 20, 0.55); }
         }
+
+        body[data-view="overview"] .app-shell { overflow: auto !important; }
+        #view-overview:not(.hidden) {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.9rem;
+            overflow: visible !important;
+            height: auto !important;
+            flex: 1 1 auto;
+        }
+        .ov-kpis {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.85rem;
+            flex: none;
+        }
+        .kpi-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem;
+            min-width: 0;
+            padding: 1rem 1.05rem;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(22, 36, 72, 0.92), rgba(12, 20, 44, 0.94));
+            border: 1px solid rgba(140, 170, 255, 0.16);
+            box-shadow: 0 12px 30px rgba(2, 6, 20, 0.28);
+        }
+        .kpi-copy { min-width: 0; }
+        .kpi-k {
+            color: #8ea0c4;
+            font-size: 0.72rem;
+            font-weight: 650;
+            letter-spacing: 0.04em;
+        }
+        .kpi-v {
+            margin-top: 0.28rem;
+            color: #f4f7ff;
+            font-size: clamp(1.02rem, 1.4vw, 1.42rem);
+            font-weight: 750;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .kpi-s {
+            margin-top: 0.28rem;
+            color: #8ea0c4;
+            font-size: 0.72rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .kpi-orb,
+        .kpi-mark { flex: none; width: 52px; height: 52px; }
+        .kpi-orb svg { width: 52px; height: 52px; transform: rotate(-90deg); }
+        .kpi-orb .track { fill: none; stroke: rgba(140, 170, 255, 0.16); stroke-width: 3.2; }
+        .kpi-orb .val {
+            fill: none;
+            stroke-width: 3.2;
+            stroke-linecap: round;
+            stroke-dasharray: calc(var(--p) * 0.8796) 87.96;
+            transition: stroke-dasharray 0.45s ease;
+        }
+        .kpi-orb.is-blue .val { stroke: #7aa2ff; filter: drop-shadow(0 0 4px rgba(122, 162, 255, 0.65)); }
+        .kpi-orb.is-mint .val { stroke: #3ee0b0; filter: drop-shadow(0 0 4px rgba(62, 224, 176, 0.55)); }
+        .kpi-mark {
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            font-size: 1.05rem;
+            font-weight: 750;
+        }
+        .kpi-mark.is-rose {
+            color: #ff8aa8;
+            background: radial-gradient(circle at 40% 35%, rgba(255, 120, 160, 0.3), rgba(255, 80, 120, 0.08));
+            box-shadow: inset 0 0 0 1px rgba(255, 140, 170, 0.32);
+        }
+        .kpi-mark.is-violet {
+            color: #d4b4ff;
+            background: radial-gradient(circle at 40% 35%, rgba(180, 120, 255, 0.32), rgba(120, 80, 255, 0.08));
+            box-shadow: inset 0 0 0 1px rgba(180, 140, 255, 0.32);
+        }
+        #view-overview .ov-charts {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1.75fr) minmax(16.5rem, 0.85fr);
+            gap: 0.85rem;
+            flex: none !important;
+            min-height: 0;
+            align-items: stretch;
+        }
+        #view-overview .ov-stats {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem;
+            flex: none !important;
+        }
+        #view-overview .ov-charts > .card,
+        #view-overview .ov-stats > .card {
+            height: auto !important;
+            padding: 1rem 1.05rem 0.85rem;
+        }
+        #view-overview .chart-panel-head,
+        #view-overview .alloc-panel-head {
+            align-items: flex-start;
+            margin-bottom: 0.45rem;
+        }
+        .panel-sub {
+            margin: 0.16rem 0 0;
+            color: #8ea0c4;
+            font-size: 0.72rem;
+        }
+        #view-overview .chart-readout { display: none !important; }
+        #view-overview .chart-container {
+            flex: none !important;
+            height: 300px !important;
+            min-height: 260px !important;
+        }
+        #view-overview .alloc-panel {
+            height: auto !important;
+            min-height: 0;
+            overflow: visible;
+        }
+        #view-overview .alloc-stage {
+            flex: none !important;
+            height: 210px !important;
+            min-height: 190px !important;
+        }
+        #view-overview .alloc-chart-wrap {
+            width: min(196px, 78%);
+            margin: 0 auto;
+        }
+        #view-overview .alloc-chart-center {
+            background: radial-gradient(circle at 50% 38%, rgba(22, 34, 68, 0.98), rgba(8, 14, 32, 0.94));
+            box-shadow: inset 0 0 0 1px rgba(140, 170, 255, 0.16);
+        }
+        #view-overview .alloc-center-kicker,
+        #view-overview .alloc-center-sub { color: #8ea0c4; }
+        #view-overview .alloc-center-value {
+            color: #f4f7ff;
+            font-size: clamp(0.68rem, 8.2cqw, 0.86rem) !important;
+        }
+        #view-overview .alloc-legend {
+            display: flex !important;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        #view-overview .alloc-legend-row {
+            background: rgba(8, 16, 36, 0.55) !important;
+            border-color: rgba(140, 170, 255, 0.16) !important;
+            box-shadow: none !important;
+        }
+        #view-overview .alloc-legend-amt {
+            font-size: 0.78rem !important;
+            color: #d5def2;
+        }
+        #view-overview .trend-legend {
+            flex-wrap: wrap;
+            overflow: visible;
+        }
+        .meter-list { display: flex; flex-direction: column; margin-top: 0.2rem; }
+        .meter-list > div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            min-width: 0;
+            padding: 0.46rem 0;
+            border-top: 1px solid rgba(140, 170, 255, 0.1);
+        }
+        .meter-list > div:first-child { border-top: 0; padding-top: 0.15rem; }
+        .meter-list > div:first-child b { font-size: 1.02rem; }
+        .meter-list span { color: #8ea0c4; font-size: 0.78rem; min-width: 0; }
+        .meter-list b {
+            color: #f4f7ff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+            white-space: nowrap;
+        }
+        @media (min-width: 861px) {
+            #view-overview:not(.hidden) {
+                display: flex !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+            #view-overview .ov-kpis,
+            #view-overview .ov-charts,
+            #view-overview .ov-stats { display: grid !important; }
+            #view-overview .ov-charts > .card:first-child,
+            #view-overview .alloc-panel,
+            #view-overview .stat-card.stock,
+            #view-overview .stat-card.gold {
+                grid-column: auto !important;
+                grid-row: auto !important;
+                height: auto !important;
+                overflow: visible;
+            }
+        }
+        body.asset-off-gold:not(.asset-off-stock) #view-overview .stat-card.stock,
+        body.asset-off-stock:not(.asset-off-gold) #view-overview .stat-card.gold {
+            grid-column: 1 / -1 !important;
+        }
+        @media (max-width: 1100px) {
+            .ov-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 860px) {
+            body[data-view="overview"] .app-shell { overflow: auto !important; }
+            #view-overview:not(.hidden) {
+                display: flex !important;
+                overflow: visible !important;
+                height: auto !important;
+                flex: none !important;
+            }
+            #view-overview .ov-charts {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                flex: none !important;
+            }
+            #view-overview .ov-charts > .card:first-child,
+            #view-overview .alloc-panel {
+                flex: none !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                grid-column: auto !important;
+                grid-row: auto !important;
+            }
+            #view-overview .chart-container {
+                height: 240px !important;
+                min-height: 220px !important;
+                flex: none !important;
+            }
+            #view-overview .alloc-stage {
+                height: 200px !important;
+                min-height: 180px !important;
+                flex: none !important;
+            }
+            #view-overview .ov-stats { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 520px) {
+            .ov-kpis { grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+            .kpi-card { padding: 0.75rem 0.7rem; }
+            .kpi-orb, .kpi-mark { display: none; }
+            .kpi-v { font-size: 0.95rem; }
+            .kpi-k, .kpi-s { font-size: 0.64rem; }
+        }
     </style>
 </head>
 <body data-view="overview">
@@ -2674,10 +2924,47 @@
         </header>
 
         <div id="view-overview">
-        <section class="ov-charts grid grid-cols-1 lg:grid-cols-3 gap-3 section-rise">
-            <div class="card lg:col-span-2">
+        <section class="ov-kpis" aria-label="關鍵指標">
+            <article class="kpi-card">
+                <div class="kpi-copy">
+                    <div class="kpi-k">總資產現值</div>
+                    <div id="total-all-worth" class="kpi-v">--</div>
+                    <div class="kpi-s">累計股利 <span id="total-all-dividend">--</span></div>
+                </div>
+                <div class="kpi-orb is-blue" id="kpi-orb-worth" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-copy">
+                    <div class="kpi-k">總投入成本</div>
+                    <div id="total-all-cost" class="kpi-v">--</div>
+                    <div class="kpi-s">總報酬率 <span id="total-all-perf">--</span></div>
+                </div>
+                <div class="kpi-orb is-mint" id="kpi-orb-cost" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-copy">
+                    <div class="kpi-k" title="現值 − 目前持倉成本">未實現損益</div>
+                    <div id="total-unreal" class="kpi-v">--</div>
+                    <div class="kpi-s">現值相對持倉成本</div>
+                </div>
+                <div class="kpi-mark is-rose" aria-hidden="true">↗</div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-copy">
+                    <div class="kpi-k" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</div>
+                    <div id="total-xirr" class="kpi-v c-sage">--</div>
+                    <div class="kpi-s">依實際現金流折算</div>
+                </div>
+                <div class="kpi-mark is-violet" aria-hidden="true">%</div>
+            </article>
+        </section>
+        <section class="ov-charts">
+            <div class="card">
                 <div class="chart-panel-head">
-                    <h3 class="stat-label flex items-center gap-2 mb-0"><span class="live-dot"></span> <span data-i18n="chart.trend">資產成長趨勢</span></h3>
+                    <div>
+                        <h3 class="stat-label flex items-center gap-2 mb-0"><span class="live-dot"></span> <span data-i18n="chart.trend">資產成長趨勢</span></h3>
+                        <p class="panel-sub">游標查看當日淨值</p>
+                    </div>
                     <div id="trend-split" class="trend-split hidden" role="group" aria-label="股票曲線範圍">
                         <button type="button" id="trend-split-total" onclick="setTrendStockMode('total')">總覽</button>
                         <button type="button" id="trend-split-each" class="is-on" onclick="setTrendStockMode('each')">各股</button>
@@ -2690,11 +2977,13 @@
                     <canvas id="trendChart"></canvas>
                 </div>
                 <div id="trend-legend" class="trend-legend" aria-label="趨勢圖例"></div>
-                <p class="chart-hint" data-i18n="chart.hintCross">十字線跟隨游標 · 點擊圖例切換系列顯示</p>
             </div>
             <div class="card alloc-panel">
                 <div class="alloc-panel-head">
-                    <h3 class="stat-label mb-0" data-i18n="chart.alloc">資產配置</h3>
+                    <div>
+                        <h3 class="stat-label mb-0" data-i18n="chart.alloc">資產配置</h3>
+                        <p class="panel-sub">股票與黃金的現值占比</p>
+                    </div>
                     <span id="alloc-vs-label" class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
                 </div>
                 <div class="alloc-stage">
@@ -2710,52 +2999,33 @@
                     </div>
                 </div>
                 <div id="alloc-target-panel" class="alloc-legend"></div>
-                <div class="alloc-overview">
-                    <h3 class="stat-label c-sage mb-1" data-i18n="card.overview">總覽</h3>
-                    <div class="ov-metrics">
-                        <div><span class="text-xs text-muted">總投入成本</span><span id="total-all-cost" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted">總累計股利</span><span id="total-all-dividend" class="text-lg font-bold c-sage">--</span></div>
-                        <div><span class="text-xs text-muted">總資產現值</span><span id="total-all-worth" class="text-lg font-bold c-sage">--</span></div>
-                        <div><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="total-unreal" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間）">總報酬率</span><span id="total-all-perf" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="total-xirr" class="text-lg font-bold c-sage">--</span></div>
-                    </div>
-                </div>
                 <div id="rebalance-panel"></div>
             </div>
         </section>
 
-        <section class="ov-stats grid grid-cols-1 md:grid-cols-2 gap-3 section-rise">
+        <section class="ov-stats">
             <div class="card stat-card stock">
-                <h3 class="stat-label c-stock mb-1" data-i18n="card.stock">股票管理</h3>
-                <div class="ov-metrics">
-                    <div class="ov-metrics-main">
-                        <div><span class="text-xs text-muted" title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><span id="stock-total-cost" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted">資產現值</span><span id="stock-worth" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted" title="現值 − 持倉淨成本">未實現損益</span><span id="stock-unreal" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><span id="stock-perf" class="text-lg font-bold">--</span></div>
-                    </div>
-                    <div class="ov-metrics-sub">
-                        <div><span class="text-xs text-muted" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><span id="stock-xirr" class="text-lg font-bold c-stock">--</span></div>
-                        <div><span class="text-xs text-muted">總股數</span><span id="stock-total-shares" class="text-lg font-bold c-stock">--</span></div>
-                        <div><span class="text-xs text-muted">已實現損益</span><span id="stock-realized" class="text-lg font-bold c-sell">--</span></div>
-                    </div>
+                <h3 class="stat-label c-stock" data-i18n="card.stock">股票</h3>
+                <div class="meter-list">
+                    <div><span>資產現值</span><b id="stock-worth">--</b></div>
+                    <div><span title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><b id="stock-total-cost">--</b></div>
+                    <div><span title="現值 − 持倉淨成本">未實現損益</span><b id="stock-unreal">--</b></div>
+                    <div><span title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><b id="stock-perf">--</b></div>
+                    <div><span title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><b id="stock-xirr" class="c-stock">--</b></div>
+                    <div><span>總股數</span><b id="stock-total-shares" class="c-stock">--</b></div>
+                    <div><span>已實現損益</span><b id="stock-realized" class="c-sell">--</b></div>
                 </div>
             </div>
             <div class="card stat-card gold">
-                <h3 class="stat-label c-gold mb-1" data-i18n="card.gold">黃金管理</h3>
-                <div class="ov-metrics">
-                    <div class="ov-metrics-main">
-                        <div><span class="text-xs text-muted">總投入成本</span><span id="gold-total-cost" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted">資產現值</span><span id="gold-worth" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted" title="現值 − 目前持倉成本">未實現損益</span><span id="gold-unreal" class="text-lg font-bold">--</span></div>
-                        <div><span class="text-xs text-muted" title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><span id="gold-perf" class="text-lg font-bold">--</span></div>
-                    </div>
-                    <div class="ov-metrics-sub">
-                        <div><span class="text-xs text-muted" title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢</span><span id="gold-price-unit" class="text-lg font-bold c-gold">--</span></div>
-                        <div><span class="text-xs text-muted">總持倉重量</span><span id="gold-total-weight" class="text-lg font-bold c-gold">--</span></div>
-                        <div><span class="text-xs text-muted">已實現損益</span><span id="gold-realized" class="text-lg font-bold c-sell">--</span></div>
-                    </div>
+                <h3 class="stat-label c-gold" data-i18n="card.gold">黃金</h3>
+                <div class="meter-list">
+                    <div><span>資產現值</span><b id="gold-worth">--</b></div>
+                    <div><span>總投入成本</span><b id="gold-total-cost">--</b></div>
+                    <div><span title="現值 − 目前持倉成本">未實現損益</span><b id="gold-unreal">--</b></div>
+                    <div><span title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><b id="gold-perf">--</b></div>
+                    <div><span title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢</span><b id="gold-price-unit" class="c-gold">--</b></div>
+                    <div><span>總持倉重量</span><b id="gold-total-weight" class="c-gold">--</b></div>
+                    <div><span>已實現損益</span><b id="gold-realized" class="c-sell">--</b></div>
                 </div>
             </div>
         </section>
@@ -6001,6 +6271,13 @@
             };
             paintSideBar('side-bar-stock', inc.stockWorth ? sV : 0);
             paintSideBar('side-bar-gold', inc.goldWorth ? gV : 0);
+            const paintOrb = (id, pct) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.style.setProperty('--p', String(Math.round(Math.max(0, Math.min(100, pct)))));
+            };
+            paintOrb('kpi-orb-worth', sideBase > 0 ? ((inc.stockWorth ? sV : 0) / sideBase) * 100 : 0);
+            paintOrb('kpi-orb-cost', tV > 0 ? (tBasis / tV) * 100 : 0);
 
             renderCharts(gV, sV, cV, inc);
             if (currentView === 'overview') setTimeout(resizeOverviewCharts, 40);
