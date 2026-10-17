@@ -2686,34 +2686,49 @@
         }
         .kpi-orb,
         .kpi-mark { flex: none; width: 52px; height: 52px; }
-        .kpi-orb svg { width: 52px; height: 52px; transform: rotate(-90deg); }
-        .kpi-orb .track { fill: none; stroke: rgba(140, 170, 255, 0.16); stroke-width: 3.2; }
+        .kpi-orb svg,
+        .kpi-mark svg { width: 52px; height: 52px; display: block; }
+        .kpi-orb svg { transform: rotate(-90deg); }
+        .kpi-orb .disc,
+        .kpi-mark .disc { stroke: none; }
+        .kpi-orb.is-blue .disc { fill: rgba(122, 162, 255, 0.1); }
+        .kpi-orb.is-mint .disc { fill: rgba(62, 224, 176, 0.1); }
+        .kpi-orb .track,
+        .kpi-mark .track { fill: none; stroke: rgba(140, 170, 255, 0.16); stroke-width: 3.2; }
         .kpi-orb .val {
             fill: none;
-            stroke-width: 3.2;
+            stroke-width: 3.4;
             stroke-linecap: round;
             stroke-dasharray: calc(var(--p) * 0.8796) 87.96;
             transition: stroke-dasharray 0.45s ease;
         }
-        .kpi-orb.is-blue .val { stroke: #7aa2ff; filter: drop-shadow(0 0 4px rgba(122, 162, 255, 0.65)); }
-        .kpi-orb.is-mint .val { stroke: #3ee0b0; filter: drop-shadow(0 0 4px rgba(62, 224, 176, 0.55)); }
-        .kpi-mark {
-            display: grid;
-            place-items: center;
-            border-radius: 999px;
-            font-size: 1.05rem;
-            font-weight: 750;
+        .kpi-orb.is-blue .val { stroke: #7aa2ff; filter: drop-shadow(0 0 4px rgba(122, 162, 255, 0.7)); }
+        .kpi-orb.is-mint .val { stroke: #3ee0b0; filter: drop-shadow(0 0 4px rgba(62, 224, 176, 0.6)); }
+        .kpi-mark .glyph {
+            fill: none;
+            stroke-width: 1.85;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
-        .kpi-mark.is-rose {
-            color: #ff8aa8;
-            background: radial-gradient(circle at 40% 35%, rgba(255, 120, 160, 0.3), rgba(255, 80, 120, 0.08));
-            box-shadow: inset 0 0 0 1px rgba(255, 140, 170, 0.32);
-        }
-        .kpi-mark.is-violet {
-            color: #d4b4ff;
-            background: radial-gradient(circle at 40% 35%, rgba(180, 120, 255, 0.32), rgba(120, 80, 255, 0.08));
-            box-shadow: inset 0 0 0 1px rgba(180, 140, 255, 0.32);
-        }
+        .kpi-mark .dir-down,
+        .kpi-mark .dir-flat { display: none; }
+        .kpi-mark.is-drop .dir-up { display: none; }
+        .kpi-mark.is-drop .dir-down { display: block; }
+        .kpi-mark.is-flat .dir-up,
+        .kpi-mark.is-flat .dir-down { display: none; }
+        .kpi-mark.is-flat .dir-flat { display: block; }
+        .kpi-mark.is-rose .disc { fill: rgba(255, 93, 115, 0.12); }
+        .kpi-mark.is-rose .track { stroke: rgba(255, 93, 115, 0.34); }
+        .kpi-mark.is-rose .glyph { stroke: #ff7d92; filter: drop-shadow(0 0 3px rgba(255, 93, 115, 0.8)); }
+        .kpi-mark.is-drop .disc { fill: rgba(62, 224, 176, 0.12); }
+        .kpi-mark.is-drop .track { stroke: rgba(62, 224, 176, 0.34); }
+        .kpi-mark.is-drop .glyph { stroke: #3ee0b0; filter: drop-shadow(0 0 3px rgba(62, 224, 176, 0.7)); }
+        .kpi-mark.is-flat .disc { fill: rgba(140, 170, 255, 0.08); }
+        .kpi-mark.is-flat .track { stroke: rgba(140, 170, 255, 0.24); }
+        .kpi-mark.is-flat .glyph { stroke: #9aafd4; }
+        .kpi-mark.is-violet .disc { fill: rgba(176, 107, 255, 0.14); }
+        .kpi-mark.is-violet .track { stroke: rgba(176, 107, 255, 0.38); }
+        .kpi-mark.is-violet .glyph { stroke: #d7b6ff; filter: drop-shadow(0 0 3px rgba(176, 107, 255, 0.75)); }
         #view-overview .ov-charts {
             display: grid !important;
             grid-template-columns: minmax(0, 1.75fr) minmax(16.5rem, 0.85fr);
@@ -3065,7 +3080,7 @@
                     <div id="total-all-worth" class="kpi-v">--</div>
                     <div class="kpi-s">累計股利 <span id="total-all-dividend">--</span></div>
                 </div>
-                <div class="kpi-orb is-blue" id="kpi-orb-worth" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
+                <div class="kpi-orb is-blue" id="kpi-orb-worth" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
@@ -3073,7 +3088,7 @@
                     <div id="total-all-cost" class="kpi-v">--</div>
                     <div class="kpi-s">總報酬率 <span id="total-all-perf">--</span></div>
                 </div>
-                <div class="kpi-orb is-mint" id="kpi-orb-cost" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
+                <div class="kpi-orb is-mint" id="kpi-orb-cost" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
@@ -3081,7 +3096,7 @@
                     <div id="total-unreal" class="kpi-v">--</div>
                     <div class="kpi-s">現值相對持倉成本</div>
                 </div>
-                <div class="kpi-mark is-rose" aria-hidden="true">↗</div>
+                <div class="kpi-mark is-rose" id="kpi-mark-unreal" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><g class="glyph dir-up"><path d="M13.6 22.4 L22.4 13.6"/><path d="M16.2 13.6 H22.4 V19.8"/></g><g class="glyph dir-down"><path d="M13.6 13.6 L22.4 22.4"/><path d="M16.2 22.4 H22.4 V16.2"/></g><g class="glyph dir-flat"><path d="M12.5 18 H23.5"/></g></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
@@ -3089,7 +3104,7 @@
                     <div id="total-xirr" class="kpi-v c-sage">--</div>
                     <div class="kpi-s">依實際現金流折算</div>
                 </div>
-                <div class="kpi-mark is-violet" aria-hidden="true">%</div>
+                <div class="kpi-mark is-violet" id="kpi-mark-xirr" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><g class="glyph"><circle cx="14.15" cy="14.15" r="2.05"/><circle cx="21.85" cy="21.85" r="2.05"/><path d="M22.7 12.7 L13.3 23.3"/></g></svg></div>
             </article>
         </section>
         <section class="ov-charts">
@@ -6419,6 +6434,12 @@
             };
             paintOrb('kpi-orb-worth', sideBase > 0 ? ((inc.stockWorth ? sV : 0) / sideBase) * 100 : 0);
             paintOrb('kpi-orb-cost', tV > 0 ? (tBasis / tV) * 100 : 0);
+            const unrealMark = document.getElementById('kpi-mark-unreal');
+            if (unrealMark) {
+                unrealMark.classList.remove('is-rose', 'is-drop', 'is-flat');
+                const n = Math.round(Number(tUnreal) || 0);
+                unrealMark.classList.add(n > 0 ? 'is-rose' : n < 0 ? 'is-drop' : 'is-flat');
+            }
 
             renderCharts(gV, sV, cV, inc);
             if (currentView === 'overview') setTimeout(resizeOverviewCharts, 40);
