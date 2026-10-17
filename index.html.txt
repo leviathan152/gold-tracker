@@ -868,8 +868,8 @@
             position: absolute;
             z-index: 80;
             pointer-events: none;
-            min-width: 8.8rem;
-            max-width: 16rem;
+            min-width: 11.5rem;
+            max-width: 18rem;
             padding: 0.7rem 0.85rem;
             border-radius: 12px;
             background: #1c1c1e;
@@ -917,6 +917,30 @@
             font-size: 0.72rem;
             font-weight: 600;
         }
+        .chart-tip-details {
+            margin-top: 0.35rem;
+            padding-top: 0.28rem;
+            border-top: 1px solid #3a3a3c;
+        }
+        .chart-tip-detail {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.12rem 0;
+            color: #aeaeb2;
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+        .chart-tip-detail b {
+            color: #f5f5f7;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .chart-tip-detail b.is-gain { color: #30d158; }
+        .chart-tip-detail b.is-drop { color: #ff453a; }
         .chart-panel-head {
             display: flex;
             align-items: center;
@@ -3081,7 +3105,7 @@
                 <div class="alloc-panel-head">
                     <div>
                         <h3 class="stat-label mb-0" data-i18n="chart.alloc">資產配置</h3>
-                        <p class="panel-sub">點圓環或圖例，展開該資產明細</p>
+                        <p class="panel-sub">游標移到圓環，可看該資產明細</p>
                     </div>
                     <span id="alloc-vs-label" class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
                 </div>
@@ -6558,17 +6582,8 @@
         function syncAllocDetail() {
             const view = document.getElementById('view-overview');
             const stats = view && view.querySelector('.ov-stats');
-            if (!stats) return;
-            const keys = (allocLegendSnapshot && allocLegendSnapshot.keys) || [];
-            const key = allocFocusIndex == null ? '' : (keys[allocFocusIndex] || '');
-            const card = (key === 'stock' || key === 'gold' || key === 'coll')
-                ? stats.querySelector('.stat-card.' + key)
-                : null;
-            stats.classList.toggle('is-open', !!card);
-            if (view) view.classList.toggle('has-detail', !!card);
-            stats.querySelectorAll('.stat-card').forEach((el) => { el.hidden = el !== card; });
-            if (card) requestAnimationFrame(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
-            if (currentView === 'overview') resizeOverviewCharts();
+            if (stats) stats.classList.remove('is-open');
+            if (view) view.classList.remove('has-detail');
         }
         function makeAllocGradient(ctx, chartArea, c1, c2) {
             if (!chartArea) return c1;
@@ -6624,16 +6639,19 @@
             const title = (tooltip.title || []).filter(Boolean).map((line) => escapeHtml(line)).join('<br>');
             const rows = tooltip.body.map((body, i) => {
                 const line = (body.lines || []).join(' ').trim();
-                const after = (body.after || []).filter(Boolean).map(escapeHtml).join('<br>');
+                const afterLines = (body.after || []).filter(Boolean);
                 const dp = tooltip.dataPoints && tooltip.dataPoints[i];
                 const ds = dp && (dp.dataset || (chart && chart.data.datasets[dp.datasetIndex]));
                 const color = tipColorForPoint(chart, dp);
                 const dashed = isLine && ds && Array.isArray(ds.borderDash) && ds.borderDash.length;
                 const markClass = isLine ? ('chart-tip-swatch' + (dashed ? ' is-dash' : '')) : 'chart-tip-swatch is-dot';
+                const afterHtml = (!isLine && afterLines.length)
+                    ? renderAllocTipDetails(afterLines)
+                    : (afterLines.length ? '<div class="chart-tip-sub">' + afterLines.map(escapeHtml).join('<br>') + '</div>' : '');
                 return '<div class="chart-tip-row">' +
                     '<span class="' + markClass + '" style="color:' + color + ';background:' + (dashed ? 'transparent' : color) + '"></span>' +
                     '<span>' + escapeHtml(line) + '</span></div>' +
-                    (after ? '<div class="chart-tip-sub">' + after + '</div>' : '');
+                    afterHtml;
             }).join('');
             const extra = (tooltip.afterBody || []).filter(Boolean).map((line) => escapeHtml(line)).join('<br>');
             el.innerHTML = (title ? '<div class="chart-tip-title">' + title + '</div>' : '') + rows +
@@ -6650,6 +6668,30 @@
             el.style.left = Math.max(minL, Math.min(maxL, left - tipW / 2)) + 'px';
             el.style.top = Math.max(window.scrollY + pad, top - tipH - 12) + 'px';
             el.style.transform = 'none';
+        }
+        function allocAssetDetailLines(label) {
+            const specs = label === t('label.stock')
+                ? [['持倉淨成本', 'stock-total-cost'], ['未實現損益', 'stock-unreal'], ['總報酬率', 'stock-perf'], ['年化報酬率', 'stock-xirr'], ['總股數', 'stock-total-shares'], ['已實現損益', 'stock-realized']]
+                : (label === t('label.gold')
+                    ? [['總投入成本', 'gold-total-cost'], ['未實現損益', 'gold-unreal'], ['總報酬率', 'gold-perf'], ['每公克／台錢', 'gold-price-unit'], ['總持倉重量', 'gold-total-weight'], ['已實現損益', 'gold-realized']]
+                    : []);
+            return specs.map(([name, id]) => {
+                const el = document.getElementById(id);
+                if (!el) return '';
+                const value = (el.textContent || '').trim();
+                if (!value || value === '--') return '';
+                const tone = el.classList.contains('c-gain') ? 'gain' : (el.classList.contains('c-drop') ? 'drop' : '');
+                return name + '\t' + tone + '\t' + value;
+            }).filter(Boolean);
+        }
+        function renderAllocTipDetails(lines) {
+            const html = lines.map((line) => {
+                const parts = String(line).split('\t');
+                if (parts.length < 3) return '<div class="chart-tip-sub">' + escapeHtml(line) + '</div>';
+                const tone = parts[1] === 'gain' || parts[1] === 'drop' ? (' is-' + parts[1]) : '';
+                return '<div class="chart-tip-detail"><span>' + escapeHtml(parts[0]) + '</span><b class="' + tone.trim() + '">' + escapeHtml(parts.slice(2).join('\t')) + '</b></div>';
+            }).join('');
+            return '<div class="chart-tip-details">' + html + '</div>';
         }
         function hideSolidChartTip() {
             const el = document.getElementById('chart-tip');
@@ -6832,9 +6874,10 @@
                                     const arr = ctx.dataset.data.map((n) => Number(n) || 0);
                                     const total = arr.reduce((a, b) => a + b, 0);
                                     const pct = total > 0 ? (val / total) * 100 : 0;
-                                    if (isPrivacyMode) return '占比 ****%';
-                                    const pctStr = (pct >= 99.95 ? '100' : pct >= 10 ? pct.toFixed(1) : pct.toFixed(2)) + '%';
-                                    return '占淨值 ' + pctStr;
+                                    const pctLine = isPrivacyMode
+                                        ? '占淨值\t\t****%'
+                                        : ('占淨值\t\t' + (pct >= 99.95 ? '100' : pct >= 10 ? pct.toFixed(1) : pct.toFixed(2)) + '%');
+                                    return [pctLine].concat(allocAssetDetailLines(ctx.label));
                                 }
                             }
                         }
