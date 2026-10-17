@@ -6631,12 +6631,12 @@
             if (chart && chart.config.type === 'line' && ds && typeof ds.borderColor === 'string') {
                 return tipSwatchColor(ds.borderColor);
             }
-            if (name === t('chart.totalWorth')) return '#f5f5f7';
-            if (name === t('chart.totalCost')) return '#30d158';
-            if (name === t('chart.stockWorth') || name === t('label.stock')) return '#0a5ad4';
-            if (name === t('chart.stockCost')) return '#1b7fd6';
-            if (name === t('chart.goldWorth') || name === t('label.gold')) return '#ff9f0a';
-            if (name === t('chart.goldCost')) return '#ffd60a';
+            if (name === t('chart.totalWorth')) return '#5ce1ff';
+            if (name === t('chart.totalCost')) return '#3ddc84';
+            if (name === t('chart.stockWorth') || name === t('label.stock')) return '#4c8dff';
+            if (name === t('chart.stockCost')) return '#b06bff';
+            if (name === t('chart.goldWorth') || name === t('label.gold')) return '#ffb020';
+            if (name === t('chart.goldCost')) return '#ff4d8d';
             if (name === '收藏') return '#ff375f';
             return '#d1d1d6';
         }
@@ -6716,14 +6716,14 @@
             if (el) el.classList.add('is-hidden');
         }
         const STOCK_CURVE_COLORS = [
-            ['#0a5ad4', '#083a8a'],
-            ['#5e5ce6', '#3634a3'],
-            ['#0a84ff', '#0055b3'],
-            ['#bf5af2', '#7a2bb5'],
-            ['#00a39a', '#046b66'],
-            ['#ff375f', '#c4002f'],
-            ['#c49a6c', '#7a5b38'],
-            ['#32ade6', '#0b6e99']
+            ['#4c8dff', '#9dbbff'],
+            ['#ff4d8d', '#ffb3ce'],
+            ['#b06bff', '#ddc2ff'],
+            ['#2ad4c8', '#a8f3ec'],
+            ['#ff6a3d', '#ffc2b0'],
+            ['#f0d44a', '#fff0a8'],
+            ['#7dffb2', '#d4ffe6'],
+            ['#f27ad4', '#ffc6ea']
         ];
         function stockHoldingStats() {
             const map = {};
@@ -6774,8 +6774,8 @@
                     name: t('label.stock'),
                     kind: 'stock',
                     worth: sV,
-                    colors: ['#0746a8', '#1b7fd6'],
-                    grad: 'linear-gradient(90deg, #0746a8, #1b7fd6)',
+                    colors: ['#4c8dff', '#8eb6ff'],
+                    grad: 'linear-gradient(90deg, #2f6fe6, #4c8dff)',
                     cls: 'c-stock'
                 });
             }
@@ -6785,8 +6785,8 @@
                     name: t('label.gold'),
                     kind: 'gold',
                     worth: gV,
-                    colors: ['#e08600', '#ffd60a'],
-                    grad: 'linear-gradient(90deg, #e08600, #ffd60a)',
+                    colors: ['#ffb020', '#ffe08a'],
+                    grad: 'linear-gradient(90deg, #e09400, #ffb020)',
                     cls: 'c-gold'
                 });
             }
@@ -7119,12 +7119,15 @@
             const ctxT = document.getElementById('trendChart').getContext('2d');
             if (trendChartObj) trendChartObj.destroy();
             const lineBase = {
-                tension: 0.32,
+                tension: 0.42,
+                cubicInterpolationMode: 'monotone',
+                borderCapStyle: 'round',
+                borderJoinStyle: 'round',
                 fill: false,
                 pointRadius: 0,
                 pointHoverRadius: 5,
                 pointHoverBorderWidth: 2,
-                pointHoverBorderColor: '#ffffff',
+                pointHoverBorderColor: '#070b18',
                 pointStyle: 'circle'
             };
             const trendDatasets = [
@@ -7132,27 +7135,19 @@
                     ...lineBase,
                     label: t('chart.totalWorth'),
                     data: worthData,
-                    borderColor: (c) => {
-                        const area = c.chart.chartArea;
-                        if (!area) return '#7ec8ff';
-                        const g = c.chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
-                        g.addColorStop(0, '#5ee7ff');
-                        g.addColorStop(0.55, '#7aa2ff');
-                        g.addColorStop(1, '#c084fc');
-                        return g;
-                    },
-                    borderWidth: 2.75,
-                    pointHoverBackgroundColor: '#d7e8ff'
+                    borderColor: '#5ce1ff',
+                    borderWidth: 3,
+                    fill: true,
+                    pointHoverBackgroundColor: '#5ce1ff',
+                    backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(92, 225, 255, 0.22)', 'rgba(92, 225, 255, 0)')
                 },
                 {
                     ...lineBase,
                     label: t('chart.totalCost'),
                     data: tData,
-                    borderColor: '#30d158',
-                    borderWidth: 2.25,
-                    fill: true,
-                    pointHoverBackgroundColor: '#30d158',
-                    backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(48, 209, 88, 0.18)', 'rgba(48, 209, 88, 0)')
+                    borderColor: '#3ddc84',
+                    borderWidth: 2.4,
+                    pointHoverBackgroundColor: '#3ddc84'
                 }
             ];
             if (incS && splitStocks) {
@@ -7163,8 +7158,7 @@
                         label: code + '（現值）',
                         data: codeWorthSeries[code],
                         borderColor: pair[0],
-                        borderWidth: 2.2,
-                        borderDash: [7, 4],
+                        borderWidth: 2.4,
                         pointHoverBackgroundColor: pair[0]
                     });
                     trendDatasets.push({
@@ -7172,8 +7166,8 @@
                         label: code + '（成本）',
                         data: codeCostSeries[code],
                         borderColor: pair[1],
-                        borderWidth: 1.8,
-                        borderDash: [2, 3],
+                        borderWidth: 1.7,
+                        borderDash: [2, 4],
                         pointHoverBackgroundColor: pair[1]
                     });
                 });
@@ -7182,19 +7176,18 @@
                     ...lineBase,
                     label: t('chart.stockWorth'),
                     data: sWorthData,
-                    borderColor: '#0a5ad4',
-                    borderWidth: 2.2,
-                    borderDash: [7, 4],
-                    pointHoverBackgroundColor: '#0a5ad4'
+                    borderColor: '#4c8dff',
+                    borderWidth: 2.4,
+                    pointHoverBackgroundColor: '#4c8dff'
                 });
                 trendDatasets.push({
                     ...lineBase,
                     label: t('chart.stockCost'),
                     data: sData,
-                    borderColor: '#0746a8',
-                    borderWidth: 1.8,
-                    borderDash: [2, 3],
-                    pointHoverBackgroundColor: '#0746a8'
+                    borderColor: '#b06bff',
+                    borderWidth: 1.7,
+                    borderDash: [2, 4],
+                    pointHoverBackgroundColor: '#b06bff'
                 });
             }
             if (incG) {
@@ -7202,19 +7195,18 @@
                     ...lineBase,
                     label: t('chart.goldWorth'),
                     data: gWorthData,
-                    borderColor: '#ff9f0a',
-                    borderWidth: 2.2,
-                    borderDash: [7, 4],
-                    pointHoverBackgroundColor: '#ff9f0a'
+                    borderColor: '#ffb020',
+                    borderWidth: 2.4,
+                    pointHoverBackgroundColor: '#ffb020'
                 });
                 trendDatasets.push({
                     ...lineBase,
-            label: t('chart.goldCost'),
+                    label: t('chart.goldCost'),
                     data: gData,
-                    borderColor: '#e08600',
-                    borderWidth: 1.8,
-                    borderDash: [2, 3],
-                    pointHoverBackgroundColor: '#e08600'
+                    borderColor: '#ff4d8d',
+                    borderWidth: 1.7,
+                    borderDash: [2, 4],
+                    pointHoverBackgroundColor: '#ff4d8d'
                 });
             }
 
