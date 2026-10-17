@@ -2855,6 +2855,105 @@
             .kpi-v { font-size: 0.95rem; }
             .kpi-k, .kpi-s { font-size: 0.64rem; }
         }
+        body[data-view="overview"] .app-shell { overflow: hidden !important; }
+        #view-overview:not(.hidden) {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+        #view-overview .ov-charts {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            grid-template-rows: minmax(0, 1fr);
+        }
+        #view-overview .ov-charts > .card:first-child,
+        #view-overview .alloc-panel {
+            height: 100% !important;
+            min-height: 0 !important;
+        }
+        #view-overview .chart-container,
+        #view-overview .alloc-stage {
+            flex: 1 1 auto !important;
+            height: auto !important;
+            min-height: 0 !important;
+        }
+        #view-overview .alloc-stage {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #view-overview .alloc-chart-wrap {
+            width: min(340px, 88%, 100cqh) !important;
+            height: auto !important;
+        }
+        #view-overview .ov-stats { display: none !important; }
+        #view-overview .ov-stats.is-open {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) !important;
+            flex: none !important;
+        }
+        #view-overview .ov-stats .stat-card[hidden] { display: none !important; }
+        .stat-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            margin-bottom: 0.15rem;
+        }
+        .stat-close {
+            border: 0;
+            background: transparent;
+            color: #8ea0c4;
+            font-size: 0.72rem;
+            font-weight: 650;
+            cursor: pointer;
+        }
+        .stat-close:hover { color: #f4f7ff; }
+        #view-overview.has-detail {
+            overflow: visible !important;
+            flex: none !important;
+            height: auto !important;
+        }
+        body[data-view="overview"]:has(#view-overview.has-detail) .app-shell { overflow: auto !important; }
+        #view-overview.has-detail .ov-charts {
+            flex: none !important;
+            height: calc(100dvh - 14.5rem);
+            min-height: 22rem;
+        }
+        @media (max-width: 860px) {
+            body[data-view="overview"] .app-shell,
+            body[data-view="overview"]:has(#view-overview.has-detail) .app-shell { overflow: auto !important; }
+            #view-overview:not(.hidden),
+            #view-overview.has-detail {
+                overflow: visible !important;
+                flex: none !important;
+                height: auto !important;
+            }
+            #view-overview .ov-charts,
+            #view-overview.has-detail .ov-charts {
+                flex: none !important;
+                height: auto !important;
+                min-height: 0 !important;
+                grid-template-columns: 1fr !important;
+                grid-template-rows: auto auto !important;
+            }
+            #view-overview .ov-charts > .card:first-child,
+            #view-overview .alloc-panel {
+                height: auto !important;
+            }
+            #view-overview .chart-container,
+            #view-overview.has-detail .chart-container {
+                flex: none !important;
+                height: 280px !important;
+                min-height: 240px !important;
+            }
+            #view-overview .alloc-stage,
+            #view-overview.has-detail .alloc-stage {
+                flex: none !important;
+                height: 240px !important;
+                min-height: 220px !important;
+            }
+        }
     </style>
 </head>
 <body data-view="overview">
@@ -2982,7 +3081,7 @@
                 <div class="alloc-panel-head">
                     <div>
                         <h3 class="stat-label mb-0" data-i18n="chart.alloc">資產配置</h3>
-                        <p class="panel-sub">股票與黃金的現值占比</p>
+                        <p class="panel-sub">點圓環或圖例，展開該資產明細</p>
                     </div>
                     <span id="alloc-vs-label" class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
                 </div>
@@ -3003,9 +3102,12 @@
             </div>
         </section>
 
-        <section class="ov-stats">
+        <section class="ov-stats" aria-live="polite">
             <div class="card stat-card stock">
-                <h3 class="stat-label c-stock" data-i18n="card.stock">股票</h3>
+                <div class="stat-card-head">
+                    <h3 class="stat-label c-stock" data-i18n="card.stock">股票</h3>
+                    <button type="button" class="stat-close" onclick="resetAllocCenter()">收合</button>
+                </div>
                 <div class="meter-list">
                     <div><span>資產現值</span><b id="stock-worth">--</b></div>
                     <div><span title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><b id="stock-total-cost">--</b></div>
@@ -3017,7 +3119,10 @@
                 </div>
             </div>
             <div class="card stat-card gold">
-                <h3 class="stat-label c-gold" data-i18n="card.gold">黃金</h3>
+                <div class="stat-card-head">
+                    <h3 class="stat-label c-gold" data-i18n="card.gold">黃金</h3>
+                    <button type="button" class="stat-close" onclick="resetAllocCenter()">收合</button>
+                </div>
                 <div class="meter-list">
                     <div><span>資產現值</span><b id="gold-worth">--</b></div>
                     <div><span>總投入成本</span><b id="gold-total-cost">--</b></div>
@@ -6438,6 +6543,7 @@
             );
             allocChartObj.update('active');
             syncAllocLegendActive();
+            syncAllocDetail();
         }
         function focusAllocSegment(idx) {
             applyAllocFocus(idx);
@@ -6447,6 +6553,22 @@
             setAllocCenter(allocCenterDefault.label, allocCenterDefault.value, allocCenterDefault.sub);
             if (allocChartObj) allocChartObj.update('none');
             syncAllocLegendActive();
+            syncAllocDetail();
+        }
+        function syncAllocDetail() {
+            const view = document.getElementById('view-overview');
+            const stats = view && view.querySelector('.ov-stats');
+            if (!stats) return;
+            const keys = (allocLegendSnapshot && allocLegendSnapshot.keys) || [];
+            const key = allocFocusIndex == null ? '' : (keys[allocFocusIndex] || '');
+            const card = (key === 'stock' || key === 'gold' || key === 'coll')
+                ? stats.querySelector('.stat-card.' + key)
+                : null;
+            stats.classList.toggle('is-open', !!card);
+            if (view) view.classList.toggle('has-detail', !!card);
+            stats.querySelectorAll('.stat-card').forEach((el) => { el.hidden = el !== card; });
+            if (card) requestAnimationFrame(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+            if (currentView === 'overview') resizeOverviewCharts();
         }
         function makeAllocGradient(ctx, chartArea, c1, c2) {
             if (!chartArea) return c1;
@@ -6634,15 +6756,15 @@
 
             const ctxA = document.getElementById('allocationChart').getContext('2d');
             if (allocChartObj) allocChartObj.destroy();
-            const al = [], ad = [], acPairs = [];
+            const al = [], ad = [], acPairs = [], aKeys = [];
             // 順序與圖例一致：股票 → 黃金
-            if (inc.stockWorth && sV > 0) { al.push(t('label.stock')); ad.push(sV); acPairs.push(['#0746a8', '#1b7fd6']); }
-            if (inc.goldWorth && gV > 0) { al.push(t('label.gold')); ad.push(gV); acPairs.push(['#e08600', '#ffd60a']); }
-            if (inc.collWorth && cV > 0) { al.push('收藏'); ad.push(cV); acPairs.push(['#d70015', '#ff375f']); }
+            if (inc.stockWorth && sV > 0) { al.push(t('label.stock')); ad.push(sV); acPairs.push(['#0746a8', '#1b7fd6']); aKeys.push('stock'); }
+            if (inc.goldWorth && gV > 0) { al.push(t('label.gold')); ad.push(gV); acPairs.push(['#e08600', '#ffd60a']); aKeys.push('gold'); }
+            if (inc.collWorth && cV > 0) { al.push('收藏'); ad.push(cV); acPairs.push(['#d70015', '#ff375f']); aKeys.push('coll'); }
             let adUse = ad.length ? ad : [1];
             let alUse = al.length ? al : [t('chart.noItem')];
             const totalAlloc = ad.reduce((a, b) => a + b, 0);
-            allocLegendSnapshot = { labels: alUse.slice(), values: adUse.slice(), total: totalAlloc };
+            allocLegendSnapshot = { labels: alUse.slice(), values: adUse.slice(), total: totalAlloc, keys: al.length ? aKeys : [] };
             allocCenterDefault = {
                 label: t('chart.net'),
                 value: isPrivacyMode ? '****' : (totalAlloc > 0 ? fmtMoney(totalAlloc) : '--'),
@@ -6651,6 +6773,7 @@
             allocFocusIndex = null;
             setAllocCenter(allocCenterDefault.label, allocCenterDefault.value, allocCenterDefault.sub);
             syncAllocLegendActive();
+            syncAllocDetail();
 
             allocChartObj = new Chart(ctxA, {
                 type: 'doughnut',
