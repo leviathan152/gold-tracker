@@ -7111,20 +7111,20 @@
             updateUI();
         }
 
-        function del(t, i) {
+        function del(kind, i) {
             if (!confirm(t('alert.delQ'))) return;
-            if (t === 'stk') stockRecs.splice(i, 1);
-            else if (t === 'gold') goldRecs.splice(i, 1);
-            else if (t === 'coll') collRecs.splice(i, 1);
-            else if (t === 'ss') {
+            if (kind === 'stk') stockRecs.splice(i, 1);
+            else if (kind === 'gold') goldRecs.splice(i, 1);
+            else if (kind === 'coll') collRecs.splice(i, 1);
+            else if (kind === 'ss') {
                 const r = stockSells[i];
                 if (r && r.deductSnap) restoreStockSnap(r.code, r.deductSnap);
                 stockSells.splice(i, 1);
-            } else if (t === 'gs') {
+            } else if (kind === 'gs') {
                 const r = goldSells[i];
                 if (r && r.deductSnap) restoreGoldSnap(r.deductSnap);
                 goldSells.splice(i, 1);
-            } else if (t === 'cs') {
+            } else if (kind === 'cs') {
                 const r = collSells[i];
                 if (r && r.deductSnap) restoreCollSnap(r.deductSnap);
                 collSells.splice(i, 1);
