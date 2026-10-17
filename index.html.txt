@@ -921,8 +921,64 @@
         .chart-panel-head {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
             margin-bottom: 1rem;
         }
+        .trend-split {
+            display: inline-flex;
+            flex-shrink: 0;
+            padding: 2px;
+            border-radius: 999px;
+            background: rgba(29, 29, 31, 0.04);
+            border: 1px solid var(--line);
+        }
+        .trend-split button {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 0.22rem 0.62rem;
+            border-radius: 999px;
+            cursor: pointer;
+            line-height: 1.2;
+        }
+        .trend-split button.is-on {
+            background: #1d1d1f;
+            color: #f5f5f7;
+        }
+        .trend-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.35rem 0.85rem;
+            margin-top: 0.45rem;
+            flex-shrink: 0;
+        }
+        .trend-legend button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.32rem;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+            color: #3a3a3c;
+            font-size: 0.68rem;
+            font-weight: 650;
+            letter-spacing: 0.01em;
+        }
+        .trend-legend button.is-off { opacity: 0.38; }
+        .trend-swatch {
+            width: 1.15rem;
+            height: 0;
+            border-top: 2.5px solid;
+            border-radius: 1px;
+        }
+        .trend-swatch.is-dash { border-top-style: dashed; }
+        .trend-swatch.is-dot { border-top-style: dotted; }
         .chart-readout {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
@@ -2052,7 +2108,6 @@
         #view-peer.hidden,
         #section-stock.hidden,
         #section-gold.hidden,
-        #section-report.hidden,
         #stock-price-bar.hidden {
             display: none !important;
         }
@@ -2138,6 +2193,17 @@
             min-height: 4.5rem;
         }
         #view-overview .chart-hint { display: none; }
+        #view-overview .trend-legend { margin-top: 0.25rem; gap: 0.22rem 0.65rem; }
+        @media (max-width: 860px) {
+            #view-overview .trend-legend {
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                overflow-x: auto;
+                gap: 0.7rem;
+                margin-top: 0.15rem;
+            }
+            #view-overview .trend-legend button { flex: 0 0 auto; }
+        }
         #view-overview .alloc-panel-head { margin-bottom: 0.2rem; flex-shrink: 0; }
         #view-overview .alloc-stage {
             flex: 1 1 0;
@@ -2301,8 +2367,9 @@
             #view-overview .chart-readout { display: none; }
             body[data-view="overview"] .header-subtitle { display: none; }
             #view-overview .ov-charts > .card:first-child {
-                flex: 0.5 1 0;
-                min-height: 5.5rem;
+                flex: 1 1 0;
+                min-height: 8rem;
+                overflow: hidden;
             }
             #view-overview .alloc-panel {
                 flex: 2 1 0;
@@ -2321,7 +2388,7 @@
             #view-overview .chart-container {
                 flex: 1 1 0;
                 height: auto;
-                min-height: 5.5rem;
+                min-height: 0;
             }
             #view-overview .alloc-stage {
                 flex: 1.4 1 8.5rem;
@@ -2404,10 +2471,6 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17.2 7.6 9.4h8.8L19 17.2H5z"/><path d="M7.8 12.6h8.4"/><path d="M6.6 15.2h10.8"/></svg>
                 黃金
             </button>
-            <button type="button" class="app-nav-btn" data-view="report" onclick="switchView('report')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.8h7.2L19 8.5V20.2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.8a1 1 0 0 1 1-1z"/><path d="M14 3.8V8.6h4.8M8.6 12.5h6.8M8.6 16h4.6"/></svg>
-                報表
-            </button>
             <p class="sidebar-kicker">工具</p>
             <button type="button" class="app-nav-btn" onclick="closeSidebar(); openSettingsModal();">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="2.1" fill="currentColor" stroke="none"/><circle cx="15" cy="16" r="2.1" fill="currentColor" stroke="none"/></svg>
@@ -2441,6 +2504,10 @@
             <div class="card lg:col-span-2">
                 <div class="chart-panel-head">
                     <h3 class="stat-label flex items-center gap-2 mb-0"><span class="live-dot"></span> <span data-i18n="chart.trend">資產成長趨勢</span></h3>
+                    <div id="trend-split" class="trend-split hidden" role="group" aria-label="股票曲線範圍">
+                        <button type="button" id="trend-split-total" onclick="setTrendStockMode('total')">總覽</button>
+                        <button type="button" id="trend-split-each" class="is-on" onclick="setTrendStockMode('each')">各股</button>
+                    </div>
                 </div>
                 <div id="trend-readout" class="chart-readout" aria-live="polite">
                     <div class="chart-readout-hint" id="trend-readout-hint" data-i18n="chart.hintReadout">將游標移到圖表上，即可檢視當日淨值、投入與漲跌；點圖例可開關系列。</div>
@@ -2448,6 +2515,7 @@
                 <div class="chart-container" id="chart-area">
                     <canvas id="trendChart"></canvas>
                 </div>
+                <div id="trend-legend" class="trend-legend" aria-label="趨勢圖例"></div>
                 <p class="chart-hint" data-i18n="chart.hintCross">十字線跟隨游標 · 點擊圖例切換系列顯示</p>
             </div>
             <div class="card alloc-panel">
@@ -2921,38 +2989,6 @@
                 </div>
             </div>
         </div>
-
-        <div id="section-report" class="hidden">
-            <div class="card mb-8">
-                <div class="flex flex-wrap gap-4 items-end mb-6">
-                    <div class="flex flex-col gap-1">
-                        <label class="stat-label text-[10px]">期間類型</label>
-                        <select id="report-mode" onchange="onReportModeChange()">
-                            <option value="month">按月</option>
-                            <option value="year">按年</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="stat-label text-[10px]">期間</label>
-                        <input type="month" id="report-period" onchange="renderReport()">
-                    </div>
-                    <button type="button" onclick="renderReport()" class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold">重新計算</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-sm">
-                    <div class="rounded-xl border p-4" style="border-color: var(--line)"><div class="stat-label text-[10px] mb-1">期間已實現</div><div id="report-realized" class="text-xl font-bold c-sell">--</div></div>
-                    <div class="rounded-xl border p-4" style="border-color: var(--line)"><div class="stat-label text-[10px] mb-1">目前未實現（持倉）</div><div id="report-unrealized" class="text-xl font-bold">--</div></div>
-                    <div class="rounded-xl border p-4" style="border-color: var(--line)"><div class="stat-label text-[10px] mb-1">合計</div><div id="report-total" class="text-xl font-bold">--</div></div>
-                </div>
-                <div class="table-scroll">
-                    <table class="w-full text-xs text-left min-w-[640px]">
-                        <thead class="thead-bar font-bold">
-                            <tr><th class="p-4">來源</th><th class="p-4">項目</th><th class="p-4 text-right">已實現</th><th class="p-4 text-right">未實現</th></tr>
-                        </thead>
-                        <tbody id="report-list" class="divide-y"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
     </div>
     </div>
@@ -3012,7 +3048,7 @@
                         <span class="settings-fold-chevron" aria-hidden="true">▾</span>
                     </summary>
                     <div class="settings-fold-body">
-                        <p class="text-xs text-muted mb-4">關閉後，該資產會從選單、總覽、報表與今日速覽移除，也不能再登帳。原有紀錄會保留，重新打開就會回來。至少要留一項。</p>
+                        <p class="text-xs text-muted mb-4">關閉後，該資產會從選單、總覽與今日速覽移除，也不能再登帳。原有紀錄會保留，重新打開就會回來。至少要留一項。</p>
                         <div class="space-y-3 text-xs">
                             <label class="setting-switch">
                                 <input type="checkbox" id="asset-stock" checked onchange="saveAssetEnabled(this)">
@@ -3129,23 +3165,6 @@
                             <div class="flex flex-col gap-1"><label class="stat-label text-[10px]">再次輸入新密碼</label><input type="password" id="pwd-new2" class="w-full" placeholder="確認新密碼" autocomplete="new-password"></div>
                         </div>
                         <button type="button" onclick="submitChangePassword()" class="w-full mt-4 btn-gold py-3 rounded-xl text-xs font-bold tracking-wide">修改密碼</button>
-                    </div>
-                </details>
-
-                <details class="settings-fold">
-                    <summary>
-                        <div class="settings-fold-title">
-                            <span class="t c-sage" data-i18n="export.title">匯出報表</span>
-                            <span class="d" data-i18n="export.desc">CSV 或列印／存 PDF</span>
-                        </div>
-                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
-                    </summary>
-                    <div class="settings-fold-body">
-                        <p class="text-xs text-muted mb-3">CSV 可用 Numbers 開啟。PDF：可用列印頁的「共享 → 儲存到檔案」。</p>
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <button type="button" onclick="exportCsvReport()" class="flex-1 btn-surface py-3 rounded-xl text-xs font-bold c-stock">匯出 CSV</button>
-                            <button type="button" onclick="printReport()" class="flex-1 btn-primary py-3 rounded-xl text-xs font-bold">列印／存 PDF</button>
-                        </div>
                     </div>
                 </details>
             </div>
@@ -3276,7 +3295,6 @@
                 'card.overview': '總覽',
                 'tab.stock': '股票',
                 'tab.gold': '黃金',
-                'tab.report': '報表',
                 'label.stock': '股票',
                 'label.gold': '黃金',
                 'unit.share': '股',
@@ -3312,9 +3330,6 @@
                 'alloc.delta': '目標 {t}% · 偏離 {d}%',
                 'pwd.title': '管理密碼',
                 'pwd.desc': '解除數值遮罩用',
-                'export.title': '匯出報表',
-                'export.desc': 'CSV 或列印／存 PDF',
-                'report.src': '期間賣出／持倉',
                 'alert.pwdWrong': '目前密碼錯誤。',
                 'alert.pwdNeed': '請輸入新密碼。',
                 'alert.pwdMismatch': '兩次新密碼不一致。',
@@ -3869,10 +3884,6 @@
         let datePickState = null;
         function datePickKind(el) {
             if (!el) return 'day';
-            if (el.id === 'report-period') {
-                const mode = document.getElementById('report-mode');
-                return (mode && mode.value === 'year') ? 'year' : 'month';
-            }
             if (el.type === 'month') return 'month';
             return 'day';
         }
@@ -4037,7 +4048,7 @@
                 }
                 body += '</div>';
             }
-            const canClear = kind === 'day' && el.id !== 'report-period';
+            const canClear = kind === 'day';
             pop.innerHTML =
                 '<div class="date-pick-head">' +
                     '<button type="button" class="date-pick-nav" data-nav="-1" aria-label="上一頁">‹</button>' +
@@ -4127,8 +4138,6 @@
         }
         function enhanceAllDateInputs() {
             document.querySelectorAll('input[type="date"], input[type="month"]').forEach(syncDatePicker);
-            const rp = document.getElementById('report-period');
-            if (rp) syncDatePicker(rp);
         }
         if (!window._datePickBound) {
             window._datePickBound = true;
@@ -5813,7 +5822,6 @@
             renderCharts(gV, sV, cV, inc);
             if (currentView === 'overview') setTimeout(resizeOverviewCharts, 40);
             refreshCodeSelects();
-            if (currentView === 'report') renderReport();
             if (currentView === 'peer') {
                 renderPeerCompare(tV);
                 renderGoalCalc();
@@ -5821,6 +5829,7 @@
         }
 
         let trendChartObj, allocChartObj, goalChartObj;
+        let trendStockView = 'each';
         let lastChartArgs = null;
         let lastChartSig = '';
         let allocFocusIndex = null;
@@ -6064,10 +6073,80 @@
             const el = document.getElementById('chart-tip');
             if (el) el.classList.add('is-hidden');
         }
+        const STOCK_CURVE_COLORS = [
+            ['#0a5ad4', '#083a8a'],
+            ['#5e5ce6', '#3634a3'],
+            ['#0a84ff', '#0055b3'],
+            ['#bf5af2', '#7a2bb5'],
+            ['#00a39a', '#046b66'],
+            ['#ff375f', '#c4002f'],
+            ['#c49a6c', '#7a5b38'],
+            ['#32ade6', '#0b6e99']
+        ];
+        function heldStockCodes() {
+            const map = {};
+            stockRecs.forEach((r) => {
+                const code = String(r.code || '').toUpperCase();
+                if (!code) return;
+                if (!map[code]) map[code] = { code, worth: 0, cost: 0 };
+                const kind = r.type || 'buy';
+                if (kind === 'cash_div') return;
+                const nowP = marketPrices[r.code] || r.buyPrice || 0;
+                map[code].worth += num(nowP) * num(r.shares);
+                map[code].cost += kind === 'dividend' ? netHoldingCashCost(r) : num(r.cost);
+            });
+            return Object.values(map)
+                .filter((x) => x.worth > 0 || x.cost > 0)
+                .sort((a, b) => (b.worth - a.worth) || a.code.localeCompare(b.code, 'en'))
+                .map((x) => x.code);
+        }
+        function setTrendStockMode(mode) {
+            const next = mode === 'total' ? 'total' : 'each';
+            if (next === trendStockView) return;
+            trendStockView = next;
+            if (lastChartArgs) renderCharts(lastChartArgs.gV, lastChartArgs.sV, lastChartArgs.cV, lastChartArgs.inc);
+        }
+        function renderTrendLegend(chart) {
+            const el = document.getElementById('trend-legend');
+            if (!el) return;
+            if (!chart) { el.innerHTML = ''; return; }
+            el.innerHTML = chart.data.datasets.map((ds, i) => {
+                const hidden = !chart.isDatasetVisible(i);
+                const dash = Array.isArray(ds.borderDash) ? ds.borderDash : [];
+                const kind = dash.length && dash[0] <= 2 ? ' is-dot' : (dash.length ? ' is-dash' : '');
+                const color = typeof ds.borderColor === 'string' ? ds.borderColor : '#1d1d1f';
+                return '<button type="button" class="' + (hidden ? 'is-off' : '') + '" data-i="' + i + '">' +
+                    '<span class="trend-swatch' + kind + '" style="border-color:' + color + '"></span>' +
+                    '<span>' + escapeHtml(ds.label) + '</span></button>';
+            }).join('');
+            el.querySelectorAll('button').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const i = Number(btn.getAttribute('data-i'));
+                    chart.setDatasetVisibility(i, !chart.isDatasetVisible(i));
+                    chart.update();
+                    renderTrendLegend(chart);
+                });
+            });
+        }
+        function syncTrendSplitUI(multi, splitOn) {
+            const wrap = document.getElementById('trend-split');
+            if (wrap) wrap.classList.toggle('hidden', !multi);
+            const totalBtn = document.getElementById('trend-split-total');
+            const eachBtn = document.getElementById('trend-split-each');
+            if (totalBtn) {
+                totalBtn.classList.toggle('is-on', multi && !splitOn);
+                totalBtn.setAttribute('aria-pressed', multi && !splitOn ? 'true' : 'false');
+            }
+            if (eachBtn) {
+                eachBtn.classList.toggle('is-on', !!splitOn);
+                eachBtn.setAttribute('aria-pressed', splitOn ? 'true' : 'false');
+            }
+        }
         function renderCharts(gV, sV, cV, inc) {
             const sig = JSON.stringify({
                 gV, sV, cV, inc, p: !!isPrivacyMode,
                 gold: curGoldUSD, rate: rateUSD, px: marketPrices,
+                split: trendStockView,
                 s: stockRecs.map((r) => [r.date, r.code, r.cost, r.shares, r.type, r.buyPrice]),
                 g: goldRecs.map((r) => [r.date, r.weight, r.unit, r.cost])
             });
@@ -6197,15 +6276,33 @@
             const sWorthData = [], gWorthData = [];
             let curS = 0, curG = 0, curC = 0;
             const incS = !!inc.stockWorth, incG = !!inc.goldWorth, incC = !!inc.collWorth;
+            const stockCodes = incS ? heldStockCodes() : [];
+            const splitStocks = stockCodes.length > 1 && trendStockView !== 'total';
+            syncTrendSplitUI(stockCodes.length > 1, splitStocks);
+            const codeCost = {};
+            const codeWorthSeries = {};
+            const codeCostSeries = {};
+            stockCodes.forEach((code) => {
+                codeCost[code] = 0;
+                codeWorthSeries[code] = [];
+                codeCostSeries[code] = [];
+            });
             const goldTWD_g = curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
             const heldS = [], heldG = [], heldC = [];
             timeline.forEach(h => {
                 labels.push(h.date);
                 if (h.type === 's') {
                     if (incS) {
-                        const t = h.rec.type || 'buy';
-                        if (t === 'buy') curS += num(h.rec.cost);
-                        else if (t === 'dividend') curS += netHoldingCashCost(h.rec);
+                        const kind = h.rec.type || 'buy';
+                        const code = String(h.rec.code || '').toUpperCase();
+                        if (kind === 'buy') {
+                            curS += num(h.rec.cost);
+                            if (codeCost[code] != null) codeCost[code] += num(h.rec.cost);
+                        } else if (kind === 'dividend') {
+                            const net = netHoldingCashCost(h.rec);
+                            curS += net;
+                            if (codeCost[code] != null) codeCost[code] += net;
+                        }
                         heldS.push(h.rec);
                     }
                 } else if (h.type === 'g') {
@@ -6216,10 +6313,15 @@
                 sData.push(curS); gData.push(curG); cData.push(curC);
                 tData.push(curS + curG + curC);
                 let wS = 0, wG = 0, wC = 0;
+                const wByCode = {};
+                stockCodes.forEach((code) => { wByCode[code] = 0; });
                 if (incS) {
                     heldS.forEach(r => {
                         const nowP = marketPrices[r.code] || r.buyPrice || 0;
-                        wS += num(nowP) * num(r.shares);
+                        const w = num(nowP) * num(r.shares);
+                        wS += w;
+                        const code = String(r.code || '').toUpperCase();
+                        if (wByCode[code] != null) wByCode[code] += w;
                     });
                 }
                 if (incG) {
@@ -6235,6 +6337,10 @@
                 sWorthData.push(wS);
                 gWorthData.push(wG);
                 worthData.push(wS + wG + wC);
+                stockCodes.forEach((code) => {
+                    codeWorthSeries[code].push(wByCode[code]);
+                    codeCostSeries[code].push(codeCost[code]);
+                });
             });
 
             const ctxT = document.getElementById('trendChart').getContext('2d');
@@ -6268,7 +6374,29 @@
                     backgroundColor: (c) => trendAreaGradient(c.chart.ctx, c.chart.chartArea, 'rgba(48, 209, 88, 0.18)', 'rgba(48, 209, 88, 0)')
                 }
             ];
-            if (incS) {
+            if (incS && splitStocks) {
+                stockCodes.forEach((code, i) => {
+                    const pair = STOCK_CURVE_COLORS[i % STOCK_CURVE_COLORS.length];
+                    trendDatasets.push({
+                        ...lineBase,
+                        label: code + '（現值）',
+                        data: codeWorthSeries[code],
+                        borderColor: pair[0],
+                        borderWidth: 2.2,
+                        borderDash: [7, 4],
+                        pointHoverBackgroundColor: pair[0]
+                    });
+                    trendDatasets.push({
+                        ...lineBase,
+                        label: code + '（成本）',
+                        data: codeCostSeries[code],
+                        borderColor: pair[1],
+                        borderWidth: 1.8,
+                        borderDash: [2, 3],
+                        pointHoverBackgroundColor: pair[1]
+                    });
+                });
+            } else if (incS) {
                 trendDatasets.push({
                     ...lineBase,
                     label: t('chart.stockWorth'),
@@ -6280,7 +6408,7 @@
                 });
                 trendDatasets.push({
                     ...lineBase,
-            label: t('chart.stockCost'),
+                    label: t('chart.stockCost'),
                     data: sData,
                     borderColor: '#0746a8',
                     borderWidth: 1.8,
@@ -6327,27 +6455,7 @@
                         updateTrendReadout(chart, elements[0].index);
                     },
                     plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                pointStyleWidth: 18,
-                                padding: 12,
-                                font: { size: 11 },
-                                color: '#3a3a3c',
-                                generateLabels: (chart) => chart.data.datasets.map((ds, i) => ({
-                                    text: ds.label,
-                                    fillStyle: ds.borderColor,
-                                    strokeStyle: ds.borderColor,
-                                    lineWidth: ds.borderWidth || 2,
-                                    lineDash: ds.borderDash || [],
-                                    hidden: !chart.isDatasetVisible(i),
-                                    datasetIndex: i,
-                                    pointStyle: 'line'
-                                }))
-                            }
-                        },
+                        legend: { display: false },
                         tooltip: {
                             ...chartTooltipTheme,
                             boxPadding: 4,
@@ -6414,71 +6522,8 @@
                 canvas._leaveBound = true;
                 canvas.addEventListener('mouseleave', () => resetTrendReadout());
             }
-        }
-
-        function inReportPeriod(dateStr, mode, periodVal) {
-            if (!dateStr || !periodVal) return false;
-            if (mode === 'year') return String(dateStr).slice(0, 4) === String(periodVal).slice(0, 4);
-            return String(dateStr).slice(0, 7) === String(periodVal).slice(0, 7);
-        }
-        function onReportModeChange() {
-            const mode = document.getElementById('report-mode').value;
-            const inp = document.getElementById('report-period');
-            if (mode === 'year') {
-                inp.type = 'number';
-                inp.min = '1990';
-                inp.max = '2100';
-                inp.placeholder = 'YYYY';
-                if (!inp.value || String(inp.value).length > 4) inp.value = new Date().getFullYear();
-            } else {
-                inp.type = 'month';
-                if (!inp.value || String(inp.value).length < 7) inp.value = new Date().toISOString().slice(0, 7);
-            }
-            closeDatePicker();
-            syncDatePicker(inp);
-            renderReport();
-        }
-        function renderReport() {
-            const modeEl = document.getElementById('report-mode');
-            const periodEl = document.getElementById('report-period');
-            if (!modeEl || !periodEl) return;
-            if (!periodEl.value) {
-                periodEl.value = modeEl.value === 'year' ? String(new Date().getFullYear()) : new Date().toISOString().slice(0, 7);
-            }
-            const mode = modeEl.value;
-            const period = periodEl.value;
-            const goldTWD_g = curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
-
-            const showS = assetEnabled('stock');
-            const showG = assetEnabled('gold');
-            let sReal = 0, gReal = 0;
-            if (showS) stockSells.forEach(r => { if (inReportPeriod(r.date, mode, period)) sReal += sellProfit(r); });
-            if (showG) goldSells.forEach(r => { if (inReportPeriod(r.date, mode, period)) gReal += goldSellProfit(r); });
-
-            let sUn = 0, gUn = 0;
-            if (showS) stockRecs.forEach(r => {
-                const nowP = marketPrices[r.code] || r.buyPrice || 0;
-                sUn += nowP * num(r.shares) - netHoldingCashCost(r);
-            });
-            if (showG) goldRecs.forEach(r => {
-                gUn += goldToGrams(r.weight, r.unit) * goldTWD_g - goldMetalCost(r);
-            });
-
-            const tReal = sReal + gReal;
-            const tUn = sUn + gUn;
-            document.getElementById('report-realized').innerText = fNum(tReal);
-            document.getElementById('report-unrealized').innerText = fNum(tUn);
-            setSignedClass('report-unrealized', tUn);
-            document.getElementById('report-total').innerText = fNum(tReal + tUn);
-            const reportRows = [];
-            if (showS) reportRows.push([t('label.stock'), t('report.src'), sReal, sUn]);
-            if (showG) reportRows.push([t('label.gold'), t('report.src'), gReal, gUn]);
-            document.getElementById('report-list').innerHTML = reportRows.map(([src, item, real, un]) => `<tr class="row-hover">
-                <td class="p-4 font-bold">${src}</td>
-                <td class="p-4 text-muted">${item}</td>
-                <td class="p-4 text-right c-sell">${fNum(real)}</td>
-                <td class="p-4 text-right ${pnlCls(un)}">${fNum(un)}</td>
-            </tr>`).join('');
+            renderTrendLegend(trendChartObj);
+            if (trendChartObj) trendChartObj.resize();
         }
 
         function resolveStockCost(type, shares, buyPrice, costRaw, divRaw) {
@@ -7116,7 +7161,7 @@
             if (t === 'coll') t = 'stock';
             if (t === 'gold' && !assetEnabled('gold')) t = 'overview';
             if ((t === 'stock' || t === 'peer') && !assetEnabled('stock')) t = 'overview';
-            if (t !== 'overview' && t !== 'peer' && t !== 'stock' && t !== 'gold' && t !== 'report') t = 'overview';
+            if (t !== 'overview' && t !== 'peer' && t !== 'stock' && t !== 'gold') t = 'overview';
             currentView = t;
             document.body.dataset.view = t;
             const ov = document.getElementById('view-overview');
@@ -7125,11 +7170,9 @@
             if (peer) peer.classList.toggle('hidden', t !== 'peer');
             const stock = document.getElementById('section-stock');
             const gold = document.getElementById('section-gold');
-            const report = document.getElementById('section-report');
             const price = document.getElementById('stock-price-bar');
             if (stock) stock.classList.toggle('hidden', t !== 'stock');
             if (gold) gold.classList.toggle('hidden', t !== 'gold');
-            if (report) report.classList.toggle('hidden', t !== 'report');
             if (price) price.classList.toggle('hidden', t !== 'stock');
             document.querySelectorAll('.app-nav-btn[data-view]').forEach(btn => {
                 btn.classList.toggle('is-on', btn.getAttribute('data-view') === t);
@@ -7138,15 +7181,13 @@
                 overview: ['總覽', '圖表與持倉摘要'],
                 peer: ['目標', '目標月領、需存張數與時間曲線'],
                 stock: ['股票', '持倉、賣出、彙總與股利'],
-                gold: ['黃金', '持倉與已實現損益'],
-                report: ['報表', '期間損益檢視']
+                gold: ['黃金', '持倉與已實現損益']
             };
             const pair = titles[t] || ['資產管理', ''];
             const titleEl = document.getElementById('page-title');
             const subEl = document.getElementById('page-sub');
             if (titleEl) titleEl.textContent = pair[0];
             if (subEl) subEl.textContent = pair[1];
-            if (t === 'report') renderReport();
             if (t === 'peer') {
                 openGoalPage();
                 renderPeerCompare(computeAssetWorth().tV);
@@ -7720,9 +7761,6 @@
         syncAllocToUI();
         syncAssetToUI();
         applyAssetVisibility();
-        if (document.getElementById('report-period')) {
-            document.getElementById('report-period').value = new Date().toISOString().slice(0, 7);
-        }
         if (lastDivCode) rememberStockCode(lastDivCode);
         window.addEventListener('resize', () => {
             if (typeof fitAllocCenterText === 'function') fitAllocCenterText();
