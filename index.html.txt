@@ -2773,6 +2773,17 @@
             color: #f4f7ff;
             font-size: clamp(0.68rem, 8.2cqw, 0.86rem) !important;
         }
+        .alloc-head-side {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.35rem;
+            flex: none;
+        }
+        #view-overview .alloc-panel.is-detail .alloc-legend {
+            max-height: 13rem;
+            overflow: auto;
+        }
         #view-overview .alloc-legend {
             display: flex !important;
             flex-direction: column;
@@ -3105,9 +3116,15 @@
                 <div class="alloc-panel-head">
                     <div>
                         <h3 class="stat-label mb-0" data-i18n="chart.alloc">資產配置</h3>
-                        <p class="panel-sub">游標移到圓環，可看該資產明細</p>
+                        <p class="panel-sub" id="alloc-sub">游標移到圓環可看明細，點股票可看各股占比</p>
                     </div>
-                    <span id="alloc-vs-label" class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
+                    <div class="alloc-head-side">
+                        <div id="alloc-split" class="trend-split hidden" role="group" aria-label="配置範圍">
+                            <button type="button" id="alloc-split-total" class="is-on" onclick="setAllocStockMode('total')">總覽</button>
+                            <button type="button" id="alloc-split-each" onclick="setAllocStockMode('each')">細項</button>
+                        </div>
+                        <span id="alloc-vs-label" class="text-[10px] text-faint font-semibold tracking-wide" data-i18n="chart.allocVs">實際 vs 目標</span>
+                    </div>
                 </div>
                 <div class="alloc-stage">
                     <div class="alloc-chart-wrap" id="alloc-chart-wrap" title="點擊區塊或下方圖例檢視細節">
@@ -6115,27 +6132,20 @@
             if (inc.stockWorth) tot += sV;
             if (inc.goldWorth) tot += gV;
             if (inc.collWorth) tot += cV;
-            const showBoth = assetEnabled('stock') && assetEnabled('gold');
-            const rows = [
-                {
-                    key: 'stock',
-                    name: t('label.stock'),
-                    color: '#0a5ad4',
-                    grad: 'linear-gradient(90deg, #0746a8, #1b7fd6)',
-                    cur: inc.stockWorth ? sV : 0,
-                    target: showBoth ? num(allocTargets.stock) : 0,
-                    cls: 'c-stock'
-                },
-                {
-                    key: 'gold',
-                    name: t('label.gold'),
-                    color: '#ff9f0a',
-                    grad: 'linear-gradient(90deg, #e08600, #ffd60a)',
-                    cur: inc.goldWorth ? gV : 0,
-                    target: showBoth ? num(allocTargets.gold) : 0,
-                    cls: 'c-gold'
-                }
-            ].filter(r => r.cur > 0);
+            const built = buildAllocSlices(sV, gV, cV, inc);
+            syncAllocSplitUI(built.multiStock, built.detail);
+            const showBoth = !built.detail && assetEnabled('stock') && assetEnabled('gold');
+            const rows = built.slices.map((s) => ({
+                key: s.key,
+                name: s.name,
+                grad: s.grad,
+                cur: s.worth,
+                cls: s.cls,
+                kind: s.kind,
+                stockShare: s.stockShare,
+                target: showBoth && (s.kind === 'stock' || s.kind === 'gold') ? num(allocTargets[s.kind]) : 0
+            }));
+            tot = rows.reduce((sum, r) => sum + r.cur, 0);
 
             if (!rows.length) {
                 panel.innerHTML = '<div class="alloc-empty">' + t('empty.alloc') + '</div>';
@@ -6146,15 +6156,17 @@
                 const pct = tot > 0 ? (r.cur / tot * 100) : 0;
                 const pctStr = isPrivacyMode ? '****' : (pct >= 99.95 ? '100' : pct.toFixed(1)) + '%';
                 const amtStr = isPrivacyMode ? '****' : 'NT$' + Math.round(r.cur).toLocaleString('zh-TW');
-                const tgt = Math.max(0, Math.min(100, r.target));
+                const tgt = Math.max(0, Math.min(100, r.target || 0));
                 const delta = showBoth && tot > 0 && !isPrivacyMode ? (pct - tgt) : null;
                 let deltaStr = '';
-                if (showBoth) {
+                if (r.kind === 'code' && !isPrivacyMode && r.stockShare != null) {
+                    deltaStr = '占股票 ' + (r.stockShare * 100).toFixed(1) + '%';
+                } else if (showBoth) {
                     deltaStr = tgt > 0 ? ('目標 ' + tgt.toFixed(0) + '%') : '目標 —';
-                }
-                if (delta != null && tgt > 0) {
-                    const sign = delta > 0.05 ? '+' : delta < -0.05 ? '−' : '±';
-                    deltaStr = tgt.toFixed(0) + '% · ' + sign + Math.abs(delta).toFixed(0) + '%';
+                    if (delta != null && tgt > 0) {
+                        const sign = delta > 0.05 ? '+' : delta < -0.05 ? '−' : '±';
+                        deltaStr = tgt.toFixed(0) + '% · ' + sign + Math.abs(delta).toFixed(0) + '%';
+                    }
                 }
                 const active = allocFocusIndex === idx ? ' is-active' : '';
                 const dim = allocFocusIndex != null && allocFocusIndex !== idx ? ' is-dim' : '';
@@ -6419,6 +6431,7 @@
 
         let trendChartObj, allocChartObj, goalChartObj;
         let trendStockView = 'each';
+        let allocStockView = 'total';
         let lastChartArgs = null;
         let lastChartSig = '';
         let allocFocusIndex = null;
@@ -6570,6 +6583,11 @@
             syncAllocDetail();
         }
         function focusAllocSegment(idx) {
+            const key = (allocLegendSnapshot.keys || [])[idx];
+            if (allocStockView !== 'each' && key === 'stock' && allocLegendSnapshot.multiStock) {
+                setAllocStockMode('each');
+                return;
+            }
             applyAllocFocus(idx);
         }
         function resetAllocCenter() {
@@ -6707,22 +6725,118 @@
             ['#c49a6c', '#7a5b38'],
             ['#32ade6', '#0b6e99']
         ];
-        function heldStockCodes() {
+        function stockHoldingStats() {
             const map = {};
             stockRecs.forEach((r) => {
                 const code = String(r.code || '').toUpperCase();
                 if (!code) return;
-                if (!map[code]) map[code] = { code, worth: 0, cost: 0 };
+                if (!map[code]) map[code] = { code, worth: 0, cost: 0, shares: 0 };
                 const kind = r.type || 'buy';
                 if (kind === 'cash_div') return;
+                const sh = num(r.shares);
                 const nowP = marketPrices[r.code] || r.buyPrice || 0;
-                map[code].worth += num(nowP) * num(r.shares);
+                map[code].worth += num(nowP) * sh;
                 map[code].cost += kind === 'dividend' ? netHoldingCashCost(r) : num(r.cost);
+                map[code].shares += sh;
             });
             return Object.values(map)
                 .filter((x) => x.worth > 0 || x.cost > 0)
-                .sort((a, b) => (b.worth - a.worth) || a.code.localeCompare(b.code, 'en'))
-                .map((x) => x.code);
+                .sort((a, b) => (b.worth - a.worth) || a.code.localeCompare(b.code, 'en'));
+        }
+        function heldStockCodes() {
+            return stockHoldingStats().map((x) => x.code);
+        }
+        function buildAllocSlices(sV, gV, cV, inc) {
+            const stocks = inc && inc.stockWorth ? stockHoldingStats().filter((x) => x.worth > 0) : [];
+            const stockTotal = stocks.reduce((sum, x) => sum + x.worth, 0);
+            const detail = allocStockView === 'each' && stocks.length > 1;
+            const slices = [];
+            if (detail) {
+                stocks.forEach((x, i) => {
+                    const pair = STOCK_CURVE_COLORS[i % STOCK_CURVE_COLORS.length];
+                    slices.push({
+                        key: 'code:' + x.code,
+                        name: x.code,
+                        kind: 'code',
+                        code: x.code,
+                        worth: x.worth,
+                        cost: x.cost,
+                        shares: x.shares,
+                        stockShare: stockTotal > 0 ? x.worth / stockTotal : 0,
+                        colors: pair,
+                        grad: 'linear-gradient(90deg, ' + pair[1] + ', ' + pair[0] + ')',
+                        cls: 'c-stock'
+                    });
+                });
+            } else if (inc && inc.stockWorth && sV > 0) {
+                slices.push({
+                    key: 'stock',
+                    name: t('label.stock'),
+                    kind: 'stock',
+                    worth: sV,
+                    colors: ['#0746a8', '#1b7fd6'],
+                    grad: 'linear-gradient(90deg, #0746a8, #1b7fd6)',
+                    cls: 'c-stock'
+                });
+            }
+            if (inc && inc.goldWorth && gV > 0) {
+                slices.push({
+                    key: 'gold',
+                    name: t('label.gold'),
+                    kind: 'gold',
+                    worth: gV,
+                    colors: ['#e08600', '#ffd60a'],
+                    grad: 'linear-gradient(90deg, #e08600, #ffd60a)',
+                    cls: 'c-gold'
+                });
+            }
+            if (inc && inc.collWorth && cV > 0) {
+                slices.push({
+                    key: 'coll',
+                    name: '收藏',
+                    kind: 'coll',
+                    worth: cV,
+                    colors: ['#d70015', '#ff375f'],
+                    grad: 'linear-gradient(90deg, #d70015, #ff375f)',
+                    cls: ''
+                });
+            }
+            return { slices, multiStock: stocks.length > 1, detail, stockTotal };
+        }
+        function syncAllocSplitUI(multi, detailOn) {
+            const wrap = document.getElementById('alloc-split');
+            if (wrap) wrap.classList.toggle('hidden', !multi);
+            const totalBtn = document.getElementById('alloc-split-total');
+            const eachBtn = document.getElementById('alloc-split-each');
+            if (totalBtn) {
+                totalBtn.classList.toggle('is-on', !detailOn);
+                totalBtn.setAttribute('aria-pressed', !detailOn ? 'true' : 'false');
+            }
+            if (eachBtn) {
+                eachBtn.classList.toggle('is-on', !!detailOn);
+                eachBtn.setAttribute('aria-pressed', detailOn ? 'true' : 'false');
+            }
+            const sub = document.getElementById('alloc-sub');
+            if (sub) {
+                sub.textContent = detailOn
+                    ? '各股占淨值，加總就是股票占比'
+                    : '點股票或切到細項，可看各股占比';
+            }
+            const vs = document.getElementById('alloc-vs-label');
+            if (vs) vs.classList.toggle('hidden', !!detailOn);
+            const panel = document.querySelector('#view-overview .alloc-panel');
+            if (panel) panel.classList.toggle('is-detail', !!detailOn);
+        }
+        function setAllocStockMode(mode) {
+            const next = mode === 'each' ? 'each' : 'total';
+            if (next === allocStockView) return;
+            allocStockView = next;
+            allocFocusIndex = null;
+            hideSolidChartTip();
+            if (lastChartArgs) {
+                const args = lastChartArgs;
+                setTimeout(() => renderCharts(args.gV, args.sV, args.cV, args.inc), 0);
+            }
         }
         function setTrendStockMode(mode) {
             const next = mode === 'total' ? 'total' : 'each';
@@ -6771,6 +6885,7 @@
                 gV, sV, cV, inc, p: !!isPrivacyMode,
                 gold: curGoldUSD, rate: rateUSD, px: marketPrices,
                 split: trendStockView,
+                alloc: allocStockView,
                 s: stockRecs.map((r) => [r.date, r.code, r.cost, r.shares, r.type, r.buyPrice]),
                 g: goldRecs.map((r) => [r.date, r.weight, r.unit, r.cost])
             });
@@ -6798,19 +6913,30 @@
 
             const ctxA = document.getElementById('allocationChart').getContext('2d');
             if (allocChartObj) allocChartObj.destroy();
-            const al = [], ad = [], acPairs = [], aKeys = [];
-            // 順序與圖例一致：股票 → 黃金
-            if (inc.stockWorth && sV > 0) { al.push(t('label.stock')); ad.push(sV); acPairs.push(['#0746a8', '#1b7fd6']); aKeys.push('stock'); }
-            if (inc.goldWorth && gV > 0) { al.push(t('label.gold')); ad.push(gV); acPairs.push(['#e08600', '#ffd60a']); aKeys.push('gold'); }
-            if (inc.collWorth && cV > 0) { al.push('收藏'); ad.push(cV); acPairs.push(['#d70015', '#ff375f']); aKeys.push('coll'); }
+            const builtAlloc = buildAllocSlices(sV, gV, cV, inc);
+            const allocSlices = builtAlloc.slices;
+            const al = allocSlices.map((s) => s.name);
+            const ad = allocSlices.map((s) => s.worth);
+            const acPairs = allocSlices.map((s) => s.colors);
+            const aKeys = allocSlices.map((s) => s.key);
             let adUse = ad.length ? ad : [1];
             let alUse = al.length ? al : [t('chart.noItem')];
             const totalAlloc = ad.reduce((a, b) => a + b, 0);
-            allocLegendSnapshot = { labels: alUse.slice(), values: adUse.slice(), total: totalAlloc, keys: al.length ? aKeys : [] };
+            allocLegendSnapshot = {
+                labels: alUse.slice(),
+                values: adUse.slice(),
+                total: totalAlloc,
+                keys: al.length ? aKeys : [],
+                meta: al.length ? allocSlices.slice() : [],
+                multiStock: builtAlloc.multiStock
+            };
+            const detailCount = allocSlices.filter((s) => s.kind === 'code').length;
             allocCenterDefault = {
                 label: t('chart.net'),
                 value: isPrivacyMode ? '****' : (totalAlloc > 0 ? fmtMoney(totalAlloc) : '--'),
-                sub: totalAlloc > 0 ? t('chart.assetCount', { n: al.length }) : t('chart.noData')
+                sub: totalAlloc > 0
+                    ? (detailCount > 1 ? (detailCount + ' 檔股票') : t('chart.assetCount', { n: al.length }))
+                    : t('chart.noData')
             };
             allocFocusIndex = null;
             setAllocCenter(allocCenterDefault.label, allocCenterDefault.value, allocCenterDefault.sub);
@@ -6854,7 +6980,13 @@
                             resetAllocCenter();
                             return;
                         }
-                        applyAllocFocus(elements[0].index);
+                        const idx = elements[0].index;
+                        const key = (allocLegendSnapshot.keys || [])[idx];
+                        if (allocStockView !== 'each' && key === 'stock' && allocLegendSnapshot.multiStock) {
+                            setAllocStockMode('each');
+                            return;
+                        }
+                        applyAllocFocus(idx);
                     },
                     plugins: {
                         legend: { display: false },
@@ -6874,9 +7006,24 @@
                                     const arr = ctx.dataset.data.map((n) => Number(n) || 0);
                                     const total = arr.reduce((a, b) => a + b, 0);
                                     const pct = total > 0 ? (val / total) * 100 : 0;
-                                    const pctLine = isPrivacyMode
-                                        ? '占淨值\t\t****%'
-                                        : ('占淨值\t\t' + (pct >= 99.95 ? '100' : pct >= 10 ? pct.toFixed(1) : pct.toFixed(2)) + '%');
+                                    const pctText = pct >= 99.95 ? '100' : pct >= 10 ? pct.toFixed(1) : pct.toFixed(2);
+                                    const pctLine = isPrivacyMode ? '占淨值\t\t****%' : ('占淨值\t\t' + pctText + '%');
+                                    const meta = (allocLegendSnapshot.meta || [])[ctx.dataIndex];
+                                    if (meta && meta.kind === 'code') {
+                                        const lines = [pctLine];
+                                        if (!isPrivacyMode && meta.stockShare != null) {
+                                            lines.push('占股票\t\t' + (meta.stockShare * 100).toFixed(1) + '%');
+                                        }
+                                        const unreal = (Number(meta.worth) || 0) - (Number(meta.cost) || 0);
+                                        const money = (n) => isPrivacyMode ? '****' : ('NT$' + Math.round(Number(n) || 0).toLocaleString('zh-TW'));
+                                        const signed = isPrivacyMode
+                                            ? '****'
+                                            : ((unreal > 0 ? '+' : unreal < 0 ? '-' : '') + 'NT$' + Math.abs(Math.round(unreal)).toLocaleString('zh-TW'));
+                                        lines.push('持倉成本\t\t' + money(meta.cost));
+                                        lines.push('未實現損益\t' + (unreal >= 0 ? 'gain' : 'drop') + '\t' + signed);
+                                        if (meta.shares) lines.push('股數\t\t' + (isPrivacyMode ? '****' : (Math.round(meta.shares).toLocaleString('zh-TW') + '股')));
+                                        return lines;
+                                    }
                                     return [pctLine].concat(allocAssetDetailLines(ctx.label));
                                 }
                             }
