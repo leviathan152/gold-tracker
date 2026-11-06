@@ -1,7 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <script>
+        try {
+            if (localStorage.getItem('WV20_MODE') === 'light') document.documentElement.dataset.theme = 'light';
+        } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>資產管理</title>
     <meta name="theme-color" content="#070b18">
@@ -2877,14 +2882,214 @@
         .formula-pop {
             position: fixed;
             z-index: 130;
-            width: min(22.5rem, calc(100vw - 24px));
-            padding: 0.85rem 0.95rem 0.95rem;
+            width: min(26rem, calc(100vw - 24px));
+            max-height: min(72vh, 40rem);
+            display: flex;
+            flex-direction: column;
+            padding: 0.85rem 0.85rem 0.7rem;
             border-radius: 16px;
-            background: rgba(14, 22, 46, 0.97);
+            background: #121a33;
             border: 1px solid rgba(255, 210, 122, 0.32);
             box-shadow: 0 22px 50px rgba(2, 6, 20, 0.58);
             color: #e8eefc;
         }
+        .formula-pop.hidden { display: none; }
+        .formula-sheet-body {
+            overflow: auto;
+            margin-top: 0.55rem;
+            padding-right: 0.15rem;
+        }
+        .formula-item + .formula-item {
+            margin-top: 0.85rem;
+            padding-top: 0.85rem;
+            border-top: 1px solid rgba(140, 170, 255, 0.16);
+        }
+        .formula-item h4 {
+            margin: 0;
+            font-size: 0.84rem;
+            font-weight: 750;
+            color: #ffd27a;
+        }
+        .header-formula {
+            width: 2.35rem;
+            padding: 0;
+            color: #ffd27a;
+            background: rgba(255, 196, 84, 0.16);
+            border: 1px solid rgba(255, 210, 122, 0.38);
+            box-shadow: none;
+        }
+        .header-formula:hover,
+        .header-formula.is-on {
+            background: rgba(255, 196, 84, 0.32);
+            color: #fff6dc;
+        }
+        .theme-switch { margin-bottom: 0.85rem; }
+        html[data-theme="dark"] .settings-fold {
+            background: #f7f8fc;
+        }
+        html[data-theme="dark"] .settings-fold[open] {
+            background: #ffffff;
+        }
+        html[data-theme="dark"] .settings-fold .text-muted,
+        html[data-theme="dark"] .settings-fold .stat-label,
+        html[data-theme="dark"] .settings-fold-title .d,
+        html[data-theme="dark"] .settings-fold-body,
+        html[data-theme="dark"] .setting-switch-label,
+        html[data-theme="dark"] .setting-switch-state {
+            color: #1c2838 !important;
+        }
+        html[data-theme="dark"] .settings-fold-title .c-stock { color: #1d4ed8 !important; }
+        html[data-theme="dark"] .settings-fold-title .c-sage { color: #0f766e !important; }
+        html[data-theme="dark"] .settings-fold-title .c-gold { color: #b45309 !important; }
+        html[data-theme="dark"] .settings-fold p .c-stock { color: #1d4ed8 !important; }
+        html[data-theme="dark"] .setting-switch:has(input:checked) .setting-switch-label {
+            color: #047857 !important;
+        }
+        html[data-theme="dark"] .kpi-k,
+        html[data-theme="dark"] .kpi-s,
+        html[data-theme="dark"] .panel-sub,
+        html[data-theme="dark"] .meter-list span,
+        html[data-theme="dark"] #view-overview .alloc-center-sub {
+            color: #d7e3fb;
+        }
+        html[data-theme="light"] {
+            --ink: #1c2433;
+            --ink-soft: #2a364c;
+            --muted: #3d4d68;
+            --faint: #5c6b84;
+            --paper: rgba(255, 255, 255, 0.94);
+            --paper-strong: #ffffff;
+            --line: rgba(28, 36, 51, 0.1);
+            --line-strong: rgba(28, 36, 51, 0.18);
+            --stock: #1d4ed8;
+            --stock-deep: #1e3a8a;
+            --stock-soft: rgba(29, 78, 216, 0.08);
+            --gold: #b45309;
+            --gold-deep: #92400e;
+            --gold-soft: rgba(180, 83, 9, 0.1);
+            --sage: #047857;
+            --sage-deep: #065f46;
+            --sage-soft: rgba(4, 120, 87, 0.1);
+            --sell: #1d4ed8;
+            --sell-deep: #1e3a8a;
+            --gain: #e11d48;
+            --drop: #059669;
+            --loss: #e11d48;
+            --shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+            --body-base: linear-gradient(180deg, #f3f6fb 0%, #e7eef8 100%);
+            --orb: rgba(90, 120, 255, 0.16);
+            color-scheme: light;
+        }
+        html[data-theme="light"] body { background: var(--body-base); color: var(--ink); }
+        html[data-theme="light"] .card,
+        html[data-theme="light"] .card:hover,
+        html[data-theme="light"] .stat-card.stock,
+        html[data-theme="light"] .stat-card.gold,
+        html[data-theme="light"] .stat-card.coll,
+        html[data-theme="light"] .stat-card.overview,
+        html[data-theme="light"] .kpi-card {
+            background: #ffffff;
+            border-color: rgba(28, 36, 51, 0.08);
+            box-shadow: var(--shadow);
+            color: var(--ink);
+        }
+        html[data-theme="light"] .app-sidebar {
+            background: #ffffff;
+            border-right: 1px solid rgba(28, 36, 51, 0.08);
+            box-shadow: none;
+        }
+        html[data-theme="light"] .sidebar-kicker { color: #5c6b84; }
+        html[data-theme="light"] .app-nav-btn { color: #2a364c; }
+        html[data-theme="light"] .app-nav-btn:hover { background: rgba(29, 78, 216, 0.06); color: #1c2433; }
+        html[data-theme="light"] .app-nav-btn.is-on {
+            background: rgba(29, 78, 216, 0.1);
+            color: #1d4ed8;
+            box-shadow: none;
+        }
+        html[data-theme="light"] .status-meter b { background: rgba(28, 36, 51, 0.08); }
+        html[data-theme="light"] .header-actions { background: transparent; }
+        html[data-theme="light"] .btn-surface,
+        html[data-theme="light"] .btn-ghost,
+        html[data-theme="light"] .sidebar-toggle,
+        html[data-theme="light"] .sub-off,
+        html[data-theme="light"] .trend-split {
+            background: #ffffff;
+            border: 1px solid rgba(28, 36, 51, 0.12);
+            color: #1c2433;
+        }
+        html[data-theme="light"] .btn-surface:hover,
+        html[data-theme="light"] .btn-ghost:hover { background: #f3f6fb; }
+        html[data-theme="light"] .header-formula {
+            background: #fff6e4;
+            color: #b45309;
+            border-color: rgba(180, 83, 9, 0.28);
+        }
+        html[data-theme="light"] input,
+        html[data-theme="light"] select,
+        html[data-theme="light"] textarea,
+        html[data-theme="light"] .code-pick-btn,
+        html[data-theme="light"] .date-pick-btn {
+            background: #ffffff !important;
+            border-color: rgba(28, 36, 51, 0.14) !important;
+            color: #1c2433 !important;
+        }
+        html[data-theme="light"] select option { background: #fff; color: #1c2433; }
+        html[data-theme="light"] .code-pick-menu,
+        html[data-theme="light"] #date-pick-pop,
+        html[data-theme="light"] .date-pick-pop {
+            background: #fff;
+            color: #1c2433;
+            border-color: rgba(28, 36, 51, 0.12);
+        }
+        html[data-theme="light"] .thead-bar,
+        html[data-theme="light"] .table-scroll thead.thead-bar th,
+        html[data-theme="light"] .table-scroll .div-table thead th,
+        html[data-theme="light"] .div-table thead th {
+            background: #f4f7fb;
+            color: #3d4d68;
+        }
+        html[data-theme="light"] .row-hover:hover { background: rgba(29, 78, 216, 0.05); }
+        html[data-theme="light"] .kpi-k,
+        html[data-theme="light"] .kpi-s,
+        html[data-theme="light"] .panel-sub,
+        html[data-theme="light"] .meter-list span,
+        html[data-theme="light"] #view-overview .alloc-center-sub,
+        html[data-theme="light"] .trend-legend button { color: #3d4d68; }
+        html[data-theme="light"] .kpi-v,
+        html[data-theme="light"] .meter-list b,
+        html[data-theme="light"] .alloc-center-value { color: #1c2433; }
+        html[data-theme="light"] .panel-soft,
+        html[data-theme="light"] .greet-row,
+        html[data-theme="light"] .price-row,
+        html[data-theme="light"] .rebalance-card {
+            background: #f7f9fc;
+            border-color: rgba(28, 36, 51, 0.08);
+        }
+        html[data-theme="light"] .settings-fold { background: #f7f8fc; }
+        html[data-theme="light"] .settings-fold[open] { background: #fff; }
+        html[data-theme="light"] .setting-switch {
+            background: #fff;
+            border-color: rgba(28, 36, 51, 0.1);
+        }
+        html[data-theme="light"] .formula-pop {
+            background: #ffffff;
+            color: #1c2433;
+            border-color: rgba(180, 83, 9, 0.28);
+            box-shadow: 0 22px 50px rgba(15, 23, 42, 0.16);
+        }
+        html[data-theme="light"] .formula-item h4,
+        html[data-theme="light"] .formula-pop-title { color: #b45309; }
+        html[data-theme="light"] .formula-pop-eq {
+            background: #fff6e4;
+            color: #1c2433;
+        }
+        html[data-theme="light"] .formula-pop-body p,
+        html[data-theme="light"] .formula-item p { color: #2a364c; }
+        html[data-theme="light"] .formula-pop-body strong,
+        html[data-theme="light"] .formula-item strong { color: #1c2433; }
+        html[data-theme="light"] .formula-pop-x { color: #5c6b84; }
+        html[data-theme="light"] .formula-item + .formula-item { border-top-color: rgba(28, 36, 51, 0.1); }
+        html[data-theme="light"] .modal-overlay-safe { background: rgba(15, 23, 42, 0.35); }
         .formula-pop.hidden { display: none; }
         .formula-pop-head {
             display: flex;
@@ -3153,6 +3358,9 @@
             </div>
             <div class="header-actions">
                 <input type="file" id="import-file" onchange="importData(event)" accept=".json,.JSON,.txt,.jason,application/json,text/plain">
+                <button type="button" id="formula-open" class="header-btn header-formula" aria-label="計算說明" title="計算說明">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.2a6 6 0 1 1 7.6 0c-.5.5-.8 1.1-.8 1.8V17H9v-1c0-.7-.3-1.3-.8-1.8z"/></svg>
+                </button>
                 <button type="button" onclick="fetchAllPrices()" class="header-btn is-primary">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.2-5.8"/><path d="M21 4v6h-6"/></svg>
                     刷新
@@ -3164,23 +3372,23 @@
         <section class="ov-kpis" aria-label="關鍵指標">
             <article class="kpi-card">
                 <div class="kpi-copy">
-                    <div class="kpi-k">總資產現值 <button type="button" class="formula-bulb" data-formula="worth" aria-label="總資產現值怎麼算"></button></div>
+                    <div class="kpi-k">總資產現值</div>
                     <div id="total-all-worth" class="kpi-v">--</div>
-                    <div class="kpi-s">累計股利 <button type="button" class="formula-bulb" data-formula="dividend" aria-label="累計股利怎麼算"></button> <span id="total-all-dividend">--</span></div>
+                    <div class="kpi-s">累計股利 <span id="total-all-dividend">--</span></div>
                 </div>
                 <div class="kpi-orb is-blue" id="kpi-orb-worth" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
-                    <div class="kpi-k">總投入成本 <button type="button" class="formula-bulb" data-formula="total-cost" aria-label="總投入成本怎麼算"></button></div>
+                    <div class="kpi-k">總投入成本</div>
                     <div id="total-all-cost" class="kpi-v">--</div>
-                    <div class="kpi-s">總報酬率 <button type="button" class="formula-bulb" data-formula="total-perf" aria-label="總報酬率怎麼算"></button> <span id="total-all-perf">--</span></div>
+                    <div class="kpi-s">總報酬率 <span id="total-all-perf">--</span></div>
                 </div>
                 <div class="kpi-orb is-mint" id="kpi-orb-cost" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
-                    <div class="kpi-k" title="現值 − 目前持倉成本">未實現損益 <button type="button" class="formula-bulb" data-formula="unreal" aria-label="未實現損益怎麼算"></button></div>
+                    <div class="kpi-k" title="現值 − 目前持倉成本">未實現損益</div>
                     <div id="total-unreal" class="kpi-v">--</div>
                     <div class="kpi-s">現值相對持倉成本</div>
                 </div>
@@ -3188,7 +3396,7 @@
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
-                    <div class="kpi-k" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率 <button type="button" class="formula-bulb" data-formula="xirr" aria-label="年化報酬率怎麼算"></button></div>
+                    <div class="kpi-k" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</div>
                     <div id="total-xirr" class="kpi-v c-sage">--</div>
                     <div class="kpi-s">依實際現金流折算</div>
                 </div>
@@ -3199,7 +3407,7 @@
             <div class="card">
                 <div class="chart-panel-head">
                     <div>
-                        <h3 class="stat-label flex items-center gap-2 mb-0"><span class="live-dot"></span> <span data-i18n="chart.trend">資產成長趨勢</span> <button type="button" class="formula-bulb" data-formula="trend" aria-label="趨勢圖怎麼算"></button></h3>
+                        <h3 class="stat-label flex items-center gap-2 mb-0"><span class="live-dot"></span> <span data-i18n="chart.trend">資產成長趨勢</span></h3>
                         <p class="panel-sub">游標查看當日淨值</p>
                     </div>
                     <div id="trend-split" class="trend-split hidden" role="group" aria-label="股票曲線範圍">
@@ -3218,7 +3426,7 @@
             <div class="card alloc-panel">
                 <div class="alloc-panel-head">
                     <div>
-                        <h3 class="stat-label mb-0 formula-lab"><span data-i18n="chart.alloc">資產配置</span> <button type="button" class="formula-bulb" data-formula="alloc" aria-label="資產配置怎麼算"></button></h3>
+                        <h3 class="stat-label mb-0 formula-lab"><span data-i18n="chart.alloc">資產配置</span></h3>
                         <p class="panel-sub" id="alloc-sub">游標移到圓環可看明細，點股票可看各股占比</p>
                     </div>
                     <div class="alloc-head-side">
@@ -3253,13 +3461,13 @@
                     <button type="button" class="stat-close" onclick="resetAllocCenter()">收合</button>
                 </div>
                 <div class="meter-list">
-                    <div><span>資產現值 <button type="button" class="formula-bulb" data-formula="stock-worth" aria-label="股票現值怎麼算"></button></span><b id="stock-worth">--</b></div>
-                    <div><span title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本 <button type="button" class="formula-bulb" data-formula="stock-cost" aria-label="持倉淨成本怎麼算"></button></span><b id="stock-total-cost">--</b></div>
-                    <div><span title="現值 − 持倉淨成本">未實現損益 <button type="button" class="formula-bulb" data-formula="stock-unreal" aria-label="股票未實現怎麼算"></button></span><b id="stock-unreal">--</b></div>
-                    <div><span title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率 <button type="button" class="formula-bulb" data-formula="stock-perf" aria-label="股票總報酬率怎麼算"></button></span><b id="stock-perf">--</b></div>
-                    <div><span title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率 <button type="button" class="formula-bulb" data-formula="stock-xirr" aria-label="股票年化怎麼算"></button></span><b id="stock-xirr" class="c-stock">--</b></div>
-                    <div><span>總股數 <button type="button" class="formula-bulb" data-formula="stock-shares" aria-label="總股數怎麼算"></button></span><b id="stock-total-shares" class="c-stock">--</b></div>
-                    <div><span>已實現損益 <button type="button" class="formula-bulb" data-formula="stock-realized" aria-label="股票已實現怎麼算"></button></span><b id="stock-realized" class="c-sell">--</b></div>
+                    <div><span>資產現值</span><b id="stock-worth">--</b></div>
+                    <div><span title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><b id="stock-total-cost">--</b></div>
+                    <div><span title="現值 − 持倉淨成本">未實現損益</span><b id="stock-unreal">--</b></div>
+                    <div><span title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><b id="stock-perf">--</b></div>
+                    <div><span title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><b id="stock-xirr" class="c-stock">--</b></div>
+                    <div><span>總股數</span><b id="stock-total-shares" class="c-stock">--</b></div>
+                    <div><span>已實現損益</span><b id="stock-realized" class="c-sell">--</b></div>
                 </div>
             </div>
             <div class="card stat-card gold">
@@ -3268,13 +3476,13 @@
                     <button type="button" class="stat-close" onclick="resetAllocCenter()">收合</button>
                 </div>
                 <div class="meter-list">
-                    <div><span>資產現值 <button type="button" class="formula-bulb" data-formula="gold-worth" aria-label="黃金現值怎麼算"></button></span><b id="gold-worth">--</b></div>
-                    <div><span>總投入成本 <button type="button" class="formula-bulb" data-formula="gold-cost" aria-label="黃金總投入怎麼算"></button></span><b id="gold-total-cost">--</b></div>
-                    <div><span title="現值 − 目前持倉成本">未實現損益 <button type="button" class="formula-bulb" data-formula="gold-unreal" aria-label="黃金未實現怎麼算"></button></span><b id="gold-unreal">--</b></div>
-                    <div><span title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率 <button type="button" class="formula-bulb" data-formula="gold-perf" aria-label="黃金總報酬率怎麼算"></button></span><b id="gold-perf">--</b></div>
-                    <div><span title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢 <button type="button" class="formula-bulb" data-formula="gold-price" aria-label="金價怎麼換算"></button></span><b id="gold-price-unit" class="c-gold">--</b></div>
-                    <div><span>總持倉重量 <button type="button" class="formula-bulb" data-formula="gold-weight" aria-label="總重量怎麼算"></button></span><b id="gold-total-weight" class="c-gold">--</b></div>
-                    <div><span>已實現損益 <button type="button" class="formula-bulb" data-formula="gold-realized" aria-label="黃金已實現怎麼算"></button></span><b id="gold-realized" class="c-sell">--</b></div>
+                    <div><span>資產現值</span><b id="gold-worth">--</b></div>
+                    <div><span>總投入成本</span><b id="gold-total-cost">--</b></div>
+                    <div><span title="現值 − 目前持倉成本">未實現損益</span><b id="gold-unreal">--</b></div>
+                    <div><span title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><b id="gold-perf">--</b></div>
+                    <div><span title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢</span><b id="gold-price-unit" class="c-gold">--</b></div>
+                    <div><span>總持倉重量</span><b id="gold-total-weight" class="c-gold">--</b></div>
+                    <div><span>已實現損益</span><b id="gold-realized" class="c-sell">--</b></div>
                 </div>
             </div>
         </section>
@@ -3315,7 +3523,7 @@
                     <input type="number" id="goal-price" min="0" step="0.01" placeholder="NT$" oninput="onGoalPriceInput()">
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="stat-label text-[10px] formula-lab" for="goal-dps">每股年配息 <button type="button" class="formula-bulb" data-formula="goal-dps" aria-label="每股年配息怎麼估"></button></label>
+                    <label class="stat-label text-[10px] formula-lab" for="goal-dps">每股年配息</label>
                     <input type="number" id="goal-dps" min="0" step="0.0001" placeholder="殖利率 × 現價" title="依完整配息年平均殖利率 × 現價自動帶入，可改" oninput="onGoalDpsInput()">
                     <span id="goal-dps-hint" class="text-[10px] text-muted"></span>
                 </div>
@@ -3328,33 +3536,33 @@
             <div id="goal-body" class="hidden">
                 <div class="goal-result mb-4">
                     <div>
-                        <div class="stat-label text-[10px] mb-1 formula-lab">需存股數 <button type="button" class="formula-bulb" data-formula="goal-shares" aria-label="需存股數怎麼算"></button></div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">需存股數</div>
                         <div id="goal-need-shares" class="text-xl font-bold c-stock">--</div>
                         <div id="goal-need-lot" class="text-xs text-muted mt-1">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1 formula-lab">預估本金 <button type="button" class="formula-bulb" data-formula="goal-cap" aria-label="預估本金怎麼算"></button></div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">預估本金</div>
                         <div id="goal-need-capital" class="text-xl font-bold c-stock">--</div>
                         <div id="goal-need-capital-sub" class="text-xs text-muted mt-1">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1 formula-lab">預計完成時間 <button type="button" class="formula-bulb" data-formula="goal-eta" aria-label="完成時間怎麼算"></button></div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">預計完成時間</div>
                         <div id="goal-eta" class="text-xl font-bold">--</div>
                         <div id="goal-eta-date" class="text-xs text-muted mt-1">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1 formula-lab">還差月領 <button type="button" class="formula-bulb" data-formula="goal-remain" aria-label="還差月領怎麼算"></button></div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">還差月領</div>
                         <div id="goal-remain-div" class="text-xl font-bold">--</div>
                         <div id="goal-remain" class="text-xs text-muted mt-1">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1 formula-lab">目前每月股息 <button type="button" class="formula-bulb" data-formula="goal-now" aria-label="目前每月股息怎麼算"></button></div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">目前每月股息</div>
                         <div id="goal-now-div" class="text-xl font-bold">--</div>
                         <div id="goal-mode-lab" class="text-xs text-muted mt-1">--</div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <div class="flex justify-between text-[11px] text-muted mb-1"><span class="formula-lab">月領進度 <button type="button" class="formula-bulb" data-formula="goal-progress" aria-label="月領進度怎麼算"></button></span><span id="goal-progress-lab">--</span></div>
+                    <div class="flex justify-between text-[11px] text-muted mb-1"><span class="formula-lab">月領進度</span><span id="goal-progress-lab">--</span></div>
                     <div class="peer-bar"><div id="goal-progress-bar" class="peer-bar-fill is-you" style="width:0%"></div></div>
                 </div>
                 <div class="stat-label text-[10px] mb-1">月領時間曲線</div>
@@ -3385,15 +3593,15 @@
             <div id="peer-compare-body" class="hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
                     <div>
-                        <div class="stat-label text-[10px] mb-1 formula-lab">你的資產（含自填存款） <button type="button" class="formula-bulb" data-formula="peer-you" aria-label="你的資產怎麼算"></button></div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">你的資產（含自填存款）</div>
                         <div id="peer-you" class="text-xl font-bold c-stock">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1 formula-lab">同齡推估累積儲蓄 <button type="button" class="formula-bulb" data-formula="peer-base" aria-label="同齡基準怎麼算"></button></div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">同齡推估累積儲蓄</div>
                         <div id="peer-base" class="text-xl font-bold">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1 formula-lab">相對基準 <button type="button" class="formula-bulb" data-formula="peer-ratio" aria-label="相對基準怎麼算"></button></div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">相對基準</div>
                         <div id="peer-ratio" class="text-xl font-bold">--</div>
                         <div id="peer-gap" class="text-xs text-muted mt-1">--</div>
                     </div>
@@ -3472,7 +3680,7 @@
                 <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[820px]">
                     <thead class="thead-bar font-bold">
-                        <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5">類型</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">成交單價</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">股利</th><th class="p-5 text-right">市場現值 <button type="button" class="formula-bulb" data-formula="stock-row" aria-label="市場現值怎麼算"></button></th><th class="p-5 text-center">管理</th></tr>
+                        <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5">類型</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">成交單價</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">股利</th><th class="p-5 text-right">市場現值</th><th class="p-5 text-center">管理</th></tr>
                     </thead>
                     <tbody id="stock-list" class="divide-y"></tbody>
                 </table>
@@ -3510,7 +3718,7 @@
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="thead-bar font-bold">
-                            <tr><th class="p-4">賣出日</th><th class="p-4">標的</th><th class="p-4 text-right">數量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利 <button type="button" class="formula-bulb" data-formula="sell-profit" aria-label="賣出獲利怎麼算"></button></th><th class="p-4 text-right">報酬率 <button type="button" class="formula-bulb" data-formula="sell-rate" aria-label="賣出報酬率怎麼算"></button></th><th class="p-4 text-center">管理</th></tr>
+                            <tr><th class="p-4">賣出日</th><th class="p-4">標的</th><th class="p-4 text-right">數量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
                         </thead>
                         <tbody id="stock-sell-list" class="divide-y"></tbody>
                     </table>
@@ -3522,7 +3730,7 @@
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[900px]">
                         <thead class="thead-bar font-bold">
-                            <tr><th class="p-4">標的</th><th class="p-4 text-center">近況</th><th class="p-4 text-right">股數</th><th class="p-4 text-right">淨成本</th><th class="p-4 text-right">累計股利</th><th class="p-4 text-right">現值</th><th class="p-4 text-right">已實現</th><th class="p-4 text-right">報酬率 <button type="button" class="formula-bulb" data-formula="sum-perf" aria-label="彙總報酬率怎麼算"></button></th></tr>
+                            <tr><th class="p-4">標的</th><th class="p-4 text-center">近況</th><th class="p-4 text-right">股數</th><th class="p-4 text-right">淨成本</th><th class="p-4 text-right">累計股利</th><th class="p-4 text-right">現值</th><th class="p-4 text-right">已實現</th><th class="p-4 text-right">報酬率</th></tr>
                         </thead>
                         <tbody id="stock-sum-list" class="divide-y"></tbody>
                     </table>
@@ -3549,7 +3757,7 @@
                 <div class="card mb-4">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                         <div>
-                            <h3 class="stat-label c-sage mb-1 formula-lab">持倉當期可領股息 <button type="button" class="formula-bulb" data-formula="div-expect" aria-label="當期股息怎麼算"></button></h3>
+                            <h3 class="stat-label c-sage mb-1 formula-lab">持倉當期可領股息</h3>
                             <p class="text-[10px] text-muted">依目前持有股數 × 當期現金股利估算（即將除息／待發放優先）</p>
                         </div>
                         <button type="button" id="div-expect-btn" onclick="calcHoldingPeriodDividends()" class="btn-surface px-5 py-2.5 rounded-xl text-xs font-bold c-sage shrink-0">計算當期股息</button>
@@ -3592,7 +3800,7 @@
                                 <th class="p-2 text-right">除息前股價</th>
                                 <th class="p-2 text-right">填息天數</th>
                                 <th class="p-2 text-right">年股利</th>
-                                <th class="p-2 text-right">年殖利率(%) <button type="button" class="formula-bulb" data-formula="div-yield" aria-label="年殖利率怎麼算"></button></th>
+                                <th class="p-2 text-right">年殖利率(%)</th>
                                 <th class="p-2 text-right">股利</th>
                                 <th class="p-2">除權日</th>
                                 <th class="p-2 text-right">除權前股價</th>
@@ -3641,8 +3849,8 @@
                             <th class="p-5 text-right">重量</th>
                             <th class="p-5 text-right">購入成本</th>
                             <th class="p-5 text-right" title="購買當日每公克金價（新台幣）">購入金價</th>
-                            <th class="p-5 text-right" title="購入成本 −（公克數 × 購入金價）">工費 <button type="button" class="formula-bulb" data-formula="gold-labor" aria-label="工費怎麼算"></button></th>
-                            <th class="p-5 text-right">預估現值 <button type="button" class="formula-bulb" data-formula="gold-row" aria-label="黃金現值怎麼算"></button></th>
+                            <th class="p-5 text-right" title="購入成本 −（公克數 × 購入金價）">工費</th>
+                            <th class="p-5 text-right">預估現值</th>
                             <th class="p-5 text-center">管理</th>
                         </tr>
                     </thead>
@@ -3674,7 +3882,7 @@
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="thead-bar font-bold">
-                            <tr><th class="p-4">賣出日</th><th class="p-4">備註</th><th class="p-4 text-right">重量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利 <button type="button" class="formula-bulb" data-formula="sell-profit" aria-label="賣出獲利怎麼算"></button></th><th class="p-4 text-right">報酬率 <button type="button" class="formula-bulb" data-formula="sell-rate" aria-label="賣出報酬率怎麼算"></button></th><th class="p-4 text-center">管理</th></tr>
+                            <tr><th class="p-4">賣出日</th><th class="p-4">備註</th><th class="p-4 text-right">重量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
                         </thead>
                         <tbody id="gold-sell-list" class="divide-y"></tbody>
                     </table>
@@ -3697,6 +3905,12 @@
             </div>
 
             <div class="settings-accordion">
+                <label class="setting-switch theme-switch">
+                    <input type="checkbox" id="theme-toggle" checked onchange="saveAppearance()">
+                    <span class="setting-switch-ui" aria-hidden="true"></span>
+                    <span class="setting-switch-label">深色模式</span>
+                    <span class="setting-switch-state" id="theme-toggle-state">深色</span>
+                </label>
                 <details class="settings-fold" open>
                     <summary>
                         <div class="settings-fold-title">
@@ -3950,13 +4164,12 @@
         </div>
     </div>
 
-    <div id="formula-pop" class="formula-pop hidden" role="dialog" aria-modal="false" aria-labelledby="formula-pop-title">
+        <div id="formula-pop" class="formula-pop hidden" role="dialog" aria-modal="false" aria-labelledby="formula-pop-title">
         <div class="formula-pop-head">
-            <div id="formula-pop-title" class="formula-pop-title"></div>
+            <div id="formula-pop-title" class="formula-pop-title">計算說明</div>
             <button type="button" class="formula-pop-x" id="formula-pop-close" aria-label="關閉">×</button>
         </div>
-        <div id="formula-pop-eq" class="formula-pop-eq"></div>
-        <div id="formula-pop-body" class="formula-pop-body"></div>
+        <div id="formula-pop-body" class="formula-pop-body formula-sheet-body"></div>
     </div>
 
     <script>
@@ -6077,22 +6290,22 @@
                     scales: {
                         x: {
                             offset: true,
-                            ticks: { maxTicksLimit: 8, color: '#8ea0c4', font: { size: 10 } },
+                            ticks: { maxTicksLimit: 8, color: chartInk(), font: { size: 10 } },
                             grid: { color: 'rgba(150, 180, 255, 0.1)' }
                         },
                         y: {
                             position: 'left',
                             beginAtZero: true,
-                            title: { display: true, text: '每月股息', color: '#8ea0c4', font: { size: 10 } },
-                            ticks: { color: '#8ea0c4', font: { size: 10 }, callback: fmtAxisMoney },
+                            title: { display: true, text: '每月股息', color: chartInk(), font: { size: 10 } },
+                            ticks: { color: chartInk(), font: { size: 10 }, callback: fmtAxisMoney },
                             grid: { color: 'rgba(150, 180, 255, 0.1)' }
                         },
                         y1: {
                             position: 'right',
                             beginAtZero: true,
-                            title: { display: true, text: '持股（股）', color: '#8ea0c4', font: { size: 10 } },
+                            title: { display: true, text: '持股（股）', color: chartInk(), font: { size: 10 } },
                             ticks: {
-                                color: '#8ea0c4',
+                                color: chartInk(),
                                 font: { size: 10 },
                                 callback: (v) => isPrivacyMode ? '****' : Math.round(Number(v) || 0).toLocaleString('zh-TW')
                             },
@@ -7001,6 +7214,7 @@
         function renderCharts(gV, sV, cV, inc) {
             const sig = JSON.stringify({
                 gV, sV, cV, inc, p: !!isPrivacyMode,
+                theme: document.documentElement.dataset.theme,
                 gold: curGoldUSD, rate: rateUSD, px: marketPrices,
                 split: trendStockView,
                 alloc: allocStockView,
@@ -7015,7 +7229,7 @@
             lastChartArgs = { gV, sV, cV, inc };
             lastChartSig = sig;
             const chartMotion = (allocChartObj && trendChartObj) ? 0 : 280;
-            Chart.defaults.color = '#8ea0c4';
+            Chart.defaults.color = chartInk();
             Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans TC', sans-serif";
             const chartTooltipTheme = {
                 enabled: false,
@@ -7381,7 +7595,7 @@
                     scales: {
                         x: {
                             ticks: {
-                                color: '#8ea0c4',
+                                color: chartInk(),
                                 maxTicksLimit: 7,
                                 font: { size: 10 },
                                 callback: (v, i) => fmtTickDate(labels[i])
@@ -7391,7 +7605,7 @@
                         },
                         y: {
                             ticks: {
-                                color: '#8ea0c4',
+                                color: chartInk(),
                                 maxTicksLimit: 6,
                                 font: { size: 10 },
                                 callback: (v) => {
@@ -8850,8 +9064,11 @@
                 body: '<p>只平均有除息前價的那些期。股票股利不計入現金。填息天數是除息後股價第一次回到除息前價的交易日數，最多看 250 天。</p>'
             }
         };
-        const FORMULA_BULB_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.2a6 6 0 1 1 7.6 0c-.5.5-.8 1.1-.8 1.8V17H9v-1c0-.7-.3-1.3-.8-1.8z"/></svg>';
+        const FORMULA_BULB_SVG = '';
         let formulaAnchor = null;
+        function chartInk() {
+            return document.documentElement.dataset.theme === 'light' ? '#3d4d68' : '#d7e3fb';
+        }
         function closeFormula() {
             const pop = document.getElementById('formula-pop');
             if (pop) pop.classList.add('hidden');
@@ -8864,7 +9081,7 @@
             const r = btn.getBoundingClientRect();
             const w = pop.offsetWidth;
             const h = pop.offsetHeight;
-            let left = r.left;
+            let left = r.right - w;
             let top = r.bottom + 8;
             if (left + w > window.innerWidth - 12) left = window.innerWidth - w - 12;
             if (left < 12) left = 12;
@@ -8872,10 +9089,17 @@
             pop.style.left = left + 'px';
             pop.style.top = top + 'px';
         }
+        function renderFormulaSheet() {
+            const body = document.getElementById('formula-pop-body');
+            if (!body) return;
+            body.innerHTML = Object.keys(FORMULAS).map((id) => {
+                const spec = FORMULAS[id];
+                return '<section class="formula-item"><h4>' + escapeHtml(spec.title) + '</h4><div class="formula-pop-eq">' + escapeHtml(spec.eq) + '</div>' + spec.body + '</section>';
+            }).join('');
+        }
         function openFormula(btn) {
-            const spec = FORMULAS[btn.getAttribute('data-formula')];
             const pop = document.getElementById('formula-pop');
-            if (!spec || !pop) return;
+            if (!pop || !btn) return;
             if (formulaAnchor === btn && !pop.classList.contains('hidden')) {
                 closeFormula();
                 return;
@@ -8883,22 +9107,12 @@
             if (formulaAnchor) formulaAnchor.classList.remove('is-on');
             formulaAnchor = btn;
             btn.classList.add('is-on');
-            document.getElementById('formula-pop-title').textContent = spec.title;
-            document.getElementById('formula-pop-eq').textContent = spec.eq;
-            document.getElementById('formula-pop-body').innerHTML = spec.body;
+            renderFormulaSheet();
             pop.classList.remove('hidden');
             placeFormula(btn);
         }
-        function initFormulaTips() {
-            document.querySelectorAll('.formula-bulb').forEach((btn) => {
-                if (!btn.dataset.ready) {
-                    btn.innerHTML = FORMULA_BULB_SVG;
-                    btn.dataset.ready = '1';
-                }
-            });
-        }
         document.addEventListener('click', (e) => {
-            const btn = e.target.closest && e.target.closest('.formula-bulb');
+            const btn = e.target.closest && e.target.closest('#formula-open');
             if (btn) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -8915,7 +9129,26 @@
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFormula(); });
         window.addEventListener('resize', () => { if (formulaAnchor) placeFormula(formulaAnchor); });
         window.addEventListener('scroll', () => { if (formulaAnchor) placeFormula(formulaAnchor); }, true);
-        initFormulaTips();
+        function applyAppearance(mode, persist) {
+            const dark = mode !== 'light';
+            document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', dark ? '#070b18' : '#f4f7fb');
+            const input = document.getElementById('theme-toggle');
+            const state = document.getElementById('theme-toggle-state');
+            if (input) input.checked = dark;
+            if (state) state.textContent = dark ? '深色' : '淺色';
+            if (persist !== false) {
+                try { localStorage.setItem('WV20_MODE', dark ? 'dark' : 'light'); } catch (e) {}
+            }
+            if (typeof lastChartSig !== 'undefined') lastChartSig = '';
+            if (typeof updateUI === 'function') updateUI();
+        }
+        function saveAppearance() {
+            const input = document.getElementById('theme-toggle');
+            applyAppearance(input && input.checked ? 'dark' : 'light');
+        }
+        applyAppearance(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark', false);
         syncIncludeToUI();
         syncAllocToUI();
         syncAssetToUI();
