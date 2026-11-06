@@ -2689,51 +2689,34 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .kpi-orb,
-        .kpi-mark { flex: none; width: 52px; height: 52px; }
-        .kpi-orb svg,
-        .kpi-mark svg { width: 52px; height: 52px; display: block; }
-        .kpi-orb svg { transform: rotate(-90deg); }
-        .kpi-orb .disc,
-        .kpi-mark .disc { stroke: none; }
-        .kpi-orb.is-blue .disc { fill: rgba(122, 162, 255, 0.1); }
-        .kpi-orb.is-mint .disc { fill: rgba(62, 224, 176, 0.1); }
-        .kpi-orb .track,
-        .kpi-mark .track { fill: none; stroke: rgba(140, 170, 255, 0.16); stroke-width: 3.2; }
-        .kpi-orb .val {
+        .kpi-badge { flex: none; width: 46px; height: 46px; }
+        .kpi-badge svg { width: 46px; height: 46px; display: block; }
+        .kpi-badge .disc { stroke: none; }
+        .kpi-badge .glyph {
             fill: none;
-            stroke-width: 3.4;
-            stroke-linecap: round;
-            stroke-dasharray: calc(var(--p) * 0.8796) 87.96;
-            transition: stroke-dasharray 0.45s ease;
-        }
-        .kpi-orb.is-blue .val { stroke: #7aa2ff; filter: drop-shadow(0 0 4px rgba(122, 162, 255, 0.7)); }
-        .kpi-orb.is-mint .val { stroke: #3ee0b0; filter: drop-shadow(0 0 4px rgba(62, 224, 176, 0.6)); }
-        .kpi-mark .glyph {
-            fill: none;
-            stroke-width: 1.85;
+            stroke-width: 1.7;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-        .kpi-mark .dir-down,
-        .kpi-mark .dir-flat { display: none; }
-        .kpi-mark.is-drop .dir-up { display: none; }
-        .kpi-mark.is-drop .dir-down { display: block; }
-        .kpi-mark.is-flat .dir-up,
-        .kpi-mark.is-flat .dir-down { display: none; }
-        .kpi-mark.is-flat .dir-flat { display: block; }
-        .kpi-mark.is-rose .disc { fill: rgba(255, 93, 115, 0.12); }
-        .kpi-mark.is-rose .track { stroke: rgba(255, 93, 115, 0.34); }
-        .kpi-mark.is-rose .glyph { stroke: #ff7d92; filter: drop-shadow(0 0 3px rgba(255, 93, 115, 0.8)); }
-        .kpi-mark.is-drop .disc { fill: rgba(62, 224, 176, 0.12); }
-        .kpi-mark.is-drop .track { stroke: rgba(62, 224, 176, 0.34); }
-        .kpi-mark.is-drop .glyph { stroke: #3ee0b0; filter: drop-shadow(0 0 3px rgba(62, 224, 176, 0.7)); }
-        .kpi-mark.is-flat .disc { fill: rgba(140, 170, 255, 0.08); }
-        .kpi-mark.is-flat .track { stroke: rgba(140, 170, 255, 0.24); }
-        .kpi-mark.is-flat .glyph { stroke: #9aafd4; }
-        .kpi-mark.is-violet .disc { fill: rgba(176, 107, 255, 0.14); }
-        .kpi-mark.is-violet .track { stroke: rgba(176, 107, 255, 0.38); }
-        .kpi-mark.is-violet .glyph { stroke: #d7b6ff; filter: drop-shadow(0 0 3px rgba(176, 107, 255, 0.75)); }
+        .kpi-badge .dir-down,
+        .kpi-badge .dir-flat { display: none; }
+        .kpi-badge.is-drop .dir-up { display: none; }
+        .kpi-badge.is-drop .dir-down { display: block; }
+        .kpi-badge.is-flat .dir-up,
+        .kpi-badge.is-flat .dir-down { display: none; }
+        .kpi-badge.is-flat .dir-flat { display: block; }
+        .kpi-badge.is-blue .disc { fill: rgba(122, 162, 255, 0.18); }
+        .kpi-badge.is-blue .glyph { stroke: #9eb6ff; }
+        .kpi-badge.is-mint .disc { fill: rgba(62, 224, 176, 0.16); }
+        .kpi-badge.is-mint .glyph { stroke: #5eebc4; }
+        .kpi-badge.is-rose .disc { fill: rgba(255, 93, 115, 0.16); }
+        .kpi-badge.is-rose .glyph { stroke: #ff8ea0; }
+        .kpi-badge.is-drop .disc { fill: rgba(62, 224, 176, 0.16); }
+        .kpi-badge.is-drop .glyph { stroke: #5eebc4; }
+        .kpi-badge.is-flat .disc { fill: rgba(140, 170, 255, 0.12); }
+        .kpi-badge.is-flat .glyph { stroke: #c5d2ee; }
+        .kpi-badge.is-violet .disc { fill: rgba(176, 107, 255, 0.18); }
+        .kpi-badge.is-violet .glyph { stroke: #e0c4ff; }
         #view-overview .ov-charts {
             display: grid !important;
             grid-template-columns: minmax(0, 1.75fr) minmax(16.5rem, 0.85fr);
@@ -3057,7 +3040,40 @@
         html[data-theme="light"] .trend-legend button { color: #3d4d68; }
         html[data-theme="light"] .kpi-v,
         html[data-theme="light"] .meter-list b,
-        html[data-theme="light"] .alloc-center-value { color: #1c2433; }
+        html[data-theme="light"] #view-overview .alloc-center-value { color: #1c2433; }
+        html[data-theme="light"] #view-overview .alloc-chart-center {
+            background: #ffffff;
+            box-shadow: inset 0 0 0 1px rgba(28, 36, 51, 0.08);
+        }
+        html[data-theme="light"] #view-overview .alloc-center-kicker,
+        html[data-theme="light"] #view-overview .alloc-center-sub { color: #5c6b84; }
+        html[data-theme="light"] #view-overview .alloc-legend-row {
+            background: #f4f7fb !important;
+            border-color: rgba(28, 36, 51, 0.08) !important;
+            box-shadow: none !important;
+        }
+        html[data-theme="light"] #view-overview .alloc-legend-amt,
+        html[data-theme="light"] #view-overview .alloc-legend-foot { color: #3d4d68; }
+        html[data-theme="light"] #view-overview .alloc-legend-pct { color: #1c2433; }
+        html[data-theme="light"] .alloc-bar { background: rgba(28, 36, 51, 0.08); }
+        html[data-theme="light"] .alloc-bar-target { background: #1c2433; }
+        html[data-theme="light"] .alloc-halo { opacity: 0.2; }
+        html[data-theme="light"] .alloc-ring-track {
+            border-color: rgba(28, 36, 51, 0.06);
+            box-shadow: 0 12px 28px -20px rgba(28, 36, 51, 0.28);
+        }
+        html[data-theme="light"] .kpi-badge.is-blue .disc { fill: #e7efff; }
+        html[data-theme="light"] .kpi-badge.is-blue .glyph { stroke: #1d4ed8; }
+        html[data-theme="light"] .kpi-badge.is-mint .disc { fill: #e5f8f1; }
+        html[data-theme="light"] .kpi-badge.is-mint .glyph { stroke: #047857; }
+        html[data-theme="light"] .kpi-badge.is-rose .disc { fill: #fde8ec; }
+        html[data-theme="light"] .kpi-badge.is-rose .glyph { stroke: #e11d48; }
+        html[data-theme="light"] .kpi-badge.is-drop .disc { fill: #e5f8f1; }
+        html[data-theme="light"] .kpi-badge.is-drop .glyph { stroke: #059669; }
+        html[data-theme="light"] .kpi-badge.is-flat .disc { fill: #eef2f7; }
+        html[data-theme="light"] .kpi-badge.is-flat .glyph { stroke: #3d4d68; }
+        html[data-theme="light"] .kpi-badge.is-violet .disc { fill: #f3e8ff; }
+        html[data-theme="light"] .kpi-badge.is-violet .glyph { stroke: #7c3aed; }
         html[data-theme="light"] .panel-soft,
         html[data-theme="light"] .greet-row,
         html[data-theme="light"] .price-row,
@@ -3194,7 +3210,7 @@
         @media (max-width: 520px) {
             .ov-kpis { grid-template-columns: 1fr 1fr; gap: 0.55rem; }
             .kpi-card { padding: 0.75rem 0.7rem; }
-            .kpi-orb, .kpi-mark { display: none; }
+            .kpi-badge { display: none; }
             .kpi-v { font-size: 0.95rem; }
             .kpi-k, .kpi-s { font-size: 0.64rem; }
         }
@@ -3376,7 +3392,7 @@
                     <div id="total-all-worth" class="kpi-v">--</div>
                     <div class="kpi-s">累計股利 <span id="total-all-dividend">--</span></div>
                 </div>
-                <div class="kpi-orb is-blue" id="kpi-orb-worth" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
+                <div class="kpi-badge is-blue" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="16"/><g class="glyph"><rect x="9.2" y="14.2" width="17.6" height="10.2" rx="2"/><path d="M9.2 17.4h17.6"/><circle cx="22.4" cy="20.6" r="1.15" fill="currentColor" stroke="none"/></g></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
@@ -3384,7 +3400,7 @@
                     <div id="total-all-cost" class="kpi-v">--</div>
                     <div class="kpi-s">總報酬率 <span id="total-all-perf">--</span></div>
                 </div>
-                <div class="kpi-orb is-mint" id="kpi-orb-cost" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
+                <div class="kpi-badge is-mint" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="16"/><g class="glyph"><ellipse cx="18" cy="22.6" rx="6.2" ry="2"/><path d="M11.8 22.6v-3.1c0 1.1 2.8 2 6.2 2s6.2-.9 6.2-2v3.1"/><ellipse cx="18" cy="16.6" rx="6.2" ry="2"/><path d="M11.8 16.6V13.5c0 1.1 2.8 2 6.2 2s6.2-.9 6.2-2v3.1"/><ellipse cx="18" cy="13.5" rx="6.2" ry="2"/></g></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
@@ -3392,7 +3408,7 @@
                     <div id="total-unreal" class="kpi-v">--</div>
                     <div class="kpi-s">現值相對持倉成本</div>
                 </div>
-                <div class="kpi-mark is-rose" id="kpi-mark-unreal" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><g class="glyph dir-up"><path d="M13.6 22.4 L22.4 13.6"/><path d="M16.2 13.6 H22.4 V19.8"/></g><g class="glyph dir-down"><path d="M13.6 13.6 L22.4 22.4"/><path d="M16.2 22.4 H22.4 V16.2"/></g><g class="glyph dir-flat"><path d="M12.5 18 H23.5"/></g></svg></div>
+                <div class="kpi-badge is-rose" id="kpi-mark-unreal" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="16"/><g class="glyph dir-up"><path d="M18 24.2V12.4"/><path d="M12.8 17.4 18 12.2l5.2 5.2"/></g><g class="glyph dir-down"><path d="M18 11.8v11.8"/><path d="M12.8 18.6 18 23.8l5.2-5.2"/></g><g class="glyph dir-flat"><path d="M11.2 18h13.6"/></g></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
@@ -3400,7 +3416,7 @@
                     <div id="total-xirr" class="kpi-v c-sage">--</div>
                     <div class="kpi-s">依實際現金流折算</div>
                 </div>
-                <div class="kpi-mark is-violet" id="kpi-mark-xirr" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><g class="glyph"><circle cx="14.15" cy="14.15" r="2.05"/><circle cx="21.85" cy="21.85" r="2.05"/><path d="M22.7 12.7 L13.3 23.3"/></g></svg></div>
+                <div class="kpi-badge is-violet" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="16"/><g class="glyph"><circle cx="14.2" cy="14.2" r="2.05"/><circle cx="21.8" cy="21.8" r="2.05"/><path d="M23.1 12.7 12.9 23.3"/></g></svg></div>
             </article>
         </section>
         <section class="ov-charts">
@@ -6737,13 +6753,6 @@
             };
             paintSideBar('side-bar-stock', inc.stockWorth ? sV : 0);
             paintSideBar('side-bar-gold', inc.goldWorth ? gV : 0);
-            const paintOrb = (id, pct) => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.style.setProperty('--p', String(Math.round(Math.max(0, Math.min(100, pct)))));
-            };
-            paintOrb('kpi-orb-worth', sideBase > 0 ? ((inc.stockWorth ? sV : 0) / sideBase) * 100 : 0);
-            paintOrb('kpi-orb-cost', tV > 0 ? (tBasis / tV) * 100 : 0);
             const unrealMark = document.getElementById('kpi-mark-unreal');
             if (unrealMark) {
                 unrealMark.classList.remove('is-rose', 'is-drop', 'is-flat');
@@ -7293,7 +7302,7 @@
                             }
                             return makeAllocGradient(ctx, chartArea, pair[0], pair[1]);
                         },
-                        borderColor: 'rgba(8, 14, 32, 0.95)',
+                        borderColor: chartGap(),
                         borderWidth: ad.length > 1 ? 4 : 0,
                         hoverBorderWidth: ad.length > 1 ? 4 : 0,
                         borderRadius: 12,
@@ -8881,7 +8890,7 @@
             'total-perf': {
                 title: '總報酬率',
                 eq: '（現值 ＋ 已實現損益 − 持倉成本）÷（持倉成本 ＋ 已賣出成本）',
-                body: '<p>這是全程報酬，不是年化。<strong>分子不加現金股利。</strong></p><p>和玉山證券庫存報酬率不一樣，再投入怎麼計成本是主因。玉山把股息再投入當成一筆新買進，成交金額（通常含手續費）整筆進成本。這裡只把「多掏的差額」算進成本；股利全數再投入時，這批股票成本接近 0，現值幾乎都算獲利，所以百分比會比玉山高。</p><p>另外三點：玉山庫存頁多半只看還在手上的市值對買進成本，已領現金股利通常不在那個百分比裡。這裡有把賣出獲利算進去，但現金股利不加回。玉山成本含手續費；這裡用你登錄的成本。</p>'
+                body: '<p>這是全程報酬，不是年化。<strong>分子不加現金股利。</strong></p><p>和證券公司的庫存報酬率不一樣，再投入怎麼計成本是主因。證券公司把股息再投入當成一筆新買進，成交金額（通常含手續費）整筆進成本。這裡只把「多掏的差額」算進成本；股利全數再投入時，這批股票成本接近 0，現值幾乎都算獲利，所以百分比會比證券公司高。</p><p>另外三點：證券公司的庫存頁多半只看還在手上的市值對買進成本，已領現金股利通常不在那個百分比裡。這裡有把賣出獲利算進去，但現金股利不加回。證券公司的成本含手續費；這裡用你登錄的成本。</p>'
             },
             unreal: {
                 title: '未實現損益',
@@ -8911,7 +8920,7 @@
             'stock-cost': {
                 title: '持倉淨成本',
                 eq: '還在手上的口袋成本加總',
-                body: '<p>不含已賣出。買入＝登錄成本。股利再投入＝成本 − 股利（少於 0 當 0）。現金股利＝0。</p><p>玉山會把再投入整筆算進買進成本，所以兩邊的成本不會一樣。</p>'
+                body: '<p>不含已賣出。買入＝登錄成本。股利再投入＝成本 − 股利（少於 0 當 0）。現金股利＝0。</p><p>證券公司會把再投入整筆算進買進成本，所以兩邊的成本不會一樣。</p>'
             },
             'stock-unreal': {
                 title: '股票未實現損益',
@@ -8921,7 +8930,7 @@
             'stock-perf': {
                 title: '股票總報酬率',
                 eq: '（現值 ＋ 已實現 − 持倉淨成本）÷（持倉淨成本 ＋ 已賣出成本）',
-                body: '<p>不含現金股利，但含已賣出的獲利。</p><p><strong>和玉山不一樣，主要就是再投入成本。</strong>玉山把再投入成交整筆（含手續費）當成新買進。這裡只計「成本 − 配發股利」的差額，全數再投入時成本接近 0，報酬率會比較高。</p><p>玉山庫存頁通常也不把已領現金股利放進那個百分比（含息要另看），而且多半不含已賣出部位。手續費則是玉山一定扣、這裡看你記帳時有沒有填進成本。</p>'
+                body: '<p>不含現金股利，但含已賣出的獲利。</p><p><strong>和證券公司不一樣，主要就是再投入成本。</strong>證券公司把再投入成交整筆（含手續費）當成新買進。這裡只計「成本 − 配發股利」的差額，全數再投入時成本接近 0，報酬率會比較高。</p><p>證券公司的庫存頁通常也不把已領現金股利放進那個百分比（含息要另看），而且多半不含已賣出部位。手續費則是證券公司一定扣、這裡看你記帳時有沒有填進成本。</p>'
             },
             'stock-xirr': {
                 title: '股票年化報酬率',
@@ -9068,6 +9077,9 @@
         let formulaAnchor = null;
         function chartInk() {
             return document.documentElement.dataset.theme === 'light' ? '#3d4d68' : '#d7e3fb';
+        }
+        function chartGap() {
+            return document.documentElement.dataset.theme === 'light' ? '#ffffff' : 'rgba(8, 14, 32, 0.95)';
         }
         function closeFormula() {
             const pop = document.getElementById('formula-pop');
