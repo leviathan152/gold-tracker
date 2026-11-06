@@ -2838,6 +2838,94 @@
             text-align: right;
             white-space: nowrap;
         }
+        .meter-list > div > span,
+        .kpi-k,
+        .kpi-s,
+        .formula-lab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28rem;
+            max-width: 100%;
+        }
+        .kpi-k, .kpi-s { display: flex; }
+        .formula-bulb {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.15rem;
+            height: 1.15rem;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 999px;
+            background: rgba(255, 196, 84, 0.16);
+            color: #ffd27a;
+            cursor: pointer;
+            flex: none;
+            line-height: 0;
+            box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.32);
+        }
+        .formula-bulb svg { width: 0.72rem; height: 0.72rem; display: block; }
+        .formula-bulb:hover,
+        .formula-bulb.is-on {
+            background: rgba(255, 196, 84, 0.36);
+            color: #fff6dc;
+            box-shadow: 0 0 0 3px rgba(255, 196, 84, 0.14), inset 0 0 0 1px rgba(255, 220, 150, 0.7);
+        }
+        .formula-bulb:focus-visible { outline: 2px solid #ffd27a; outline-offset: 2px; }
+        th .formula-bulb { vertical-align: middle; }
+        .formula-pop {
+            position: fixed;
+            z-index: 130;
+            width: min(22.5rem, calc(100vw - 24px));
+            padding: 0.85rem 0.95rem 0.95rem;
+            border-radius: 16px;
+            background: rgba(14, 22, 46, 0.97);
+            border: 1px solid rgba(255, 210, 122, 0.32);
+            box-shadow: 0 22px 50px rgba(2, 6, 20, 0.58);
+            color: #e8eefc;
+        }
+        .formula-pop.hidden { display: none; }
+        .formula-pop-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+        }
+        .formula-pop-title {
+            font-size: 0.92rem;
+            font-weight: 750;
+            color: #ffd27a;
+            letter-spacing: 0.01em;
+        }
+        .formula-pop-x {
+            width: 1.6rem;
+            height: 1.6rem;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: #9aafd4;
+            cursor: pointer;
+            font-size: 1.05rem;
+            line-height: 1;
+        }
+        .formula-pop-x:hover { background: rgba(255, 255, 255, 0.06); color: #f4f7ff; }
+        .formula-pop-eq {
+            margin: 0.55rem 0 0.15rem;
+            padding: 0.5rem 0.65rem;
+            border-radius: 10px;
+            background: rgba(255, 196, 84, 0.09);
+            color: #f7f4ea;
+            font-size: 0.78rem;
+            line-height: 1.5;
+        }
+        .formula-pop-body p {
+            margin: 0.45rem 0 0;
+            color: #c9d5ee;
+            font-size: 0.75rem;
+            line-height: 1.6;
+        }
+        .formula-pop-body strong { color: #f4f7ff; font-weight: 700; }
         @media (min-width: 861px) {
             #view-overview:not(.hidden) {
                 display: flex !important;
@@ -3076,23 +3164,23 @@
         <section class="ov-kpis" aria-label="關鍵指標">
             <article class="kpi-card">
                 <div class="kpi-copy">
-                    <div class="kpi-k">總資產現值</div>
+                    <div class="kpi-k">總資產現值 <button type="button" class="formula-bulb" data-formula="worth" aria-label="總資產現值怎麼算"></button></div>
                     <div id="total-all-worth" class="kpi-v">--</div>
-                    <div class="kpi-s">累計股利 <span id="total-all-dividend">--</span></div>
+                    <div class="kpi-s">累計股利 <button type="button" class="formula-bulb" data-formula="dividend" aria-label="累計股利怎麼算"></button> <span id="total-all-dividend">--</span></div>
                 </div>
                 <div class="kpi-orb is-blue" id="kpi-orb-worth" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
-                    <div class="kpi-k">總投入成本</div>
+                    <div class="kpi-k">總投入成本 <button type="button" class="formula-bulb" data-formula="total-cost" aria-label="總投入成本怎麼算"></button></div>
                     <div id="total-all-cost" class="kpi-v">--</div>
-                    <div class="kpi-s">總報酬率 <span id="total-all-perf">--</span></div>
+                    <div class="kpi-s">總報酬率 <button type="button" class="formula-bulb" data-formula="total-perf" aria-label="總報酬率怎麼算"></button> <span id="total-all-perf">--</span></div>
                 </div>
                 <div class="kpi-orb is-mint" id="kpi-orb-cost" style="--p:0" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="disc" cx="18" cy="18" r="14"/><circle class="track" cx="18" cy="18" r="14"/><circle class="val" cx="18" cy="18" r="14"/></svg></div>
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
-                    <div class="kpi-k" title="現值 − 目前持倉成本">未實現損益</div>
+                    <div class="kpi-k" title="現值 − 目前持倉成本">未實現損益 <button type="button" class="formula-bulb" data-formula="unreal" aria-label="未實現損益怎麼算"></button></div>
                     <div id="total-unreal" class="kpi-v">--</div>
                     <div class="kpi-s">現值相對持倉成本</div>
                 </div>
@@ -3100,7 +3188,7 @@
             </article>
             <article class="kpi-card">
                 <div class="kpi-copy">
-                    <div class="kpi-k" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</div>
+                    <div class="kpi-k" title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率 <button type="button" class="formula-bulb" data-formula="xirr" aria-label="年化報酬率怎麼算"></button></div>
                     <div id="total-xirr" class="kpi-v c-sage">--</div>
                     <div class="kpi-s">依實際現金流折算</div>
                 </div>
@@ -3111,7 +3199,7 @@
             <div class="card">
                 <div class="chart-panel-head">
                     <div>
-                        <h3 class="stat-label flex items-center gap-2 mb-0"><span class="live-dot"></span> <span data-i18n="chart.trend">資產成長趨勢</span></h3>
+                        <h3 class="stat-label flex items-center gap-2 mb-0"><span class="live-dot"></span> <span data-i18n="chart.trend">資產成長趨勢</span> <button type="button" class="formula-bulb" data-formula="trend" aria-label="趨勢圖怎麼算"></button></h3>
                         <p class="panel-sub">游標查看當日淨值</p>
                     </div>
                     <div id="trend-split" class="trend-split hidden" role="group" aria-label="股票曲線範圍">
@@ -3130,7 +3218,7 @@
             <div class="card alloc-panel">
                 <div class="alloc-panel-head">
                     <div>
-                        <h3 class="stat-label mb-0" data-i18n="chart.alloc">資產配置</h3>
+                        <h3 class="stat-label mb-0 formula-lab"><span data-i18n="chart.alloc">資產配置</span> <button type="button" class="formula-bulb" data-formula="alloc" aria-label="資產配置怎麼算"></button></h3>
                         <p class="panel-sub" id="alloc-sub">游標移到圓環可看明細，點股票可看各股占比</p>
                     </div>
                     <div class="alloc-head-side">
@@ -3165,13 +3253,13 @@
                     <button type="button" class="stat-close" onclick="resetAllocCenter()">收合</button>
                 </div>
                 <div class="meter-list">
-                    <div><span>資產現值</span><b id="stock-worth">--</b></div>
-                    <div><span title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本</span><b id="stock-total-cost">--</b></div>
-                    <div><span title="現值 − 持倉淨成本">未實現損益</span><b id="stock-unreal">--</b></div>
-                    <div><span title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率</span><b id="stock-perf">--</b></div>
-                    <div><span title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率</span><b id="stock-xirr" class="c-stock">--</b></div>
-                    <div><span>總股數</span><b id="stock-total-shares" class="c-stock">--</b></div>
-                    <div><span>已實現損益</span><b id="stock-realized" class="c-sell">--</b></div>
+                    <div><span>資產現值 <button type="button" class="formula-bulb" data-formula="stock-worth" aria-label="股票現值怎麼算"></button></span><b id="stock-worth">--</b></div>
+                    <div><span title="目前仍持有部位的淨成本，不含已賣出">持倉淨成本 <button type="button" class="formula-bulb" data-formula="stock-cost" aria-label="持倉淨成本怎麼算"></button></span><b id="stock-total-cost">--</b></div>
+                    <div><span title="現值 − 持倉淨成本">未實現損益 <button type="button" class="formula-bulb" data-formula="stock-unreal" aria-label="股票未實現怎麼算"></button></span><b id="stock-unreal">--</b></div>
+                    <div><span title="相對口袋淨投入的全程報酬（不含時間、不含股利），含已實現">總報酬率 <button type="button" class="formula-bulb" data-formula="stock-perf" aria-label="股票總報酬率怎麼算"></button></span><b id="stock-perf">--</b></div>
+                    <div><span title="依實際投入／回收日期折算的年化（持有未滿一個月會標示「短」）">年化報酬率 <button type="button" class="formula-bulb" data-formula="stock-xirr" aria-label="股票年化怎麼算"></button></span><b id="stock-xirr" class="c-stock">--</b></div>
+                    <div><span>總股數 <button type="button" class="formula-bulb" data-formula="stock-shares" aria-label="總股數怎麼算"></button></span><b id="stock-total-shares" class="c-stock">--</b></div>
+                    <div><span>已實現損益 <button type="button" class="formula-bulb" data-formula="stock-realized" aria-label="股票已實現怎麼算"></button></span><b id="stock-realized" class="c-sell">--</b></div>
                 </div>
             </div>
             <div class="card stat-card gold">
@@ -3180,13 +3268,13 @@
                     <button type="button" class="stat-close" onclick="resetAllocCenter()">收合</button>
                 </div>
                 <div class="meter-list">
-                    <div><span>資產現值</span><b id="gold-worth">--</b></div>
-                    <div><span>總投入成本</span><b id="gold-total-cost">--</b></div>
-                    <div><span title="現值 − 目前持倉成本">未實現損益</span><b id="gold-unreal">--</b></div>
-                    <div><span title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率</span><b id="gold-perf">--</b></div>
-                    <div><span title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢</span><b id="gold-price-unit" class="c-gold">--</b></div>
-                    <div><span>總持倉重量</span><b id="gold-total-weight" class="c-gold">--</b></div>
-                    <div><span>已實現損益</span><b id="gold-realized" class="c-sell">--</b></div>
+                    <div><span>資產現值 <button type="button" class="formula-bulb" data-formula="gold-worth" aria-label="黃金現值怎麼算"></button></span><b id="gold-worth">--</b></div>
+                    <div><span>總投入成本 <button type="button" class="formula-bulb" data-formula="gold-cost" aria-label="黃金總投入怎麼算"></button></span><b id="gold-total-cost">--</b></div>
+                    <div><span title="現值 − 目前持倉成本">未實現損益 <button type="button" class="formula-bulb" data-formula="gold-unreal" aria-label="黃金未實現怎麼算"></button></span><b id="gold-unreal">--</b></div>
+                    <div><span title="相對口袋淨投入的全程報酬（不含時間），含已實現">總報酬率 <button type="button" class="formula-bulb" data-formula="gold-perf" aria-label="黃金總報酬率怎麼算"></button></span><b id="gold-perf">--</b></div>
+                    <div><span title="依國際金價與匯率換算；1 台錢＝3.75 公克">一公克／一台錢 <button type="button" class="formula-bulb" data-formula="gold-price" aria-label="金價怎麼換算"></button></span><b id="gold-price-unit" class="c-gold">--</b></div>
+                    <div><span>總持倉重量 <button type="button" class="formula-bulb" data-formula="gold-weight" aria-label="總重量怎麼算"></button></span><b id="gold-total-weight" class="c-gold">--</b></div>
+                    <div><span>已實現損益 <button type="button" class="formula-bulb" data-formula="gold-realized" aria-label="黃金已實現怎麼算"></button></span><b id="gold-realized" class="c-sell">--</b></div>
                 </div>
             </div>
         </section>
@@ -3227,7 +3315,7 @@
                     <input type="number" id="goal-price" min="0" step="0.01" placeholder="NT$" oninput="onGoalPriceInput()">
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="stat-label text-[10px]" for="goal-dps">每股年配息</label>
+                    <label class="stat-label text-[10px] formula-lab" for="goal-dps">每股年配息 <button type="button" class="formula-bulb" data-formula="goal-dps" aria-label="每股年配息怎麼估"></button></label>
                     <input type="number" id="goal-dps" min="0" step="0.0001" placeholder="殖利率 × 現價" title="依完整配息年平均殖利率 × 現價自動帶入，可改" oninput="onGoalDpsInput()">
                     <span id="goal-dps-hint" class="text-[10px] text-muted"></span>
                 </div>
@@ -3240,33 +3328,33 @@
             <div id="goal-body" class="hidden">
                 <div class="goal-result mb-4">
                     <div>
-                        <div class="stat-label text-[10px] mb-1">需存股數</div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">需存股數 <button type="button" class="formula-bulb" data-formula="goal-shares" aria-label="需存股數怎麼算"></button></div>
                         <div id="goal-need-shares" class="text-xl font-bold c-stock">--</div>
                         <div id="goal-need-lot" class="text-xs text-muted mt-1">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1">預估本金</div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">預估本金 <button type="button" class="formula-bulb" data-formula="goal-cap" aria-label="預估本金怎麼算"></button></div>
                         <div id="goal-need-capital" class="text-xl font-bold c-stock">--</div>
                         <div id="goal-need-capital-sub" class="text-xs text-muted mt-1">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1">預計完成時間</div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">預計完成時間 <button type="button" class="formula-bulb" data-formula="goal-eta" aria-label="完成時間怎麼算"></button></div>
                         <div id="goal-eta" class="text-xl font-bold">--</div>
                         <div id="goal-eta-date" class="text-xs text-muted mt-1">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1">還差月領</div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">還差月領 <button type="button" class="formula-bulb" data-formula="goal-remain" aria-label="還差月領怎麼算"></button></div>
                         <div id="goal-remain-div" class="text-xl font-bold">--</div>
                         <div id="goal-remain" class="text-xs text-muted mt-1">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1">目前每月股息</div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">目前每月股息 <button type="button" class="formula-bulb" data-formula="goal-now" aria-label="目前每月股息怎麼算"></button></div>
                         <div id="goal-now-div" class="text-xl font-bold">--</div>
                         <div id="goal-mode-lab" class="text-xs text-muted mt-1">--</div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <div class="flex justify-between text-[11px] text-muted mb-1"><span>月領進度</span><span id="goal-progress-lab">--</span></div>
+                    <div class="flex justify-between text-[11px] text-muted mb-1"><span class="formula-lab">月領進度 <button type="button" class="formula-bulb" data-formula="goal-progress" aria-label="月領進度怎麼算"></button></span><span id="goal-progress-lab">--</span></div>
                     <div class="peer-bar"><div id="goal-progress-bar" class="peer-bar-fill is-you" style="width:0%"></div></div>
                 </div>
                 <div class="stat-label text-[10px] mb-1">月領時間曲線</div>
@@ -3297,15 +3385,15 @@
             <div id="peer-compare-body" class="hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
                     <div>
-                        <div class="stat-label text-[10px] mb-1">你的資產（含自填存款）</div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">你的資產（含自填存款） <button type="button" class="formula-bulb" data-formula="peer-you" aria-label="你的資產怎麼算"></button></div>
                         <div id="peer-you" class="text-xl font-bold c-stock">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1">同齡推估累積儲蓄</div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">同齡推估累積儲蓄 <button type="button" class="formula-bulb" data-formula="peer-base" aria-label="同齡基準怎麼算"></button></div>
                         <div id="peer-base" class="text-xl font-bold">--</div>
                     </div>
                     <div>
-                        <div class="stat-label text-[10px] mb-1">相對基準</div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">相對基準 <button type="button" class="formula-bulb" data-formula="peer-ratio" aria-label="相對基準怎麼算"></button></div>
                         <div id="peer-ratio" class="text-xl font-bold">--</div>
                         <div id="peer-gap" class="text-xs text-muted mt-1">--</div>
                     </div>
@@ -3384,7 +3472,7 @@
                 <div class="table-scroll">
                 <table class="w-full text-xs text-left min-w-[820px]">
                     <thead class="thead-bar font-bold">
-                        <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5">類型</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">成交單價</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">股利</th><th class="p-5 text-right">市場現值</th><th class="p-5 text-center">管理</th></tr>
+                        <tr><th class="p-5">日期</th><th class="p-5">標的</th><th class="p-5">類型</th><th class="p-5 text-right">股數</th><th class="p-5 text-right">成交單價</th><th class="p-5 text-right">投入成本</th><th class="p-5 text-right">股利</th><th class="p-5 text-right">市場現值 <button type="button" class="formula-bulb" data-formula="stock-row" aria-label="市場現值怎麼算"></button></th><th class="p-5 text-center">管理</th></tr>
                     </thead>
                     <tbody id="stock-list" class="divide-y"></tbody>
                 </table>
@@ -3422,7 +3510,7 @@
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="thead-bar font-bold">
-                            <tr><th class="p-4">賣出日</th><th class="p-4">標的</th><th class="p-4 text-right">數量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
+                            <tr><th class="p-4">賣出日</th><th class="p-4">標的</th><th class="p-4 text-right">數量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利 <button type="button" class="formula-bulb" data-formula="sell-profit" aria-label="賣出獲利怎麼算"></button></th><th class="p-4 text-right">報酬率 <button type="button" class="formula-bulb" data-formula="sell-rate" aria-label="賣出報酬率怎麼算"></button></th><th class="p-4 text-center">管理</th></tr>
                         </thead>
                         <tbody id="stock-sell-list" class="divide-y"></tbody>
                     </table>
@@ -3434,7 +3522,7 @@
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[900px]">
                         <thead class="thead-bar font-bold">
-                            <tr><th class="p-4">標的</th><th class="p-4 text-center">近況</th><th class="p-4 text-right">股數</th><th class="p-4 text-right">淨成本</th><th class="p-4 text-right">累計股利</th><th class="p-4 text-right">現值</th><th class="p-4 text-right">已實現</th><th class="p-4 text-right">報酬率</th></tr>
+                            <tr><th class="p-4">標的</th><th class="p-4 text-center">近況</th><th class="p-4 text-right">股數</th><th class="p-4 text-right">淨成本</th><th class="p-4 text-right">累計股利</th><th class="p-4 text-right">現值</th><th class="p-4 text-right">已實現</th><th class="p-4 text-right">報酬率 <button type="button" class="formula-bulb" data-formula="sum-perf" aria-label="彙總報酬率怎麼算"></button></th></tr>
                         </thead>
                         <tbody id="stock-sum-list" class="divide-y"></tbody>
                     </table>
@@ -3461,7 +3549,7 @@
                 <div class="card mb-4">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                         <div>
-                            <h3 class="stat-label c-sage mb-1">持倉當期可領股息</h3>
+                            <h3 class="stat-label c-sage mb-1 formula-lab">持倉當期可領股息 <button type="button" class="formula-bulb" data-formula="div-expect" aria-label="當期股息怎麼算"></button></h3>
                             <p class="text-[10px] text-muted">依目前持有股數 × 當期現金股利估算（即將除息／待發放優先）</p>
                         </div>
                         <button type="button" id="div-expect-btn" onclick="calcHoldingPeriodDividends()" class="btn-surface px-5 py-2.5 rounded-xl text-xs font-bold c-sage shrink-0">計算當期股息</button>
@@ -3504,7 +3592,7 @@
                                 <th class="p-2 text-right">除息前股價</th>
                                 <th class="p-2 text-right">填息天數</th>
                                 <th class="p-2 text-right">年股利</th>
-                                <th class="p-2 text-right">年殖利率(%)</th>
+                                <th class="p-2 text-right">年殖利率(%) <button type="button" class="formula-bulb" data-formula="div-yield" aria-label="年殖利率怎麼算"></button></th>
                                 <th class="p-2 text-right">股利</th>
                                 <th class="p-2">除權日</th>
                                 <th class="p-2 text-right">除權前股價</th>
@@ -3553,8 +3641,8 @@
                             <th class="p-5 text-right">重量</th>
                             <th class="p-5 text-right">購入成本</th>
                             <th class="p-5 text-right" title="購買當日每公克金價（新台幣）">購入金價</th>
-                            <th class="p-5 text-right" title="購入成本 −（公克數 × 購入金價）">工費</th>
-                            <th class="p-5 text-right">預估現值</th>
+                            <th class="p-5 text-right" title="購入成本 −（公克數 × 購入金價）">工費 <button type="button" class="formula-bulb" data-formula="gold-labor" aria-label="工費怎麼算"></button></th>
+                            <th class="p-5 text-right">預估現值 <button type="button" class="formula-bulb" data-formula="gold-row" aria-label="黃金現值怎麼算"></button></th>
                             <th class="p-5 text-center">管理</th>
                         </tr>
                     </thead>
@@ -3586,7 +3674,7 @@
                     <div class="table-scroll">
                     <table class="w-full text-xs text-left min-w-[720px]">
                         <thead class="thead-bar font-bold">
-                            <tr><th class="p-4">賣出日</th><th class="p-4">備註</th><th class="p-4 text-right">重量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利</th><th class="p-4 text-right">報酬率</th><th class="p-4 text-center">管理</th></tr>
+                            <tr><th class="p-4">賣出日</th><th class="p-4">備註</th><th class="p-4 text-right">重量</th><th class="p-4 text-right">賣出金額</th><th class="p-4 text-right">買入成本</th><th class="p-4 text-right">獲利 <button type="button" class="formula-bulb" data-formula="sell-profit" aria-label="賣出獲利怎麼算"></button></th><th class="p-4 text-right">報酬率 <button type="button" class="formula-bulb" data-formula="sell-rate" aria-label="賣出報酬率怎麼算"></button></th><th class="p-4 text-center">管理</th></tr>
                         </thead>
                         <tbody id="gold-sell-list" class="divide-y"></tbody>
                     </table>
@@ -3860,6 +3948,15 @@
             </div>
             <button type="button" onclick="closeGreetingModal()" class="w-full mt-4 btn-primary py-3 rounded-xl font-bold text-sm">知道了</button>
         </div>
+    </div>
+
+    <div id="formula-pop" class="formula-pop hidden" role="dialog" aria-modal="false" aria-labelledby="formula-pop-title">
+        <div class="formula-pop-head">
+            <div id="formula-pop-title" class="formula-pop-title"></div>
+            <button type="button" class="formula-pop-x" id="formula-pop-close" aria-label="關閉">×</button>
+        </div>
+        <div id="formula-pop-eq" class="formula-pop-eq"></div>
+        <div id="formula-pop-body" class="formula-pop-body"></div>
     </div>
 
     <script>
@@ -8551,6 +8648,274 @@
                 if (btn) { btn.disabled = false; btn.textContent = '計算當期股息'; }
             }
         }
+        const FORMULAS = {
+            worth: {
+                title: '總資產現值',
+                eq: '股票現值 ＋ 黃金現值（有打開計入的才加）',
+                body: '<p>股票現值＝現價 × 股數。還沒抓到現價時，改用買入單價。</p><p>黃金現值＝公克 × 每公克台幣金價。每公克＝美元金價 ÷ 31.1035 × 美元兌台幣。1 台錢＝3.75 公克。</p>'
+            },
+            dividend: {
+                title: '累計股利',
+                eq: '每一筆「股利」欄位相加',
+                body: '<p>含現金股利，以及股利再投入時填的配發額。</p><p>這是領過的股利金額。總報酬率不會再把這筆加回分子。</p>'
+            },
+            'total-cost': {
+                title: '總投入成本',
+                eq: '還在手上的成本 ＋ 已賣出部位的買入成本',
+                body: '<p>股票買入用登錄成本。股利再投入只算「成本 − 配發股利」，少於 0 就當 0。現金股利成本是 0。</p><p>黃金用購入總額，工費算在裡面。</p>'
+            },
+            'total-perf': {
+                title: '總報酬率',
+                eq: '（現值 ＋ 已實現損益 − 持倉成本）÷（持倉成本 ＋ 已賣出成本）',
+                body: '<p>這是全程報酬，不是年化。<strong>分子不加現金股利。</strong></p><p>和玉山證券庫存報酬率不一樣，再投入怎麼計成本是主因。玉山把股息再投入當成一筆新買進，成交金額（通常含手續費）整筆進成本。這裡只把「多掏的差額」算進成本；股利全數再投入時，這批股票成本接近 0，現值幾乎都算獲利，所以百分比會比玉山高。</p><p>另外三點：玉山庫存頁多半只看還在手上的市值對買進成本，已領現金股利通常不在那個百分比裡。這裡有把賣出獲利算進去，但現金股利不加回。玉山成本含手續費；這裡用你登錄的成本。</p>'
+            },
+            unreal: {
+                title: '未實現損益',
+                eq: '股票（現值 − 持倉口袋成本）＋ 黃金（現值 − 持倉購入成本）',
+                body: '<p>只算還在手上的部位。已經賣掉的損益在「已實現」。</p><p>股票再投入的口袋成本是「成本 − 股利」。黃金的持倉成本含工費。</p>'
+            },
+            xirr: {
+                title: '年化報酬率',
+                eq: '找一個年利率，讓所有現金流折現後加總為 0',
+                body: '<p>買入記 −成本。現金股利記 ＋股利。再投入只記 −（成本 − 股利），剛好抵銷就不記。賣出記 ＋賣出金額。今天再記 ＋目前現值，當成先賣回。</p><p>持有未滿 30 天會標「短」。只有進帳或只有出帳時顯示 --。</p>'
+            },
+            trend: {
+                title: '資產成長趨勢',
+                eq: '沿交易日累計還在帳上的成本；現值用今天的價格',
+                body: '<p>現值＝今天的市價 × 那個時間點還留著的股數或公克，不是當時的真實市值。</p><p>賣出會改寫原始庫存。圖上的投入是剩餘部位的成本，不會在賣出日把已賣掉的成本降下來。</p>'
+            },
+            alloc: {
+                title: '資產配置',
+                eq: '這一塊現值 ÷ 淨值',
+                body: '<p>淨值是有計入的股票現值加黃金現值。切到細項時，圓環改成各檔股票的現值。</p><p>目標占比只在股票和黃金都開啟時拿來對照。建議兩者合計 100%。</p>'
+            },
+            'stock-worth': {
+                title: '股票現值',
+                eq: '各筆現價 × 股數 加總',
+                body: '<p>現價用快取或刷新結果。還沒有市價時，用該筆買入單價。</p>'
+            },
+            'stock-cost': {
+                title: '持倉淨成本',
+                eq: '還在手上的口袋成本加總',
+                body: '<p>不含已賣出。買入＝登錄成本。股利再投入＝成本 − 股利（少於 0 當 0）。現金股利＝0。</p><p>玉山會把再投入整筆算進買進成本，所以兩邊的成本不會一樣。</p>'
+            },
+            'stock-unreal': {
+                title: '股票未實現損益',
+                eq: '股票現值 − 持倉淨成本',
+                body: '<p>持倉明細每一列底下的小字是「現值 − 該筆投入成本」，再投入沒有先扣掉股利。這一格才用口袋淨成本，所以再投入很多時，列上的損益和這一格會不同。</p>'
+            },
+            'stock-perf': {
+                title: '股票總報酬率',
+                eq: '（現值 ＋ 已實現 − 持倉淨成本）÷（持倉淨成本 ＋ 已賣出成本）',
+                body: '<p>不含現金股利，但含已賣出的獲利。</p><p><strong>和玉山不一樣，主要就是再投入成本。</strong>玉山把再投入成交整筆（含手續費）當成新買進。這裡只計「成本 − 配發股利」的差額，全數再投入時成本接近 0，報酬率會比較高。</p><p>玉山庫存頁通常也不把已領現金股利放進那個百分比（含息要另看），而且多半不含已賣出部位。手續費則是玉山一定扣、這裡看你記帳時有沒有填進成本。</p>'
+            },
+            'stock-xirr': {
+                title: '股票年化報酬率',
+                eq: '只用股票的現金流做年化',
+                body: '<p>規則和總覽的年化相同：買入、現金股利、再投入差額、賣出金額，再加上今天的股票現值。</p><p>這一格有算現金股利，總報酬率沒有，所以兩個百分比常常不一樣。</p>'
+            },
+            'stock-shares': {
+                title: '總股數',
+                eq: '目前每一筆股數加總',
+                body: '<p>賣出後已用先進先出扣掉，這裡是還在手上的股數。1 張＝1000 股。</p>'
+            },
+            'stock-realized': {
+                title: '股票已實現損益',
+                eq: 'Σ（賣出金額 − 買入成本）',
+                body: '<p>買入成本空白時，由最舊的庫存往新的扣，按賣出股數比例分攤口袋成本。</p>'
+            },
+            'stock-row': {
+                title: '市場現值',
+                eq: '現價 × 這一筆股數',
+                body: '<p>沒有市價時用買入單價。下面的小字＝現值 − 這一筆投入成本。</p><p>股利再投入在這一列用整筆成本，摘要卡的未實現才改扣股利。現金股利股數是 0，現值是 0。</p>'
+            },
+            'sum-perf': {
+                title: '單檔報酬率',
+                eq: '（現值 ＋ 該檔已實現 − 淨成本）÷（淨成本 ＋ 已賣出成本）',
+                body: '<p>和股票總報酬率同一套，只算這個代號。淨成本是口袋淨額，再投入不全額入成本。</p><p>還沒抓到市價時，這一欄現值先用 0；摘要卡會改用買入單價，兩邊會暫時不同。</p>'
+            },
+            'sell-profit': {
+                title: '賣出獲利',
+                eq: '賣出金額 − 買入成本',
+                body: '<p>買入成本留白時，用先進先出自動分攤。股票分攤的是口袋成本；黃金分攤的是購入總額（含工費）。</p>'
+            },
+            'sell-rate': {
+                title: '賣出報酬率',
+                eq: '獲利 ÷ 買入成本',
+                body: '<p>只看這一筆賣出，不是年化。買入成本是 0 時顯示 0%。</p>'
+            },
+            'gold-worth': {
+                title: '黃金現值',
+                eq: '各筆公克 × 每公克台幣金價',
+                body: '<p>每公克＝美元金價 ÷ 31.1035 × 美元兌台幣。台錢先換成公克（× 3.75）再算。</p>'
+            },
+            'gold-cost': {
+                title: '黃金總投入成本',
+                eq: '還在手上的購入成本 ＋ 已賣出的買入成本',
+                body: '<p>含工費。未實現只減「還在手上」的成本，所以賣過之後，不能拿這個總投入直接減現值。</p>'
+            },
+            'gold-unreal': {
+                title: '黃金未實現損益',
+                eq: '現值 − 目前持倉的購入成本',
+                body: '<p>購入成本含工費。表格每一列底下的小字是「現值 − 金料成本」，工費另外顯示，所以列上會比這一格好看一個工費。</p>'
+            },
+            'gold-perf': {
+                title: '黃金總報酬率',
+                eq: '（現值 ＋ 已實現 − 持倉成本）÷（持倉成本 ＋ 已賣出成本）',
+                body: '<p>黃金沒有股利再投入這層扣法。成本是你填的購入總額，賣出時按公克比例分攤，工費跟著走。</p>'
+            },
+            'gold-price': {
+                title: '一公克／一台錢',
+                eq: '每公克＝美元金價 ÷ 31.1035 × 匯率',
+                body: '<p>一台錢的價格＝每公克 × 3.75。金價來自 PAXG 美元報價，匯率是美元兌台幣。</p>'
+            },
+            'gold-weight': {
+                title: '總持倉重量',
+                eq: '各筆重量換成公克後加總',
+                body: '<p>單位是台錢時，公克＝台錢 × 3.75。賣出後剩餘重量已扣除。</p>'
+            },
+            'gold-realized': {
+                title: '黃金已實現損益',
+                eq: 'Σ（賣出金額 − 分攤到的購入成本）',
+                body: '<p>由最舊的一筆公克往後扣，不看商品名稱。分攤的成本含工費。</p>'
+            },
+            'gold-labor': {
+                title: '工費',
+                eq: '總購入成本 − 公克 × 購入金價',
+                body: '<p>沒填重量或購入金價時顯示 —。列上的損益不含這筆工費，摘要卡的未實現有含。</p>'
+            },
+            'gold-row': {
+                title: '預估現值',
+                eq: '公克 × 即時每公克金價',
+                body: '<p>下面的小字＝現值 − 金料成本。金料成本＝公克 × 購入金價；沒填購入金價時，改用總購入成本。</p>'
+            },
+            'goal-dps': {
+                title: '每股年配息',
+                eq: '有殖利率時：現價 × 歷史平均殖利率',
+                body: '<p>平均殖利率用完整配息年的「全年現金股利 ÷ 除息前價平均」。沒有前價時，改用那些年的平均現金股利。</p><p>這是估計的未來一年配息，不是最近四季實發加總。股價漲了，估出來的配息會跟著變高。可以手動改。</p>'
+            },
+            'goal-shares': {
+                title: '需存股數',
+                eq: '目標月領 × 12 ÷ 每股年配息',
+                body: '<p>張數＝股數 ÷ 1000。顯示的股數會無條件進位到整股，預估本金仍用未進位的股數。</p>'
+            },
+            'goal-cap': {
+                title: '預估本金',
+                eq: '需存股數 × 現價',
+                body: '<p>還差本金＝還差股數 × 現價。現價、配息都假設之後不變。</p>'
+            },
+            'goal-eta': {
+                title: '預計完成時間',
+                eq: '每月加買，每 12 個月結一次股利',
+                body: '<p>每個月持股先加「每月投入 ÷ 現價」。每滿 12 個月，年度股利＝當時持股 × 每股年配息；有開再投入就用現價加買。</p><p>月領＝持股 × 年配息 ÷ 12，達到目標就停。年中才買的也領整年，所以達標時間會比實際快一點。沒有投入、也不能靠再投入增加持股時，顯示無法估算。</p>'
+            },
+            'goal-remain': {
+                title: '還差月領',
+                eq: '目標月領 − 目前每月股息',
+                body: '<p>小於或等於 0 就顯示已達標。底下的股數是還差的股數。</p>'
+            },
+            'goal-now': {
+                title: '目前每月股息',
+                eq: '目前持股 × 每股年配息 ÷ 12',
+                body: '<p>用畫面上的持股和年配息，不是券商實際入帳金額。</p>'
+            },
+            'goal-progress': {
+                title: '月領進度',
+                eq: '目前每月股息 ÷ 目標月領',
+                body: '<p>超過 100% 時進度條停在滿格。</p>'
+            },
+            'peer-you': {
+                title: '你的資產',
+                eq: '總覽淨值 ＋ 手填銀行存款',
+                body: '<p>總覽淨值是有計入的股票現值加黃金現值。銀行存款不要把已經算進股票、黃金的錢再填一次。</p>'
+            },
+            'peer-base': {
+                title: '同齡推估累積儲蓄',
+                eq: '從 22 歲加到「今年年齡 − 1」',
+                body: '<p>每一年用該年齡組的主計處「每人年儲蓄」。這是同齡基準，不含投資報酬，也不是官方排名。</p>'
+            },
+            'peer-ratio': {
+                title: '相對基準',
+                eq: '你的資產 ÷ 同齡累積基準',
+                body: '<p>差距＝你的資產 − 基準。2 倍以上標明顯高於，1 倍以上標高於，低於 0.7 倍標低於，其餘接近。</p>'
+            },
+            'div-expect': {
+                title: '當期可領股息',
+                eq: '目前股數 × 這一期每股現金',
+                body: '<p>優先用即將除息的一期；沒有的話用待發放，再來本年度最近一期。</p><p>用的是現在的股數，不檢查除息日當天是否已經持有。除息後才買的，這格會偏高。</p>'
+            },
+            'div-yield': {
+                title: '年殖利率',
+                eq: '該年現金股利加總 ÷ 除息前價的平均',
+                body: '<p>只平均有除息前價的那些期。股票股利不計入現金。填息天數是除息後股價第一次回到除息前價的交易日數，最多看 250 天。</p>'
+            }
+        };
+        const FORMULA_BULB_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.2a6 6 0 1 1 7.6 0c-.5.5-.8 1.1-.8 1.8V17H9v-1c0-.7-.3-1.3-.8-1.8z"/></svg>';
+        let formulaAnchor = null;
+        function closeFormula() {
+            const pop = document.getElementById('formula-pop');
+            if (pop) pop.classList.add('hidden');
+            if (formulaAnchor) formulaAnchor.classList.remove('is-on');
+            formulaAnchor = null;
+        }
+        function placeFormula(btn) {
+            const pop = document.getElementById('formula-pop');
+            if (!pop || !btn) return;
+            const r = btn.getBoundingClientRect();
+            const w = pop.offsetWidth;
+            const h = pop.offsetHeight;
+            let left = r.left;
+            let top = r.bottom + 8;
+            if (left + w > window.innerWidth - 12) left = window.innerWidth - w - 12;
+            if (left < 12) left = 12;
+            if (top + h > window.innerHeight - 12) top = Math.max(12, r.top - h - 8);
+            pop.style.left = left + 'px';
+            pop.style.top = top + 'px';
+        }
+        function openFormula(btn) {
+            const spec = FORMULAS[btn.getAttribute('data-formula')];
+            const pop = document.getElementById('formula-pop');
+            if (!spec || !pop) return;
+            if (formulaAnchor === btn && !pop.classList.contains('hidden')) {
+                closeFormula();
+                return;
+            }
+            if (formulaAnchor) formulaAnchor.classList.remove('is-on');
+            formulaAnchor = btn;
+            btn.classList.add('is-on');
+            document.getElementById('formula-pop-title').textContent = spec.title;
+            document.getElementById('formula-pop-eq').textContent = spec.eq;
+            document.getElementById('formula-pop-body').innerHTML = spec.body;
+            pop.classList.remove('hidden');
+            placeFormula(btn);
+        }
+        function initFormulaTips() {
+            document.querySelectorAll('.formula-bulb').forEach((btn) => {
+                if (!btn.dataset.ready) {
+                    btn.innerHTML = FORMULA_BULB_SVG;
+                    btn.dataset.ready = '1';
+                }
+            });
+        }
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest && e.target.closest('.formula-bulb');
+            if (btn) {
+                e.preventDefault();
+                e.stopPropagation();
+                openFormula(btn);
+                return;
+            }
+            if (e.target.closest && e.target.closest('#formula-pop')) return;
+            closeFormula();
+        });
+        document.getElementById('formula-pop-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeFormula();
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFormula(); });
+        window.addEventListener('resize', () => { if (formulaAnchor) placeFormula(formulaAnchor); });
+        window.addEventListener('scroll', () => { if (formulaAnchor) placeFormula(formulaAnchor); }, true);
+        initFormulaTips();
         syncIncludeToUI();
         syncAllocToUI();
         syncAssetToUI();
