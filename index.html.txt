@@ -687,15 +687,16 @@
         }
 
         .btn-primary {
-            background: var(--stock);
-            color: #ffffff;
+            background: #e8edf4;
+            color: #1c2433;
             transition: transform 0.25s, background 0.25s, box-shadow 0.25s;
             cursor: pointer;
-            box-shadow: 0 10px 24px -12px rgba(10, 90, 212, 0.7);
+            box-shadow: none;
         }
         .btn-primary:hover {
             transform: translateY(-1px);
-            background: var(--stock-deep);
+            background: #d5dbe6;
+            color: #1c2433;
         }
         .btn-primary:active { transform: scale(0.97); }
 
@@ -719,11 +720,11 @@
         .btn-ghost:hover { background: rgba(255, 255, 255, 0.45); }
 
         .btn-gold {
-            background: var(--gold-deep);
-            color: #ffffff;
-            transition: transform 0.25s, filter 0.25s;
+            background: #e8edf4;
+            color: #1c2433;
+            transition: transform 0.25s, background 0.25s;
         }
-        .btn-gold:hover { transform: translateY(-1px); filter: brightness(1.06); }
+        .btn-gold:hover { transform: translateY(-1px); background: #d5dbe6; }
 
         .btn-coll {
             background: var(--coll-deep);
@@ -733,9 +734,9 @@
         .btn-coll:hover { transform: translateY(-1px); filter: brightness(1.06); }
 
         .btn-sell {
-            background: var(--sell-deep);
-            color: #ffffff;
-            transition: transform 0.25s, filter 0.25s;
+            background: #e8edf4;
+            color: #1c2433;
+            transition: transform 0.25s, background 0.25s;
         }
         .btn-sell:hover { transform: translateY(-1px); filter: brightness(1.06); }
 
@@ -1457,12 +1458,13 @@
         }
         .header-btn:active { transform: scale(0.96); }
         .header-btn.is-primary {
-            background: var(--stock);
-            color: #fff;
-            box-shadow: 0 10px 20px -12px rgba(10, 90, 212, 0.75);
+            background: #e8edf4;
+            color: #1c2433;
+            box-shadow: none;
         }
         .header-btn.is-primary:hover {
-            background: var(--stock-deep);
+            background: #d5dbe6;
+            color: #1c2433;
             transform: translateY(-1px);
         }
         .header-btn.is-primary:active { transform: scale(0.96); }
@@ -2564,16 +2566,16 @@
         .btn-primary,
         .btn-gold,
         .btn-sell {
-            background: #4b5563;
-            color: #f7f8fa;
+            background: #e8edf4;
+            color: #1c2433;
             box-shadow: none;
         }
         .header-btn.is-primary:hover,
         .btn-primary:hover,
         .btn-gold:hover,
         .btn-sell:hover {
-            background: #3b4452;
-            color: #fff;
+            background: #d5dbe6;
+            color: #1c2433;
             filter: none;
         }
         .btn-surface,
@@ -2588,8 +2590,8 @@
         .sub-off { background: rgba(8, 16, 36, 0.45); }
         .trend-split { background: rgba(8, 16, 36, 0.55); border-color: var(--line); }
         .trend-split button.is-on {
-            background: #4b5563;
-            color: #f7f8fa;
+            background: #e8edf4;
+            color: #1c2433;
         }
         .trend-legend button { color: #d5e0f6; }
         input, select, textarea,
@@ -3003,6 +3005,23 @@
             background: #ffffff;
             border: 1px solid rgba(28, 36, 51, 0.12);
             color: #1c2433;
+        }
+        html[data-theme="light"] .header-btn.is-primary,
+        html[data-theme="light"] .btn-primary,
+        html[data-theme="light"] .btn-gold,
+        html[data-theme="light"] .btn-sell,
+        html[data-theme="light"] .trend-split button.is-on {
+            background: #2c3444;
+            color: #f7f8fa;
+            box-shadow: none;
+        }
+        html[data-theme="light"] .header-btn.is-primary:hover,
+        html[data-theme="light"] .btn-primary:hover,
+        html[data-theme="light"] .btn-gold:hover,
+        html[data-theme="light"] .btn-sell:hover {
+            background: #1c2433;
+            color: #fff;
+            filter: none;
         }
         html[data-theme="light"] .btn-surface:hover,
         html[data-theme="light"] .btn-ghost:hover { background: #f3f6fb; }
