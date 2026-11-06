@@ -1538,16 +1538,24 @@
             line-height: 1.35;
         }
         .settings-fold-chevron {
-            width: 1.55rem;
-            height: 1.55rem;
+            width: 2.05rem;
+            height: 2.05rem;
             border-radius: 999px;
             display: grid;
             place-items: center;
             flex-shrink: 0;
-            background: rgba(29, 29, 31, 0.05);
-            color: var(--muted);
-            font-size: 0.7rem;
+            background: rgba(29, 29, 31, 0.06);
+            color: #3d4d68;
+            font-size: 0;
             transition: transform 0.3s var(--ease-out), background 0.2s, color 0.2s;
+        }
+        .settings-fold-chevron::before {
+            content: "";
+            width: 1.15rem;
+            height: 1.15rem;
+            background: currentColor;
+            -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M4.6 8.2 12 15.6 19.4 8.2 17.2 6 12 11.2 6.8 6z'/></svg>") center / contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M4.6 8.2 12 15.6 19.4 8.2 17.2 6 12 11.2 6.8 6z'/></svg>") center / contain no-repeat;
         }
         .settings-fold[open] > summary .settings-fold-chevron {
             transform: rotate(180deg);
@@ -2553,14 +2561,18 @@
             padding: 0;
         }
         .header-btn.is-primary,
-        .btn-primary {
-            background: linear-gradient(90deg, #5b7cff, #a06bff 58%, #ff6ad5);
-            color: #fff;
-            box-shadow: 0 12px 28px -12px rgba(150, 90, 255, 0.85);
+        .btn-primary,
+        .btn-gold,
+        .btn-sell {
+            background: #4b5563;
+            color: #f7f8fa;
+            box-shadow: none;
         }
         .header-btn.is-primary:hover,
-        .btn-primary:hover {
-            background: linear-gradient(90deg, #6d8dff, #b07cff 58%, #ff7ae0);
+        .btn-primary:hover,
+        .btn-gold:hover,
+        .btn-sell:hover {
+            background: #3b4452;
             color: #fff;
             filter: none;
         }
@@ -2573,19 +2585,11 @@
         }
         .btn-surface:hover,
         .btn-ghost:hover { background: rgba(28, 46, 90, 0.9); }
-        .btn-gold {
-            background: linear-gradient(90deg, #f0a020, #ff7a3c);
-            color: #1b1206;
-        }
-        .btn-sell {
-            background: linear-gradient(90deg, #4d7dff, #7a5cff);
-            color: #fff;
-        }
         .sub-off { background: rgba(8, 16, 36, 0.45); }
         .trend-split { background: rgba(8, 16, 36, 0.55); border-color: var(--line); }
         .trend-split button.is-on {
-            background: linear-gradient(90deg, #5b7cff, #b06bff);
-            color: #fff;
+            background: #4b5563;
+            color: #f7f8fa;
         }
         .trend-legend button { color: #d5e0f6; }
         input, select, textarea,
