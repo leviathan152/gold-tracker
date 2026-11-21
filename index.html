@@ -3669,7 +3669,7 @@
             <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
                 <div>
                     <h3 class="stat-label c-stock mb-1">複利計算機</h3>
-                    <p class="text-[11px] text-muted">一次放入多個標的，各自用本金、每月投入與年化報酬往後推。可從目前持倉帶入現值，也可以自己新增。</p>
+                    <p class="text-[11px] text-muted">一次放入多個標的。年化用該標的過去完整年度的平均報酬（股票含現金股利），再往後複利。可從持倉帶入現值。</p>
                 </div>
                 <div class="goal-mode" role="group" aria-label="複利頻率">
                     <button type="button" id="compound-freq-month" class="is-on" onclick="setCompoundFreq('month')">月複利</button>
@@ -3678,12 +3678,12 @@
             </div>
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div class="flex flex-col gap-1">
-                    <label class="stat-label text-[10px]" for="compound-years">投資年數</label>
-                    <input type="number" id="compound-years" min="1" max="60" step="1" value="10" oninput="onCompoundInput()">
+                    <label class="stat-label text-[10px] formula-lab" for="compound-years">投資年數</label>
+                    <input type="number" id="compound-years" min="1" max="60" step="1" value="10" oninput="onCompoundInput(event)">
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="stat-label text-[10px]" for="compound-default-rate">新標的預設年化（%）</label>
-                    <input type="number" id="compound-default-rate" min="-50" max="100" step="0.1" value="8" oninput="onCompoundInput()">
+                    <label class="stat-label text-[10px]" for="compound-default-rate">歷史抓不到時（%）</label>
+                    <input type="number" id="compound-default-rate" min="-50" max="100" step="0.1" value="8" oninput="onCompoundInput(event)">
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="stat-label text-[10px]" for="compound-pick">從持倉加入</label>
@@ -3698,13 +3698,15 @@
                     <span class="stat-label text-[10px]">一次帶入</span>
                     <div class="flex flex-wrap gap-2">
                         <button type="button" onclick="importCompoundHoldings()" class="btn-primary px-3 py-2.5 rounded-xl text-xs font-bold">帶入全部持倉</button>
+                        <button type="button" onclick="recalcCompoundHist()" class="btn-surface px-3 py-2.5 rounded-xl text-xs font-bold">重算歷史年化</button>
                         <button type="button" onclick="addCompoundRow()" class="btn-surface px-3 py-2.5 rounded-xl text-xs font-bold">＋ 標的</button>
                     </div>
                 </div>
             </div>
             <div id="compound-head" class="compound-head hidden">
-                <span>標的</span><span>目前本金</span><span>每月投入</span><span>年化 %</span><span class="text-right">期末</span><span></span>
+                <span>標的</span><span>目前本金</span><span>每月投入</span><span class="formula-lab">歷史年化 %</span><span class="text-right formula-lab">期末</span><span></span>
             </div>
+            <p id="compound-hist-status" class="text-[11px] text-muted mb-2"></p>
             <div id="compound-rows"></div>
             <div id="compound-empty" class="text-sm text-muted">還沒有標的。按「帶入全部持倉」一次加入股票與黃金現值，或從上方選單逐一加入，也可以按「＋ 標的」自己填。</div>
             <div id="compound-body" class="hidden">
@@ -4500,7 +4502,9 @@
                 name: String((r && r.name) || '').slice(0, 40),
                 principal: r && r.principal != null ? String(r.principal) : '',
                 monthly: r && r.monthly != null ? String(r.monthly) : '',
-                rate: r && r.rate != null && r.rate !== '' ? String(r.rate) : String(defaultRate)
+                rate: r && r.rate != null && r.rate !== '' ? String(r.rate) : String(defaultRate),
+                rateManual: !!(r && r.rateManual),
+                histNote: String((r && r.histNote) || '').slice(0, 180)
             })) : [];
             return { years, freq, defaultRate, rows };
         }
@@ -6624,6 +6628,7 @@
             renderCompoundRowsIfNeeded();
             fillCompoundPick();
             renderCompoundResult();
+            scheduleCompoundHist(false);
         }
         const COMPOUND_COLORS = ['#7aa2ff', '#ffb020', '#3ee0b0', '#ff6b8a', '#c084fc', '#67e8f9', '#fbbf24', '#fb7185', '#a3e635', '#f9a8d4'];
         function compoundColor(i) { return COMPOUND_COLORS[i % COMPOUND_COLORS.length]; }
@@ -6634,7 +6639,9 @@
                 name: '',
                 principal: '',
                 monthly: '',
-                rate: String(rate)
+                rate: String(rate),
+                rateManual: false,
+                histNote: ''
             };
         }
         function saveCompoundPlan() {
@@ -6652,14 +6659,20 @@
             if (rEl && rEl.value !== '') compoundPlan.defaultRate = num(rEl.value);
             const host = document.getElementById('compound-rows');
             if (!host) return;
+            const prevById = {};
+            (compoundPlan.rows || []).forEach(r => { if (r && r.id) prevById[r.id] = r; });
             const rows = [];
             host.querySelectorAll('.compound-row').forEach(el => {
+                const id = el.getAttribute('data-cid');
+                const prev = prevById[id] || {};
                 rows.push({
-                    id: el.getAttribute('data-cid'),
+                    id,
                     name: ((el.querySelector('.c-name') || {}).value || '').trim().slice(0, 40),
                     principal: (el.querySelector('.c-prin') || {}).value || '',
                     monthly: (el.querySelector('.c-mon') || {}).value || '',
-                    rate: (el.querySelector('.c-rate') || {}).value || ''
+                    rate: (el.querySelector('.c-rate') || {}).value || '',
+                    rateManual: !!prev.rateManual,
+                    histNote: prev.histNote || ''
                 });
             });
             compoundPlan.rows = rows;
@@ -6685,10 +6698,27 @@
             saveCompoundPlan();
             renderCompoundResult();
         }
-        function onCompoundInput() {
+        function onCompoundInput(ev) {
+            const t = ev && ev.target;
+            if (t && t.classList && t.closest) {
+                const rowEl = t.closest('.compound-row');
+                const id = rowEl && rowEl.getAttribute('data-cid');
+                const hit = id && (compoundPlan.rows || []).find(r => r.id === id);
+                if (hit && t.classList.contains('c-rate')) {
+                    hit.rateManual = true;
+                    hit.histNote = '';
+                }
+                if (hit && t.classList.contains('c-name')) {
+                    hit.rateManual = false;
+                    hit.histNote = '';
+                }
+            }
             readCompoundDom();
             saveCompoundPlan();
             renderCompoundResult();
+            if (t && (t.id === 'compound-years' || (t.classList && t.classList.contains('c-name')))) {
+                scheduleCompoundHist(false);
+            }
         }
         function compoundLabel(row, i, rows) {
             const base = (row.name || '').trim() || ('標的 ' + (i + 1));
@@ -6740,7 +6770,9 @@
                 name: hit.name,
                 principal: String(hit.principal),
                 monthly: '',
-                rate: String(rate)
+                rate: String(rate),
+                rateManual: false,
+                histNote: ''
             });
             return true;
         }
@@ -6764,6 +6796,7 @@
             saveCompoundPlan();
             renderCompoundRows();
             renderCompoundResult();
+            scheduleCompoundHist(false);
         }
         function importCompoundHoldings() {
             const list = listCompoundHoldings();
@@ -6775,6 +6808,7 @@
             saveCompoundPlan();
             renderCompoundRows();
             renderCompoundResult();
+            scheduleCompoundHist(false);
         }
         function addCompoundRow() {
             readCompoundDom();
@@ -6804,10 +6838,10 @@
             if (empty) empty.classList.toggle('hidden', has);
             host.innerHTML = compoundPlan.rows.map(r => (
                 '<div class="compound-row" data-cid="' + escapeHtml(r.id) + '">' +
-                    '<input class="c-name" type="text" maxlength="40" placeholder="標的名稱" value="' + escapeHtml(r.name) + '" oninput="onCompoundInput()">' +
-                    '<input class="c-prin" type="number" min="0" step="1" inputmode="decimal" placeholder="目前本金" value="' + escapeHtml(r.principal) + '" oninput="onCompoundInput()">' +
-                    '<input class="c-mon" type="number" min="0" step="1" inputmode="decimal" placeholder="每月投入" value="' + escapeHtml(r.monthly) + '" oninput="onCompoundInput()">' +
-                    '<input class="c-rate" type="number" step="0.1" inputmode="decimal" placeholder="年化 %" value="' + escapeHtml(r.rate) + '" oninput="onCompoundInput()">' +
+                    '<input class="c-name" type="text" maxlength="40" placeholder="標的名稱" value="' + escapeHtml(r.name) + '" oninput="onCompoundInput(event)">' +
+                    '<input class="c-prin" type="number" min="0" step="1" inputmode="decimal" placeholder="目前本金" value="' + escapeHtml(r.principal) + '" oninput="onCompoundInput(event)">' +
+                    '<input class="c-mon" type="number" min="0" step="1" inputmode="decimal" placeholder="每月投入" value="' + escapeHtml(r.monthly) + '" oninput="onCompoundInput(event)">' +
+                    '<input class="c-rate" type="number" step="0.1" inputmode="decimal" placeholder="歷史年化 %" value="' + escapeHtml(r.rate) + '" oninput="onCompoundInput(event)">' +
                     '<div class="c-end" data-end>--</div>' +
                     '<button type="button" class="c-del" onclick="removeCompoundRow(\'' + escapeHtml(r.id) + '\')" aria-label="移除標的">✕</button>' +
                 '</div>'
@@ -7000,11 +7034,160 @@
             }
             const note = document.getElementById('compound-note');
             if (note) {
-                note.textContent = freq === 'year'
-                    ? '年複利：每年先把餘額乘上（1＋年化），再加上這一年的每月投入。今年新投入的錢要等明年才計息。帶入持倉時，本金用目前現值（沒有現價則用買入單價）。年化可各自修改，預設值只套在新加入的標的。'
-                    : '月複利：每個月先把餘額乘上（1＋年化÷12），再加上當月投入。新投入的錢從下個月才開始計息。帶入持倉時，本金用目前現值（沒有現價則用買入單價）。年化可各自修改，預設值只套在新加入的標的。';
+                const hist = rows.map(r => r.histNote).filter(Boolean);
+                const base = freq === 'year'
+                    ? '年複利：每年先把餘額乘上（1＋年化），再加上這一年的每月投入。今年新投入要等明年才計息。'
+                    : '月複利：每個月先把餘額乘上（1＋年化÷12），再加上當月投入。新投入從下個月才開始計息。';
+                note.textContent = base + ' 年化是回顧期間完整年度報酬的平均，公式在計算說明。' + (hist.length ? (' ' + hist.join(' ')) : '');
             }
             renderCompoundChart(labels, datasets);
+        }
+        const compoundHistMemo = {};
+        let compoundHistTimer = 0;
+        let compoundHistToken = 0;
+        function compoundLookbackYears() {
+            let y = Math.round(num(compoundPlan.years));
+            if (!(y >= 1)) y = 10;
+            if (y < 3) y = 3;
+            if (y > 10) y = 10;
+            return y;
+        }
+        function compoundYearEndMap(points) {
+            const by = {};
+            (points || []).forEach(p => {
+                const d = String(p.date || '');
+                const y = Number(d.slice(0, 4));
+                const c = Number(p.close);
+                if (!y || !(c > 0)) return;
+                if (!by[y] || d >= by[y].date) by[y] = { date: d, close: c };
+            });
+            return by;
+        }
+        function compoundAvgFromYearEnds(by, divByYear, lookback, withDiv) {
+            const end = new Date().getFullYear() - 1;
+            const start = end - lookback + 1;
+            const rets = [];
+            for (let y = start; y <= end; y++) {
+                const prev = by[y - 1];
+                const cur = by[y];
+                if (!prev || !cur || !(prev.close > 0) || !(cur.close > 0)) continue;
+                const div = withDiv ? num(divByYear && divByYear[y]) : 0;
+                rets.push({ year: y, ret: (cur.close + div) / prev.close - 1 });
+            }
+            if (!rets.length) return null;
+            const avg = rets.reduce((s, r) => s + r.ret, 0) / rets.length;
+            return { avg, from: rets[0].year, to: rets[rets.length - 1].year, n: rets.length, withDiv: !!withDiv };
+        }
+        function compoundHistResult(name, stat) {
+            const pct = Math.round(stat.avg * 1000) / 10;
+            const tail = stat.withDiv ? '（年底價＋當年現金股利）' : (name === '黃金' ? '（PAXG 美元金價，不含匯率）' : '（僅年底價）');
+            return {
+                pct,
+                note: name + '：' + stat.from + '–' + stat.to + ' 共 ' + stat.n + ' 個完整年度，平均 ' + pct.toFixed(1) + '%' + tail
+            };
+        }
+        async function loadStockHistReturn(code, lookback) {
+            const key = 's:' + code + ':' + lookback;
+            if (compoundHistMemo[key]) return compoundHistMemo[key];
+            const start = String(new Date().getFullYear() - lookback - 1) + '-01-01';
+            const prices = await fetchFinMindDataset('TaiwanStockPrice', code, start);
+            let divBy = {};
+            let withDiv = false;
+            try {
+                const policy = await fetchFinMindDataset('TaiwanStockDividend', code, start);
+                (policy || []).forEach(r => {
+                    const cash = num(r.CashEarningsDistribution) + num(r.CashStatutorySurplus);
+                    if (!(cash > 0)) return;
+                    const d = r.CashExDividendTradingDate || r.date || '';
+                    const y = Number(String(d).slice(0, 4));
+                    if (!y) return;
+                    divBy[y] = (divBy[y] || 0) + cash;
+                    withDiv = true;
+                });
+            } catch (e) {
+                withDiv = false;
+                divBy = {};
+            }
+            const by = compoundYearEndMap((prices || []).map(r => ({ date: r.date, close: r.close })));
+            const stat = compoundAvgFromYearEnds(by, divBy, lookback, withDiv);
+            if (!stat) return null;
+            const res = compoundHistResult(code, stat);
+            compoundHistMemo[key] = res;
+            return res;
+        }
+        async function loadGoldHistReturn(lookback) {
+            const key = 'g:' + lookback;
+            if (compoundHistMemo[key]) return compoundHistMemo[key];
+            const res = await fetch('https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=1M&limit=150');
+            if (!res.ok) throw new Error('gold http');
+            const rows = await res.json();
+            const points = (Array.isArray(rows) ? rows : []).map(k => {
+                const d = new Date(Number(k[0]));
+                const date = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0');
+                return { date, close: Number(k[4]) };
+            });
+            const by = compoundYearEndMap(points);
+            const stat = compoundAvgFromYearEnds(by, {}, lookback, false);
+            if (!stat) return null;
+            const out = compoundHistResult('黃金', stat);
+            compoundHistMemo[key] = out;
+            return out;
+        }
+        function scheduleCompoundHist(force) {
+            clearTimeout(compoundHistTimer);
+            compoundHistTimer = setTimeout(() => { refreshCompoundHistRates(!!force); }, force ? 0 : 450);
+        }
+        function recalcCompoundHist() {
+            readCompoundDom();
+            (compoundPlan.rows || []).forEach(r => { r.rateManual = false; });
+            scheduleCompoundHist(true);
+        }
+        async function refreshCompoundHistRates(force) {
+            const token = ++compoundHistToken;
+            readCompoundDom();
+            const lookback = compoundLookbackYears();
+            const targets = (compoundPlan.rows || []).filter(r => {
+                const name = (r.name || '').trim();
+                if (!name) return false;
+                if (!force && r.rateManual) return false;
+                return name === '黃金' || looksLikeTwStock(name);
+            });
+            const status = document.getElementById('compound-hist-status');
+            if (!targets.length) {
+                if (status && force) status.textContent = '沒有可計算歷史年化的股票代號或黃金。';
+                return;
+            }
+            if (status) status.textContent = '正在回顧近 ' + lookback + ' 個完整年度的報酬…';
+            await Promise.all(targets.map(async (row) => {
+                const name = row.name.trim();
+                try {
+                    const res = name === '黃金'
+                        ? await loadGoldHistReturn(lookback)
+                        : await loadStockHistReturn(stripTwStockCode(name), lookback);
+                    if (token !== compoundHistToken) return;
+                    const live = (compoundPlan.rows || []).find(r => r.id === row.id);
+                    if (!live || (!force && live.rateManual)) return;
+                    if (!res) {
+                        live.histNote = name + '：歷史年度不足，沿用目前年化';
+                        return;
+                    }
+                    live.rate = res.pct.toFixed(1);
+                    live.histNote = res.note;
+                    live.rateManual = false;
+                } catch (e) {
+                    const live = (compoundPlan.rows || []).find(r => r.id === row.id);
+                    if (live && token === compoundHistToken) live.histNote = name + '：歷史年化抓取失敗，沿用目前年化';
+                }
+            }));
+            if (token !== compoundHistToken) return;
+            saveCompoundPlan();
+            document.querySelectorAll('#compound-rows .compound-row').forEach(el => {
+                const row = (compoundPlan.rows || []).find(r => r.id === el.getAttribute('data-cid'));
+                const rateEl = el.querySelector('.c-rate');
+                if (row && rateEl && document.activeElement !== rateEl) rateEl.value = row.rate;
+            });
+            if (status) status.textContent = '';
+            renderCompoundResult();
         }
         function setUnrealText(id, val) {
             const el = document.getElementById(id);
@@ -9616,10 +9799,25 @@
                 eq: '目前每月股息 ÷ 目標月領',
                 body: '<p>超過 100% 時進度條停在滿格。</p>'
             },
+            'compound-rate': {
+                title: '歷史年化',
+                eq: '完整年度報酬加總 ÷ 年度數',
+                body: '<p>回顧年數跟「投資年數」相同，最少 3 年、最多 10 年，而且不算今年（今年還沒過完）。</p><p>股票每一年的報酬＝（該年底收盤＋當年現金股利）÷ 前一年底收盤 − 1。歷史年化是這些完整年度的平均。現金股利用除息日那一年。</p><p>黃金用 PAXG 美元月線的年底價，同一套平均，不含台幣匯率。歷史不夠或抓取失敗時，沿用「歷史抓不到時」的年化。</p><p>手動改過的年化會保留。按「重算歷史年化」會全部再抓一次。</p>'
+            },
             'compound-fv': {
-                title: '複利期末',
-                eq: '餘額先計息，再加入這一期投入',
-                body: '<p>月複利：每個月把餘額乘上（1＋年化÷12），再加上當月投入。新投入的錢從下個月才開始計息。</p><p>年複利：每年先把餘額乘上（1＋年化），再加上這一年的每月投入合計。今年投入的錢要等明年才計息。</p><p>總投入＝目前本金＋每月投入×12×年數。複利增益＝期末−總投入。多個標的各自計算後加總，年化每年假設不變，不含手續費與稅。</p>'
+                title: '期末總值',
+                eq: '各標的期末相加',
+                body: '<p>月複利：每個月先把餘額乘上（1＋年化÷12），再加上當月投入。新投入的錢從下個月才開始計息。</p><p>年複利：每年先把餘額乘上（1＋年化），再加上這一年的每月投入合計。今年投入的錢要等明年才計息。</p><p>多個標的各自算完再相加。年化用上面的歷史平均，假設之後每年都一樣，不含手續費與稅。</p>'
+            },
+            'compound-in': {
+                title: '總投入',
+                eq: '目前本金 ＋ 每月投入 × 12 × 年數',
+                body: '<p>每個標的分開算，再加總。期間投入不含複利長出來的部分。</p>'
+            },
+            'compound-gain': {
+                title: '複利增益',
+                eq: '期末總值 − 總投入',
+                body: '<p>就是假設歷史平均年化一直持續，多出來的金額。底下的百分比＝複利增益 ÷ 總投入。</p>'
             },
             'peer-you': {
                 title: '你的資產',
