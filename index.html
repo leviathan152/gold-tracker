@@ -1879,11 +1879,65 @@
         @media (min-width: 1100px) {
             .goal-result { grid-template-columns: repeat(5, minmax(0, 1fr)); }
         }
+        .goal-result.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        @media (min-width: 720px) {
+            .goal-result.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
         .goal-chart-wrap {
             position: relative;
             height: min(280px, 36vh);
             width: 100%;
             margin: 0.85rem 0 0.35rem;
+        }
+        .compound-head,
+        .compound-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr) 5.4rem minmax(5.5rem, 0.9fr) 1.6rem;
+            gap: 0.45rem;
+            align-items: center;
+        }
+        .compound-head {
+            margin: 0.15rem 0 0.35rem;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .compound-row { margin-bottom: 0.45rem; }
+        .compound-row .c-end {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            color: var(--stock-deep);
+        }
+        .compound-row .c-del {
+            border: 0;
+            background: transparent;
+            color: var(--faint);
+            cursor: pointer;
+            font-size: 0.95rem;
+            line-height: 1;
+            padding: 0.2rem;
+        }
+        .compound-row .c-del:hover { color: var(--loss); }
+        .compound-share { margin-bottom: 0.55rem; }
+        .compound-share .peer-bar-fill { background: var(--bar, var(--stock)); }
+        @media (max-width: 720px) {
+            .compound-head { display: none; }
+            .compound-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.4rem;
+                padding: 0.55rem 0;
+                margin: 0;
+                border-top: 1px solid var(--line);
+            }
+            .compound-row .c-name { grid-column: 1; grid-row: 1; }
+            .compound-row .c-del { grid-column: 2; grid-row: 1; justify-self: end; }
+            .compound-row .c-prin { grid-column: 1; grid-row: 2; }
+            .compound-row .c-mon { grid-column: 2; grid-row: 2; }
+            .compound-row .c-rate { grid-column: 1; grid-row: 3; }
+            .compound-row .c-end { grid-column: 2; grid-row: 3; align-self: center; }
         }
 
         .row-hover { transition: background 0.2s, transform 0.2s; }
@@ -3611,6 +3665,74 @@
                 <p id="goal-note" class="text-[11px] text-muted"></p>
             </div>
         </section>
+        <section class="card mb-6 section-rise" id="compound-card">
+            <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+                <div>
+                    <h3 class="stat-label c-stock mb-1">複利計算機</h3>
+                    <p class="text-[11px] text-muted">一次放入多個標的，各自用本金、每月投入與年化報酬往後推。可從目前持倉帶入現值，也可以自己新增。</p>
+                </div>
+                <div class="goal-mode" role="group" aria-label="複利頻率">
+                    <button type="button" id="compound-freq-month" class="is-on" onclick="setCompoundFreq('month')">月複利</button>
+                    <button type="button" id="compound-freq-year" onclick="setCompoundFreq('year')">年複利</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div class="flex flex-col gap-1">
+                    <label class="stat-label text-[10px]" for="compound-years">投資年數</label>
+                    <input type="number" id="compound-years" min="1" max="60" step="1" value="10" oninput="onCompoundInput()">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="stat-label text-[10px]" for="compound-default-rate">新標的預設年化（%）</label>
+                    <input type="number" id="compound-default-rate" min="-50" max="100" step="0.1" value="8" oninput="onCompoundInput()">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="stat-label text-[10px]" for="compound-pick">從持倉加入</label>
+                    <div class="flex gap-2 items-stretch">
+                        <select id="compound-pick" class="w-full flex-1">
+                            <option value="">選擇標的</option>
+                        </select>
+                        <button type="button" onclick="addCompoundFromPick()" class="btn-surface px-3 rounded-xl text-xs font-bold shrink-0">加入</button>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span class="stat-label text-[10px]">一次帶入</span>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="importCompoundHoldings()" class="btn-primary px-3 py-2.5 rounded-xl text-xs font-bold">帶入全部持倉</button>
+                        <button type="button" onclick="addCompoundRow()" class="btn-surface px-3 py-2.5 rounded-xl text-xs font-bold">＋ 標的</button>
+                    </div>
+                </div>
+            </div>
+            <div id="compound-head" class="compound-head hidden">
+                <span>標的</span><span>目前本金</span><span>每月投入</span><span>年化 %</span><span class="text-right">期末</span><span></span>
+            </div>
+            <div id="compound-rows"></div>
+            <div id="compound-empty" class="text-sm text-muted">還沒有標的。按「帶入全部持倉」一次加入股票與黃金現值，或從上方選單逐一加入，也可以按「＋ 標的」自己填。</div>
+            <div id="compound-body" class="hidden">
+                <div class="goal-result cols-3 mb-4">
+                    <div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">期末總值</div>
+                        <div id="compound-fv" class="text-xl font-bold c-stock">--</div>
+                        <div id="compound-fv-sub" class="text-xs text-muted mt-1">--</div>
+                    </div>
+                    <div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">總投入</div>
+                        <div id="compound-in" class="text-xl font-bold">--</div>
+                        <div id="compound-in-sub" class="text-xs text-muted mt-1">--</div>
+                    </div>
+                    <div>
+                        <div class="stat-label text-[10px] mb-1 formula-lab">複利增益</div>
+                        <div id="compound-gain" class="text-xl font-bold">--</div>
+                        <div id="compound-gain-sub" class="text-xs text-muted mt-1">--</div>
+                    </div>
+                </div>
+                <div id="compound-shares" class="mb-3"></div>
+                <div class="stat-label text-[10px] mb-1">資產成長曲線</div>
+                <div class="goal-chart-wrap" id="compound-chart-wrap">
+                    <canvas id="compoundChart"></canvas>
+                </div>
+                <p id="compound-note" class="text-[11px] text-muted"></p>
+            </div>
+        </section>
         <section class="card mb-10 section-rise" id="peer-compare-card">
             <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
                 <div>
@@ -4214,7 +4336,7 @@
     <script>
         const K_STK = 'WV20_STK', K_GLD = 'WV20_GLD', K_PRC = 'WV20_PRC', K_PRC_META = 'WV20_PRC_META', K_PWD = 'WV20_PWD', K_PRIV = 'WV20_PRIV';
         const K_COLL = 'WV20_COLL', K_STK_SELL = 'WV20_STK_SELL', K_GLD_SELL = 'WV20_GLD_SELL', K_COLL_SELL = 'WV20_COLL_SELL', K_INC = 'WV20_INC';
-        const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL', K_ASSET = 'WV20_ASSET';
+        const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL', K_COMPOUND = 'WV20_COMPOUND', K_ASSET = 'WV20_ASSET';
         const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE', K_DIV_META = 'WV20_DIV_META';
         const DIV_STALE_MS = 12 * 60 * 60 * 1000;
         const K_WORTH_SNAP = 'WV20_WORTH_SNAP';
@@ -4365,6 +4487,28 @@
             } catch (e) { return {}; }
         })();
         if (goalPlan.reinvest == null) goalPlan.reinvest = true;
+        function normalizeCompoundPlan(raw) {
+            const o = raw && typeof raw === 'object' ? raw : {};
+            let years = Math.round(num(o.years));
+            if (!(years >= 1)) years = 10;
+            if (years > 60) years = 60;
+            let defaultRate = num(o.defaultRate);
+            if (o.defaultRate == null || o.defaultRate === '' || !isFinite(defaultRate)) defaultRate = 8;
+            const freq = o.freq === 'year' ? 'year' : 'month';
+            const rows = Array.isArray(o.rows) ? o.rows.slice(0, 30).map((r, i) => ({
+                id: String((r && r.id) || ('c' + i + '-' + Math.random().toString(36).slice(2, 7))),
+                name: String((r && r.name) || '').slice(0, 40),
+                principal: r && r.principal != null ? String(r.principal) : '',
+                monthly: r && r.monthly != null ? String(r.monthly) : '',
+                rate: r && r.rate != null && r.rate !== '' ? String(r.rate) : String(defaultRate)
+            })) : [];
+            return { years, freq, defaultRate, rows };
+        }
+        let compoundPlan = (function() {
+            try { return normalizeCompoundPlan(JSON.parse(localStorage.getItem(K_COMPOUND) || '{}')); }
+            catch (e) { return normalizeCompoundPlan({}); }
+        })();
+        let compoundRenderGen = 1;
         if ((num(allocTargets.stock) + num(allocTargets.gold)) === 0) {
             allocTargets.stock = 50; allocTargets.gold = 50;
         }
@@ -5719,7 +5863,9 @@
             peerBirthYear = 0;
             peerCash = 0;
             goalPlan = { reinvest: true };
-            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_ASSET, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_DIV_META, K_BIRTH, K_CASH, K_GOAL, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
+            compoundPlan = normalizeCompoundPlan({ years: 10, freq: 'month', defaultRate: 8, rows: [] });
+            compoundRenderGen++;
+            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_ASSET, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_DIV_META, K_BIRTH, K_CASH, K_GOAL, K_COMPOUND, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
             saveAll();
             try { clearStockForm(); } catch (e) {}
             try { clearGoldForm(); } catch (e) {}
@@ -6475,6 +6621,390 @@
             } else {
                 renderGoalCalc();
             }
+            renderCompoundRowsIfNeeded();
+            fillCompoundPick();
+            renderCompoundResult();
+        }
+        const COMPOUND_COLORS = ['#7aa2ff', '#ffb020', '#3ee0b0', '#ff6b8a', '#c084fc', '#67e8f9', '#fbbf24', '#fb7185', '#a3e635', '#f9a8d4'];
+        function compoundColor(i) { return COMPOUND_COLORS[i % COMPOUND_COLORS.length]; }
+        function blankCompoundRow() {
+            const rate = compoundPlan.defaultRate != null ? compoundPlan.defaultRate : 8;
+            return {
+                id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                name: '',
+                principal: '',
+                monthly: '',
+                rate: String(rate)
+            };
+        }
+        function saveCompoundPlan() {
+            try { localStorage.setItem(K_COMPOUND, JSON.stringify(compoundPlan)); } catch (e) {}
+        }
+        function readCompoundDom() {
+            const yEl = document.getElementById('compound-years');
+            const rEl = document.getElementById('compound-default-rate');
+            if (yEl && yEl.value !== '') {
+                let y = Math.round(num(yEl.value));
+                if (!(y >= 1)) y = 1;
+                if (y > 60) y = 60;
+                compoundPlan.years = y;
+            }
+            if (rEl && rEl.value !== '') compoundPlan.defaultRate = num(rEl.value);
+            const host = document.getElementById('compound-rows');
+            if (!host) return;
+            const rows = [];
+            host.querySelectorAll('.compound-row').forEach(el => {
+                rows.push({
+                    id: el.getAttribute('data-cid'),
+                    name: ((el.querySelector('.c-name') || {}).value || '').trim().slice(0, 40),
+                    principal: (el.querySelector('.c-prin') || {}).value || '',
+                    monthly: (el.querySelector('.c-mon') || {}).value || '',
+                    rate: (el.querySelector('.c-rate') || {}).value || ''
+                });
+            });
+            compoundPlan.rows = rows;
+        }
+        function syncCompoundFreqBtns() {
+            const month = document.getElementById('compound-freq-month');
+            const year = document.getElementById('compound-freq-year');
+            const on = compoundPlan.freq !== 'year';
+            if (month) month.classList.toggle('is-on', on);
+            if (year) year.classList.toggle('is-on', !on);
+        }
+        function syncCompoundChrome() {
+            const yEl = document.getElementById('compound-years');
+            const rEl = document.getElementById('compound-default-rate');
+            if (yEl) yEl.value = compoundPlan.years;
+            if (rEl) rEl.value = compoundPlan.defaultRate;
+            syncCompoundFreqBtns();
+        }
+        function setCompoundFreq(freq) {
+            readCompoundDom();
+            compoundPlan.freq = freq === 'year' ? 'year' : 'month';
+            syncCompoundFreqBtns();
+            saveCompoundPlan();
+            renderCompoundResult();
+        }
+        function onCompoundInput() {
+            readCompoundDom();
+            saveCompoundPlan();
+            renderCompoundResult();
+        }
+        function compoundLabel(row, i, rows) {
+            const base = (row.name || '').trim() || ('標的 ' + (i + 1));
+            const key = (row.name || '').trim();
+            const same = rows.filter(r => (r.name || '').trim() === key).length;
+            if (same < 2) return base;
+            const n = rows.slice(0, i + 1).filter(r => (r.name || '').trim() === key).length;
+            return base + ' (' + n + ')';
+        }
+        function listCompoundHoldings() {
+            const worth = {};
+            stockRecs.forEach(r => {
+                const c = String(r.code || '').toUpperCase().trim();
+                if (!c) return;
+                const nowP = marketPrices[r.code] || r.buyPrice || 0;
+                worth[c] = (worth[c] || 0) + nowP * num(r.shares);
+            });
+            const out = Object.keys(worth)
+                .filter(c => worth[c] > 0.5)
+                .sort((a, b) => a.localeCompare(b, 'zh-TW'))
+                .map(c => ({ kind: 'stock', name: c, principal: Math.round(worth[c]) }));
+            const gold = computeAssetWorth().gV;
+            if (gold > 0.5) out.push({ kind: 'gold', name: '黃金', principal: Math.round(gold) });
+            return out;
+        }
+        function fillCompoundPick() {
+            const sel = document.getElementById('compound-pick');
+            if (!sel) return;
+            const cur = sel.value;
+            const list = listCompoundHoldings();
+            const opts = ['<option value="">選擇標的</option>'].concat(list.map(t => {
+                const v = t.kind + ':' + t.name;
+                const money = isPrivacyMode ? '' : (' · NT$' + Math.round(t.principal).toLocaleString('zh-TW'));
+                return '<option value="' + escapeHtml(v) + '">' + escapeHtml(t.name + money) + '</option>';
+            }));
+            sel.innerHTML = opts.join('');
+            if (cur && Array.from(sel.options).some(o => o.value === cur)) sel.value = cur;
+            if (typeof syncCodePicker === 'function') syncCodePicker(sel);
+        }
+        function upsertCompoundHolding(hit) {
+            const exist = compoundPlan.rows.find(r => String(r.name || '').toUpperCase() === hit.name.toUpperCase());
+            if (exist) {
+                exist.principal = String(hit.principal);
+                return false;
+            }
+            const rate = compoundPlan.defaultRate != null ? compoundPlan.defaultRate : 8;
+            compoundPlan.rows.push({
+                id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                name: hit.name,
+                principal: String(hit.principal),
+                monthly: '',
+                rate: String(rate)
+            });
+            return true;
+        }
+        function dropBlankCompoundRows() {
+            const meaningful = compoundPlan.rows.filter(r => (r.name || '').trim() || num(r.principal) > 0 || num(r.monthly) > 0);
+            if (meaningful.length && meaningful.length !== compoundPlan.rows.length) compoundPlan.rows = meaningful;
+        }
+        function addCompoundFromPick() {
+            const sel = document.getElementById('compound-pick');
+            const v = sel && sel.value;
+            if (!v) { alert('請先選擇要加入的持倉。'); return; }
+            const cut = v.indexOf(':');
+            const kind = v.slice(0, cut);
+            const name = v.slice(cut + 1);
+            const hit = listCompoundHoldings().find(t => t.kind === kind && t.name === name);
+            if (!hit) { alert('找不到這個持倉，請先登錄或刷新現價。'); return; }
+            readCompoundDom();
+            upsertCompoundHolding(hit);
+            dropBlankCompoundRows();
+            compoundRenderGen++;
+            saveCompoundPlan();
+            renderCompoundRows();
+            renderCompoundResult();
+        }
+        function importCompoundHoldings() {
+            const list = listCompoundHoldings();
+            if (!list.length) { alert('目前沒有可帶入的持倉。請先登錄股票或黃金。'); return; }
+            readCompoundDom();
+            list.forEach(upsertCompoundHolding);
+            dropBlankCompoundRows();
+            compoundRenderGen++;
+            saveCompoundPlan();
+            renderCompoundRows();
+            renderCompoundResult();
+        }
+        function addCompoundRow() {
+            readCompoundDom();
+            compoundPlan.rows.push(blankCompoundRow());
+            compoundRenderGen++;
+            saveCompoundPlan();
+            renderCompoundRows();
+            renderCompoundResult();
+            const last = document.querySelector('#compound-rows .compound-row:last-child .c-name');
+            if (last) last.focus();
+        }
+        function removeCompoundRow(id) {
+            readCompoundDom();
+            compoundPlan.rows = compoundPlan.rows.filter(r => r.id !== id);
+            compoundRenderGen++;
+            saveCompoundPlan();
+            renderCompoundRows();
+            renderCompoundResult();
+        }
+        function renderCompoundRows() {
+            const host = document.getElementById('compound-rows');
+            const head = document.getElementById('compound-head');
+            const empty = document.getElementById('compound-empty');
+            if (!host) return;
+            const has = compoundPlan.rows.length > 0;
+            if (head) head.classList.toggle('hidden', !has);
+            if (empty) empty.classList.toggle('hidden', has);
+            host.innerHTML = compoundPlan.rows.map(r => (
+                '<div class="compound-row" data-cid="' + escapeHtml(r.id) + '">' +
+                    '<input class="c-name" type="text" maxlength="40" placeholder="標的名稱" value="' + escapeHtml(r.name) + '" oninput="onCompoundInput()">' +
+                    '<input class="c-prin" type="number" min="0" step="1" inputmode="decimal" placeholder="目前本金" value="' + escapeHtml(r.principal) + '" oninput="onCompoundInput()">' +
+                    '<input class="c-mon" type="number" min="0" step="1" inputmode="decimal" placeholder="每月投入" value="' + escapeHtml(r.monthly) + '" oninput="onCompoundInput()">' +
+                    '<input class="c-rate" type="number" step="0.1" inputmode="decimal" placeholder="年化 %" value="' + escapeHtml(r.rate) + '" oninput="onCompoundInput()">' +
+                    '<div class="c-end" data-end>--</div>' +
+                    '<button type="button" class="c-del" onclick="removeCompoundRow(\'' + escapeHtml(r.id) + '\')" aria-label="移除標的">✕</button>' +
+                '</div>'
+            )).join('');
+            host.setAttribute('data-gen', String(compoundRenderGen));
+        }
+        function renderCompoundRowsIfNeeded() {
+            const host = document.getElementById('compound-rows');
+            if (!host) return;
+            if (host.getAttribute('data-gen') === String(compoundRenderGen)) return;
+            syncCompoundChrome();
+            renderCompoundRows();
+        }
+        function compoundPath(principal, monthly, ratePct, years, freq) {
+            const y = Math.max(0, Math.min(60, Math.round(years) || 0));
+            const P = Math.max(0, num(principal));
+            const M = Math.max(0, num(monthly));
+            let r = num(ratePct);
+            if (!isFinite(r)) r = 0;
+            r = Math.max(-99, Math.min(200, r)) / 100;
+            const series = [P];
+            let bal = P;
+            if (freq === 'year') {
+                for (let i = 1; i <= y; i++) {
+                    bal = bal * (1 + r) + M * 12;
+                    if (!isFinite(bal)) bal = 0;
+                    series.push(bal);
+                }
+            } else {
+                const iRate = r / 12;
+                for (let i = 1; i <= y; i++) {
+                    for (let m = 0; m < 12; m++) {
+                        bal = bal * (1 + iRate) + M;
+                        if (!isFinite(bal)) bal = 0;
+                    }
+                    series.push(bal);
+                }
+            }
+            const contributed = P + M * 12 * y;
+            const fv = series[series.length - 1] || 0;
+            return { fv, contributed, gain: fv - contributed, series };
+        }
+        function destroyCompoundChart() {
+            if (compoundChartObj) {
+                try { compoundChartObj.destroy(); } catch (e) {}
+                compoundChartObj = null;
+            }
+        }
+        function resizeCompoundChart() {
+            requestAnimationFrame(() => {
+                try { if (compoundChartObj) compoundChartObj.resize(); } catch (e) {}
+            });
+        }
+        function renderCompoundChart(labels, datasets) {
+            const canvas = document.getElementById('compoundChart');
+            const wrap = document.getElementById('compound-chart-wrap');
+            if (!canvas || !labels.length) {
+                destroyCompoundChart();
+                return;
+            }
+            if (wrap) wrap.classList.toggle('privacy-masked', !!isPrivacyMode);
+            const ctx = canvas.getContext('2d');
+            destroyCompoundChart();
+            const fmtAxisMoney = (v) => isPrivacyMode ? '****' : Math.round(Number(v) || 0).toLocaleString('zh-TW');
+            compoundChartObj = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyleWidth: 16,
+                                padding: 10,
+                                font: { size: 11 },
+                                color: chartInk()
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => {
+                                    const name = c.dataset.label || '';
+                                    if (isPrivacyMode) return ' ' + name + '：****';
+                                    return ' ' + name + '：NT$' + Math.round(Number(c.raw) || 0).toLocaleString('zh-TW');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { maxTicksLimit: 8, color: chartInk(), font: { size: 10 } },
+                            grid: { color: 'rgba(150, 180, 255, 0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: chartInk(), font: { size: 10 }, callback: fmtAxisMoney },
+                            grid: { color: 'rgba(150, 180, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+        function renderCompoundResult() {
+            const body = document.getElementById('compound-body');
+            const empty = document.getElementById('compound-empty');
+            if (!body) return;
+            const rows = compoundPlan.rows || [];
+            if (!rows.length) {
+                body.classList.add('hidden');
+                if (empty) empty.classList.remove('hidden');
+                destroyCompoundChart();
+                return;
+            }
+            if (empty) empty.classList.add('hidden');
+            body.classList.remove('hidden');
+            const years = compoundPlan.years;
+            const freq = compoundPlan.freq === 'year' ? 'year' : 'month';
+            const paths = rows.map(r => compoundPath(r.principal, r.monthly, r.rate, years, freq));
+            let fv = 0, contributed = 0, principal = 0, monthly = 0;
+            rows.forEach((r, i) => {
+                fv += Math.round(paths[i].fv);
+                contributed += Math.round(paths[i].contributed);
+                principal += Math.max(0, num(r.principal));
+                monthly += Math.max(0, num(r.monthly));
+            });
+            const gain = fv - contributed;
+            const fvEl = document.getElementById('compound-fv');
+            const inEl = document.getElementById('compound-in');
+            const gainEl = document.getElementById('compound-gain');
+            if (fvEl) fvEl.innerText = fNum(fv);
+            if (inEl) inEl.innerText = fNum(contributed);
+            if (gainEl) {
+                gainEl.innerText = isPrivacyMode ? '****' : ((gain > 0 ? '+' : '') + fNum(gain));
+                gainEl.classList.remove('c-gain', 'c-drop');
+                if (!isPrivacyMode) gainEl.classList.add(gain >= 0 ? 'c-gain' : 'c-drop');
+            }
+            const fvSub = document.getElementById('compound-fv-sub');
+            const inSub = document.getElementById('compound-in-sub');
+            const gainSub = document.getElementById('compound-gain-sub');
+            if (fvSub) fvSub.innerText = years + ' 年後 · ' + rows.length + ' 個標的 · ' + (freq === 'year' ? '年複利' : '月複利');
+            if (inSub) inSub.innerText = isPrivacyMode ? '****' : ('本金 ' + fNum(principal) + ' ＋ 期間投入 ' + fNum(Math.max(0, contributed - principal)));
+            if (gainSub) gainSub.innerText = contributed > 0 ? ('約為總投入的 ' + ((gain / contributed) * 100).toFixed(1) + '%') : '尚無投入';
+            document.querySelectorAll('#compound-rows .compound-row').forEach((el, i) => {
+                const end = el.querySelector('[data-end]');
+                if (!end || !paths[i]) return;
+                end.innerText = fNum(paths[i].fv);
+                end.style.color = compoundColor(i);
+            });
+            const shareHost = document.getElementById('compound-shares');
+            if (shareHost) {
+                const maxFv = Math.max.apply(null, paths.map(p => p.fv).concat([0]));
+                shareHost.innerHTML = paths.map((p, i) => {
+                    const pct = maxFv > 0 ? Math.max(0, Math.min(100, (p.fv / maxFv) * 100)) : 0;
+                    const share = fv > 0 ? ((p.fv / fv) * 100) : 0;
+                    const label = compoundLabel(rows[i], i, rows);
+                    const right = isPrivacyMode ? '****' : (fNum(p.fv) + ' · ' + share.toFixed(0) + '%');
+                    return '<div class="compound-share"><div class="flex justify-between text-[11px] text-muted mb-1"><span>' + escapeHtml(label) + '</span><span>' + right + '</span></div><div class="peer-bar"><div class="peer-bar-fill" style="width:' + pct + '%;--bar:' + compoundColor(i) + '"></div></div></div>';
+                }).join('');
+            }
+            const labels = paths[0] ? paths[0].series.map((_, i) => i === 0 ? '現在' : (i + ' 年')) : [];
+            const datasets = paths.map((p, i) => ({
+                label: compoundLabel(rows[i], i, rows),
+                data: p.series,
+                borderColor: compoundColor(i),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.2,
+                pointRadius: 0,
+                pointHoverRadius: 3
+            }));
+            if (rows.length > 1) {
+                const total = paths[0].series.map((_, yi) => paths.reduce((s, p) => s + (p.series[yi] || 0), 0));
+                datasets.unshift({
+                    label: '合計',
+                    data: total,
+                    borderColor: '#f5f5f7',
+                    backgroundColor: 'rgba(245, 245, 247, 0.08)',
+                    borderWidth: 2.4,
+                    fill: true,
+                    tension: 0.2,
+                    pointRadius: 0,
+                    pointHoverRadius: 3
+                });
+            }
+            const note = document.getElementById('compound-note');
+            if (note) {
+                note.textContent = freq === 'year'
+                    ? '年複利：每年先把餘額乘上（1＋年化），再加上這一年的每月投入。今年新投入的錢要等明年才計息。帶入持倉時，本金用目前現值（沒有現價則用買入單價）。年化可各自修改，預設值只套在新加入的標的。'
+                    : '月複利：每個月先把餘額乘上（1＋年化÷12），再加上當月投入。新投入的錢從下個月才開始計息。帶入持倉時，本金用目前現值（沒有現價則用買入單價）。年化可各自修改，預設值只套在新加入的標的。';
+            }
+            renderCompoundChart(labels, datasets);
         }
         function setUnrealText(id, val) {
             const el = document.getElementById(id);
@@ -6789,10 +7319,13 @@
             if (currentView === 'peer') {
                 renderPeerCompare(tV);
                 renderGoalCalc();
+                renderCompoundRowsIfNeeded();
+                fillCompoundPick();
+                renderCompoundResult();
             }
         }
 
-        let trendChartObj, allocChartObj, goalChartObj;
+        let trendChartObj, allocChartObj, goalChartObj, compoundChartObj;
         let trendStockView = 'each';
         let allocStockView = 'total';
         let lastChartArgs = null;
@@ -7913,6 +8446,7 @@
                 stockSells, goldSells, collSells,
                 prices: marketPrices, priceMeta, includeFlags, allocTargets, assetEnabled: { stock: assetEnabled('stock'), gold: assetEnabled('gold') },
                 peerBirthYear, peerCash,
+                goalPlan, compoundPlan,
                 stockCodes: collectStockCodes(),
                 goldBuyPricesByDate
             };
@@ -7970,6 +8504,16 @@
             }
             if ('peerCash' in data) {
                 peerCash = num(data.peerCash);
+                touched = true;
+            }
+            if (data.goalPlan && typeof data.goalPlan === 'object') {
+                goalPlan = data.goalPlan;
+                if (goalPlan.reinvest == null) goalPlan.reinvest = true;
+                touched = true;
+            }
+            if (data.compoundPlan && typeof data.compoundPlan === 'object') {
+                compoundPlan = normalizeCompoundPlan(data.compoundPlan);
+                compoundRenderGen++;
                 touched = true;
             }
             if (data.goldBuyPricesByDate && typeof data.goldBuyPricesByDate === 'object') {
@@ -8316,7 +8860,7 @@
             });
             const titles = {
                 overview: ['總覽', '圖表與持倉摘要'],
-                peer: ['目標', '目標月領、需存張數與時間曲線'],
+                peer: ['目標', '目標月領、複利試算與同齡對照'],
                 stock: ['股票', '持倉、賣出、彙總與股利'],
                 gold: ['黃金', '持倉與已實現損益']
             };
@@ -8329,6 +8873,7 @@
                 openGoalPage();
                 renderPeerCompare(computeAssetWorth().tV);
                 setTimeout(resizeGoalChart, 40);
+                setTimeout(resizeCompoundChart, 40);
             }
             closeSidebar();
             if (t === 'overview') setTimeout(resizeOverviewCharts, 40);
@@ -8406,6 +8951,7 @@
             if (peerCash > 0) localStorage.setItem(K_CASH, String(peerCash));
             else localStorage.removeItem(K_CASH);
             try { localStorage.setItem(K_GOAL, JSON.stringify(goalPlan)); } catch (e) {}
+            try { localStorage.setItem(K_COMPOUND, JSON.stringify(compoundPlan)); } catch (e) {}
             if (lastDivCode) localStorage.setItem(K_DIV_LAST, lastDivCode);
             try { localStorage.setItem(K_DIV_CACHE, JSON.stringify(divHistoryCache)); } catch (e) { /* quota */ }
             try { localStorage.setItem(K_DIV_META, JSON.stringify(divFetchAt)); } catch (e) { /* quota */ }
@@ -9070,6 +9616,11 @@
                 eq: '目前每月股息 ÷ 目標月領',
                 body: '<p>超過 100% 時進度條停在滿格。</p>'
             },
+            'compound-fv': {
+                title: '複利期末',
+                eq: '餘額先計息，再加入這一期投入',
+                body: '<p>月複利：每個月把餘額乘上（1＋年化÷12），再加上當月投入。新投入的錢從下個月才開始計息。</p><p>年複利：每年先把餘額乘上（1＋年化），再加上這一年的每月投入合計。今年投入的錢要等明年才計息。</p><p>總投入＝目前本金＋每月投入×12×年數。複利增益＝期末−總投入。多個標的各自計算後加總，年化每年假設不變，不含手續費與稅。</p>'
+            },
             'peer-you': {
                 title: '你的資產',
                 eq: '總覽淨值 ＋ 手填銀行存款',
@@ -9192,7 +9743,10 @@
         window.addEventListener('resize', () => {
             if (typeof fitAllocCenterText === 'function') fitAllocCenterText();
             if (currentView === 'overview') resizeOverviewCharts();
-            if (currentView === 'peer') resizeGoalChart();
+            if (currentView === 'peer') {
+                resizeGoalChart();
+                resizeCompoundChart();
+            }
         });
     </script>
     <script src="./app-extras.js"></script>
