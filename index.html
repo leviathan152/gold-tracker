@@ -4056,7 +4056,7 @@
             <section class="card mb-6 section-rise entry-card">
                 <div class="mb-3">
                     <h3 class="stat-label mb-1" id="salary-form-title">登錄月薪</h3>
-                    <p class="text-[11px] text-muted">同一月份再存會覆蓋。出差報銷請自行加減後填入金額。</p>
+                    <p class="text-[11px] text-muted">同一月份再存會覆蓋。獎金選填；出差報銷請自行加減後填入薪水。</p>
                 </div>
                 <input type="hidden" id="salary-edit-month" value="">
                 <div class="entry-row">
@@ -4066,8 +4066,12 @@
                             <input type="month" id="salary-month">
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label class="stat-label text-[10px]" for="salary-amount">金額</label>
+                            <label class="stat-label text-[10px]" for="salary-amount">薪水</label>
                             <input type="number" id="salary-amount" min="0" step="1" placeholder="當月薪水">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="stat-label text-[10px]" for="salary-bonus">獎金</label>
+                            <input type="number" id="salary-bonus" min="0" step="1" placeholder="選填">
                         </div>
                         <div class="flex flex-col gap-1">
                             <label class="stat-label text-[10px]" for="salary-note">備註</label>
@@ -4090,11 +4094,13 @@
                     <div id="salary-year-filters" class="salary-years"></div>
                 </div>
                 <div class="table-scroll">
-                    <table class="w-full text-xs text-left min-w-[520px]">
+                    <table class="w-full text-xs text-left min-w-[640px]">
                         <thead class="thead-bar font-bold">
                             <tr>
                                 <th class="p-4">月份</th>
-                                <th class="p-4 text-right">金額</th>
+                                <th class="p-4 text-right">薪水</th>
+                                <th class="p-4 text-right">獎金</th>
+                                <th class="p-4 text-right">合計</th>
                                 <th class="p-4">備註</th>
                                 <th class="p-4 text-center">管理</th>
                             </tr>
@@ -4540,9 +4546,11 @@
             let month = String(o.month || '').trim();
             if (!/^\d{4}-\d{2}$/.test(month)) return null;
             const amount = Math.max(0, num(o.amount != null ? o.amount : o.base));
+            const bonus = Math.max(0, num(o.bonus));
             return {
                 month,
                 amount,
+                bonus,
                 note: String(o.note || '').slice(0, 80)
             };
         }
@@ -6760,29 +6768,41 @@
             const d = new Date();
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
         }
+        function salaryRowTotal(r) {
+            return num(r && r.amount) + num(r && r.bonus);
+        }
         function salarySummarize(list) {
             const rows = Array.isArray(list) ? list : [];
-            let amount = 0;
-            rows.forEach(r => { amount += num(r.amount); });
-            return { amount, count: rows.length, avg: rows.length ? amount / rows.length : 0 };
+            let amount = 0, bonus = 0;
+            rows.forEach(r => {
+                amount += num(r.amount);
+                bonus += num(r.bonus);
+            });
+            const total = amount + bonus;
+            return { amount, bonus, total, count: rows.length, avg: rows.length ? total / rows.length : 0 };
         }
         function salaryByYear(list) {
             const map = {};
             (list || []).forEach(r => {
                 const y = String(r.month || '').slice(0, 4);
                 if (!/^\d{4}$/.test(y)) return;
-                if (!map[y]) map[y] = { year: y, amount: 0, months: 0 };
+                if (!map[y]) map[y] = { year: y, amount: 0, bonus: 0, months: 0 };
                 map[y].amount += num(r.amount);
+                map[y].bonus += num(r.bonus);
                 map[y].months += 1;
             });
-            return Object.keys(map).sort().reverse().map(k => map[k]);
+            return Object.keys(map).sort().reverse().map(k => {
+                const row = map[k];
+                row.total = row.amount + row.bonus;
+                return row;
+            });
         }
         function clearSalaryForm() {
             const monthEl = document.getElementById('salary-month');
             if (monthEl) monthEl.value = salaryDefaultMonth();
             const edit = document.getElementById('salary-edit-month');
             if (edit) edit.value = '';
-            ['salary-amount', 'salary-note'].forEach(id => {
+            ['salary-amount', 'salary-bonus', 'salary-note'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
@@ -6799,8 +6819,10 @@
             const edit = document.getElementById('salary-edit-month');
             if (edit) edit.value = hit.month;
             const amount = document.getElementById('salary-amount');
+            const bonus = document.getElementById('salary-bonus');
             const note = document.getElementById('salary-note');
             if (amount) amount.value = hit.amount || '';
+            if (bonus) bonus.value = hit.bonus || '';
             if (note) note.value = hit.note || '';
             const title = document.getElementById('salary-form-title');
             if (title) title.textContent = '修改 ' + salaryMonthLabel(hit.month);
@@ -6820,14 +6842,15 @@
             const rec = normalizeSalaryRec({
                 month,
                 amount: document.getElementById('salary-amount').value,
+                bonus: document.getElementById('salary-bonus').value,
                 note: document.getElementById('salary-note').value
             });
             if (!rec) {
                 alert('月份格式不正確');
                 return;
             }
-            if (!(rec.amount > 0)) {
-                alert('請填入金額');
+            if (!(rec.amount > 0) && !(rec.bonus > 0)) {
+                alert('請至少填薪水或獎金');
                 return;
             }
             let next = salaryRecs.slice();
@@ -6875,13 +6898,31 @@
             destroySalaryChart();
             const ctx = canvas.getContext('2d');
             const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#8ea0c4';
+            const hasBonus = rows.some(r => num(r.bonus) > 0);
             salaryChartObj = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: rows.map(r => r.year),
-                    datasets: [{
+                    datasets: hasBonus ? [
+                        {
+                            label: '薪水',
+                            data: rows.map(r => r.amount),
+                            backgroundColor: 'rgba(122, 162, 255, 0.72)',
+                            borderRadius: 6,
+                            maxBarThickness: 48,
+                            stack: 'pay'
+                        },
+                        {
+                            label: '獎金',
+                            data: rows.map(r => r.bonus),
+                            backgroundColor: 'rgba(255, 176, 32, 0.7)',
+                            borderRadius: 6,
+                            maxBarThickness: 48,
+                            stack: 'pay'
+                        }
+                    ] : [{
                         label: '薪資',
-                        data: rows.map(r => r.amount),
+                        data: rows.map(r => r.total),
                         backgroundColor: 'rgba(122, 162, 255, 0.72)',
                         borderRadius: 8,
                         maxBarThickness: 48
@@ -6891,20 +6932,25 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            display: hasBonus,
+                            labels: { color: muted, boxWidth: 10 }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: (c) => {
                                     const v = Number(c.raw) || 0;
-                                    if (isPrivacyMode) return ' 薪資：****';
-                                    return ' 薪資：NT$' + Math.round(v).toLocaleString('zh-TW');
+                                    const name = c.dataset.label || '薪資';
+                                    if (isPrivacyMode) return ' ' + name + '：****';
+                                    return ' ' + name + '：NT$' + Math.round(v).toLocaleString('zh-TW');
                                 }
                             }
                         }
                     },
                     scales: {
-                        x: { ticks: { color: muted }, grid: { display: false } },
+                        x: { stacked: hasBonus, ticks: { color: muted }, grid: { display: false } },
                         y: {
+                            stacked: hasBonus,
                             ticks: {
                                 color: muted,
                                 callback: (v) => isPrivacyMode ? '****' : Math.round(Number(v) || 0).toLocaleString('zh-TW')
@@ -6925,20 +6971,22 @@
             const yearSum = salarySummarize(thisYearRows);
 
             const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-            setTxt('salary-kpi-total', fNum(total.amount));
-            setTxt('salary-kpi-total-sub', total.count ? ('共 ' + total.count + ' 個月') : '全部月份加總');
-            setTxt('salary-kpi-year', fNum(yearSum.amount));
-            setTxt('salary-kpi-year-sub', yearNow + ' 年 · ' + yearSum.count + ' 個月');
+            setTxt('salary-kpi-total', fNum(total.total));
+            setTxt('salary-kpi-total-sub', total.count
+                ? ('共 ' + total.count + ' 個月' + (total.bonus > 0 ? ' · 含獎金 ' + fNum(total.bonus) : ''))
+                : '全部月份加總');
+            setTxt('salary-kpi-year', fNum(yearSum.total));
+            setTxt('salary-kpi-year-sub', yearNow + ' 年 · ' + yearSum.count + ' 個月' + (yearSum.bonus > 0 ? ' · 獎金 ' + fNum(yearSum.bonus) : ''));
             setTxt('salary-kpi-avg', total.count ? fNum(total.avg) : '--');
-            setTxt('salary-kpi-avg-sub', total.count ? '有登錄的月份平均' : '尚無資料');
+            setTxt('salary-kpi-avg-sub', total.count ? '有登錄的月份平均（含獎金）' : '尚無資料');
 
             const cards = document.getElementById('salary-year-cards');
             if (cards) {
                 cards.innerHTML = years.map(y => (
                     '<button type="button" class="salary-year-card text-left" onclick="setSalaryYearFilter(\'' + y.year + '\')">' +
                         '<div class="y">' + y.year + ' 年</div>' +
-                        '<div class="a c-stock">' + fNum(y.amount) + '</div>' +
-                        '<div class="b">' + y.months + ' 個月</div>' +
+                        '<div class="a c-stock">' + fNum(y.total) + '</div>' +
+                        '<div class="b">' + y.months + ' 個月' + (y.bonus > 0 ? ' · 獎金 ' + fNum(y.bonus) : '') + '</div>' +
                     '</button>'
                 )).join('');
             }
@@ -6962,7 +7010,9 @@
                 tbody.innerHTML = filtered.map(r => (
                     '<tr class="row-hover">' +
                         '<td class="p-4 font-bold">' + escapeHtml(salaryMonthLabel(r.month)) + '</td>' +
-                        '<td class="p-4 text-right c-stock">' + fNum(r.amount) + '</td>' +
+                        '<td class="p-4 text-right c-stock">' + (num(r.amount) > 0 ? fNum(r.amount) : '<span class="text-faint">—</span>') + '</td>' +
+                        '<td class="p-4 text-right">' + (num(r.bonus) > 0 ? fNum(r.bonus) : '<span class="text-faint">—</span>') + '</td>' +
+                        '<td class="p-4 text-right font-bold">' + fNum(salaryRowTotal(r)) + '</td>' +
                         '<td class="p-4 text-muted">' + escapeHtml(r.note || '') + '</td>' +
                         '<td class="p-4 text-center whitespace-nowrap">' +
                             '<button type="button" class="btn-surface px-2 py-1 rounded-lg text-[11px] font-bold mr-1" onclick="editSalaryRecord(\'' + r.month + '\')">改</button>' +
