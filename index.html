@@ -1540,29 +1540,27 @@
             line-height: 1.35;
         }
         .settings-fold-chevron {
-            width: 2.05rem;
-            height: 2.05rem;
-            border-radius: 999px;
+            width: 1.35rem;
+            height: 1.35rem;
             display: grid;
             place-items: center;
             flex-shrink: 0;
-            background: rgba(29, 29, 31, 0.06);
-            color: #3d4d68;
+            color: var(--muted);
             font-size: 0;
-            transition: transform 0.3s var(--ease-out), background 0.2s, color 0.2s;
+            transition: transform 0.28s var(--ease-out), color 0.2s;
         }
         .settings-fold-chevron::before {
             content: "";
-            width: 1.15rem;
-            height: 1.15rem;
-            background: currentColor;
-            -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M4.6 8.2 12 15.6 19.4 8.2 17.2 6 12 11.2 6.8 6z'/></svg>") center / contain no-repeat;
-            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M4.6 8.2 12 15.6 19.4 8.2 17.2 6 12 11.2 6.8 6z'/></svg>") center / contain no-repeat;
+            width: 0.72rem;
+            height: 0.72rem;
+            border-right: 1.5px solid currentColor;
+            border-bottom: 1.5px solid currentColor;
+            transform: rotate(45deg) translate(-1px, -1px);
+            box-sizing: border-box;
         }
         .settings-fold[open] > summary .settings-fold-chevron {
             transform: rotate(180deg);
-            background: var(--ink);
-            color: #fff;
+            color: var(--ink);
         }
         .settings-fold-body {
             padding: 0 1.05rem 1.15rem;
@@ -1574,8 +1572,28 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .settings-page-panel {
-            max-width: 40rem;
-            margin: 0 auto 1.5rem;
+            width: 100%;
+            max-width: none;
+            margin: 0 0 1rem;
+            box-sizing: border-box;
+        }
+        #view-settings {
+            width: 100%;
+        }
+        #view-settings .settings-accordion {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.65rem;
+        }
+        @media (min-width: 960px) {
+            #view-settings .settings-accordion {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem 1rem;
+                align-items: start;
+            }
+            #view-settings .settings-accordion > .theme-switch {
+                grid-column: 1 / -1;
+            }
         }
         body[data-view="settings"] .app-shell {
             overflow: auto;
@@ -4067,8 +4085,8 @@
             </div>
         </div>
         <div id="view-settings" class="hidden">
-            <div class="card settings-page-panel w-full p-5 sm:p-6">
-                <p class="text-[11px] text-muted mb-5" data-i18n="settings.hint">點標題展開各章，收合雜訊</p>
+            <div class="card settings-page-panel w-full p-4 sm:p-5">
+                <p class="text-[11px] text-muted mb-4" data-i18n="settings.hint">點標題展開各章，收合雜訊</p>
                 <div class="settings-accordion">
                 <label class="setting-switch theme-switch">
                     <input type="checkbox" id="theme-toggle" checked onchange="saveAppearance()">
@@ -4082,7 +4100,7 @@
                             <span class="t c-stock" data-i18n="data.title">資料管理</span>
                             <span class="d" data-i18n="data.desc">匯入、匯出、清除資料</span>
                         </div>
-                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                        <span class="settings-fold-chevron" aria-hidden="true"></span>
                     </summary>
                     <div class="settings-fold-body">
                         <p class="text-xs text-muted mb-3">從備份檔還原，或將股票、黃金與股價快取匯出至檔案（格式為 JSON）。副檔名須為 <code class="c-stock">.json</code>；若系統選不到檔案，請改選「所有檔案」，或展開下方「貼上文字」。</p>
@@ -4096,7 +4114,7 @@
                                     <span class="t" style="letter-spacing:0.08em">進階：貼上 JSON</span>
                                     <span class="d">無法選檔時使用</span>
                                 </div>
-                                <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                                <span class="settings-fold-chevron" aria-hidden="true"></span>
                             </summary>
                             <div class="settings-fold-body">
                                 <label class="stat-label text-[10px] block mb-2">備份純文字（JSON）</label>
@@ -4117,7 +4135,7 @@
                             <span class="t c-stock">啟用資產</span>
                             <span class="d">關閉用不到的類別</span>
                         </div>
-                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                        <span class="settings-fold-chevron" aria-hidden="true"></span>
                     </summary>
                     <div class="settings-fold-body">
                         <p class="text-xs text-muted mb-4">關閉後，該資產會從選單、總覽與今日速覽移除，也不能再登帳。原有紀錄會保留，重新打開就會回來。至少要留一項。</p>
@@ -4144,7 +4162,7 @@
                             <span class="t c-sage" data-i18n="inc.title">總覽計入設定</span>
                             <span class="d" data-i18n="inc.desc">決定哪些資產計入首頁總覽</span>
                         </div>
-                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                        <span class="settings-fold-chevron" aria-hidden="true"></span>
                     </summary>
                     <div class="settings-fold-body">
                         <p class="text-xs text-muted mb-4">決定各類資產是否計入首頁「總覽」的總資產現值，以及總成本／總報酬率。開關為綠色＝已啟用。</p>
@@ -4189,7 +4207,7 @@
                             <span class="t c-gold" data-i18n="priv.title">數值隱私</span>
                             <span class="d" data-i18n="priv.desc">隱藏／顯示金額</span>
                         </div>
-                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                        <span class="settings-fold-chevron" aria-hidden="true"></span>
                     </summary>
                     <div class="settings-fold-body">
                         <div class="flex items-center justify-between gap-3 mb-3">
@@ -4209,7 +4227,7 @@
                             <span class="t c-gold" data-i18n="alloc.title">資產配置目標</span>
                             <span class="d" data-i18n="alloc.desc">股票／黃金目標占比（%）</span>
                         </div>
-                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                        <span class="settings-fold-chevron" aria-hidden="true"></span>
                     </summary>
                     <div class="settings-fold-body">
                         <p class="text-xs text-muted mb-3">兩項合計建議為 100；用於與現況對比。</p>
@@ -4227,7 +4245,7 @@
                             <span class="t c-gold" data-i18n="pwd.title">管理密碼</span>
                             <span class="d" data-i18n="pwd.desc">解除數值遮罩用</span>
                         </div>
-                        <span class="settings-fold-chevron" aria-hidden="true">▾</span>
+                        <span class="settings-fold-chevron" aria-hidden="true"></span>
                     </summary>
                     <div class="settings-fold-body">
                         <p class="text-xs text-muted mb-3">用於解除數值遮罩；修改後請記住新密碼。</p>
@@ -5778,19 +5796,7 @@
             if (ta) ta.value = '';
         }
         function initSettingsAccordion() {
-            const root = document.querySelector('.settings-accordion');
-            if (!root || root._accordionBound) return;
-            root._accordionBound = true;
-            root.addEventListener('toggle', (e) => {
-                const t = e.target;
-                if (!t || t.tagName !== 'DETAILS') return;
-                if (!t.classList.contains('settings-fold')) return;
-                if (t.parentElement !== root) return;
-                if (!t.open) return;
-                Array.prototype.forEach.call(root.children, (d) => {
-                    if (d !== t && d.tagName === 'DETAILS') d.open = false;
-                });
-            });
+            /* Full-page settings: allow multiple sections open so the layout stays filled. */
         }
         function submitChangePassword() {
             const cur = document.getElementById('pwd-current').value;
