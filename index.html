@@ -1973,29 +1973,51 @@
         html[data-theme="light"] .salary-kpi,
         html[data-theme="light"] .salary-year-card { background: #f7f8fc; }
         #view-salary .entry-grid {
-            grid-template-columns: minmax(8.5rem, 0.85fr) minmax(7rem, 0.95fr) minmax(7rem, 0.95fr) minmax(10rem, 2.4fr);
+            grid-template-columns: minmax(8.5rem, 0.85fr) minmax(7rem, 0.95fr) minmax(10rem, 2.6fr);
         }
-        #view-salary .salary-note-field {
-            min-width: 0;
+        #view-salary .salary-note-field { min-width: 0; }
+        #view-salary .salary-note-field input { width: 100%; }
+        #view-salary .salary-bonus-block {
+            margin-top: 0.65rem;
+            padding-top: 0.55rem;
+            border-top: 1px solid var(--line);
         }
-        #view-salary .salary-note-field input {
-            width: 100%;
+        #view-salary .salary-bonus-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.45rem;
         }
+        #view-salary .salary-bonus-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        #view-salary .salary-bonus-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(7rem, 0.8fr) 2rem;
+            gap: 0.45rem;
+            align-items: end;
+        }
+        #view-salary .salary-bonus-row .c-del {
+            border: 0;
+            background: transparent;
+            color: var(--faint);
+            cursor: pointer;
+            font-size: 0.95rem;
+            line-height: 1;
+            height: 2.25rem;
+        }
+        #view-salary .salary-bonus-row .c-del:hover { color: var(--loss); }
         @media (max-width: 1100px) {
-            #view-salary .entry-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-            #view-salary .salary-note-field {
-                grid-column: 1 / -1;
-            }
+            #view-salary .entry-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #view-salary .salary-note-field { grid-column: 1 / -1; }
         }
         @media (max-width: 720px) {
-            #view-salary .entry-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            #view-salary .salary-note-field {
-                grid-column: 1 / -1;
-            }
+            #view-salary .entry-grid { grid-template-columns: 1fr 1fr; }
+            #view-salary .salary-note-field { grid-column: 1 / -1; }
+            #view-salary .salary-bonus-row { grid-template-columns: 1fr 1fr auto; }
         }
 
         .row-hover { transition: background 0.2s, transform 0.2s; }
@@ -4081,7 +4103,7 @@
             <section class="card mb-6 section-rise entry-card">
                 <div class="mb-3">
                     <h3 class="stat-label mb-1" id="salary-form-title">登錄月薪</h3>
-                    <p class="text-[11px] text-muted">同一月份再存會覆蓋。獎金選填；出差報銷請自行加減後填入薪水。</p>
+                    <p class="text-[11px] text-muted">同一月份再存會覆蓋。獎金可新增多筆；出差報銷請自行加減後填入薪水。</p>
                 </div>
                 <input type="hidden" id="salary-edit-month" value="">
                 <div class="entry-row">
@@ -4094,10 +4116,6 @@
                             <label class="stat-label text-[10px]" for="salary-amount">薪水</label>
                             <input type="number" id="salary-amount" min="0" step="1" placeholder="當月薪水">
                         </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="stat-label text-[10px]" for="salary-bonus">獎金</label>
-                            <input type="number" id="salary-bonus" min="0" step="1" placeholder="選填">
-                        </div>
                         <div class="flex flex-col gap-1 salary-note-field">
                             <label class="stat-label text-[10px]" for="salary-note">備註</label>
                             <input type="text" id="salary-note" maxlength="80" placeholder="選填">
@@ -4107,6 +4125,13 @@
                         <button type="button" id="salary-save-btn" onclick="saveSalaryRecord()" class="btn-primary font-bold tracking-wide">儲存</button>
                         <button type="button" id="salary-cancel-btn" onclick="clearSalaryForm()" class="btn-surface font-bold">清除</button>
                     </div>
+                </div>
+                <div class="salary-bonus-block">
+                    <div class="salary-bonus-head">
+                        <span class="stat-label text-[10px]">獎金（可多筆）</span>
+                        <button type="button" onclick="addSalaryBonusRow()" class="btn-surface px-3 py-1.5 rounded-xl text-[11px] font-bold">＋ 獎金</button>
+                    </div>
+                    <div id="salary-bonus-rows" class="salary-bonus-rows"></div>
                 </div>
             </section>
 
@@ -4566,16 +4591,38 @@
             } catch (e) { return {}; }
         })();
         if (goalPlan.reinvest == null) goalPlan.reinvest = true;
+        function normalizeSalaryBonuses(raw, fallbackBonus) {
+            const out = [];
+            if (Array.isArray(raw)) {
+                raw.forEach(item => {
+                    const o = item && typeof item === 'object' ? item : {};
+                    const amount = Math.max(0, num(o.amount));
+                    if (!(amount > 0)) return;
+                    out.push({
+                        name: String(o.name || '').slice(0, 40),
+                        amount
+                    });
+                });
+            }
+            if (!out.length && num(fallbackBonus) > 0) {
+                out.push({ name: '', amount: Math.max(0, num(fallbackBonus)) });
+            }
+            return out.slice(0, 20);
+        }
+        function salaryBonusTotal(list) {
+            return (list || []).reduce((s, b) => s + num(b && b.amount), 0);
+        }
         function normalizeSalaryRec(r) {
             const o = r && typeof r === 'object' ? r : {};
             let month = String(o.month || '').trim();
             if (!/^\d{4}-\d{2}$/.test(month)) return null;
             const amount = Math.max(0, num(o.amount != null ? o.amount : o.base));
-            const bonus = Math.max(0, num(o.bonus));
+            const bonuses = normalizeSalaryBonuses(o.bonuses, o.bonus);
             return {
                 month,
                 amount,
-                bonus,
+                bonuses,
+                bonus: salaryBonusTotal(bonuses),
                 note: String(o.note || '').slice(0, 80)
             };
         }
@@ -6793,14 +6840,14 @@
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
         }
         function salaryRowTotal(r) {
-            return num(r && r.amount) + num(r && r.bonus);
+            return num(r && r.amount) + salaryBonusTotal(r && r.bonuses);
         }
         function salarySummarize(list) {
             const rows = Array.isArray(list) ? list : [];
             let amount = 0, bonus = 0;
             rows.forEach(r => {
                 amount += num(r.amount);
-                bonus += num(r.bonus);
+                bonus += salaryBonusTotal(r.bonuses);
             });
             const total = amount + bonus;
             return { amount, bonus, total, count: rows.length, avg: rows.length ? total / rows.length : 0 };
@@ -6812,7 +6859,7 @@
                 if (!/^\d{4}$/.test(y)) return;
                 if (!map[y]) map[y] = { year: y, amount: 0, bonus: 0, months: 0 };
                 map[y].amount += num(r.amount);
-                map[y].bonus += num(r.bonus);
+                map[y].bonus += salaryBonusTotal(r.bonuses);
                 map[y].months += 1;
             });
             return Object.keys(map).sort().reverse().map(k => {
@@ -6821,15 +6868,85 @@
                 return row;
             });
         }
+        function readSalaryBonusDom() {
+            const host = document.getElementById('salary-bonus-rows');
+            if (!host) return [];
+            const out = [];
+            host.querySelectorAll('.salary-bonus-row').forEach(row => {
+                const nameEl = row.querySelector('.b-name');
+                const amtEl = row.querySelector('.b-amt');
+                const amount = Math.max(0, num(amtEl && amtEl.value));
+                if (!(amount > 0)) return;
+                out.push({
+                    name: String((nameEl && nameEl.value) || '').trim().slice(0, 40),
+                    amount
+                });
+            });
+            return out;
+        }
+        function renderSalaryBonusRows(list) {
+            const host = document.getElementById('salary-bonus-rows');
+            if (!host) return;
+            const rows = Array.isArray(list) && list.length ? list : [{ name: '', amount: '' }];
+            host.innerHTML = rows.map((b, i) => (
+                '<div class="salary-bonus-row" data-bi="' + i + '">' +
+                    '<div class="flex flex-col gap-1">' +
+                        (i === 0 ? '<label class="stat-label text-[10px]">名稱</label>' : '') +
+                        '<input class="b-name" type="text" maxlength="40" placeholder="例：年終／績效" value="' + escapeHtml(b.name || '') + '">' +
+                    '</div>' +
+                    '<div class="flex flex-col gap-1">' +
+                        (i === 0 ? '<label class="stat-label text-[10px]">金額</label>' : '') +
+                        '<input class="b-amt" type="number" min="0" step="1" placeholder="金額" value="' + (b.amount !== '' && b.amount != null ? escapeHtml(b.amount) : '') + '">' +
+                    '</div>' +
+                    '<button type="button" class="c-del" onclick="removeSalaryBonusRow(' + i + ')" aria-label="移除獎金">✕</button>' +
+                '</div>'
+            )).join('');
+        }
+        function addSalaryBonusRow() {
+            const host = document.getElementById('salary-bonus-rows');
+            const all = [];
+            if (host) {
+                host.querySelectorAll('.salary-bonus-row').forEach(row => {
+                    const nameEl = row.querySelector('.b-name');
+                    const amtEl = row.querySelector('.b-amt');
+                    all.push({
+                        name: String((nameEl && nameEl.value) || ''),
+                        amount: amtEl && amtEl.value !== '' ? amtEl.value : ''
+                    });
+                });
+            }
+            all.push({ name: '', amount: '' });
+            renderSalaryBonusRows(all);
+            const last = host && host.querySelector('.salary-bonus-row:last-child .b-name');
+            if (last) try { last.focus(); } catch (e) {}
+        }
+        function removeSalaryBonusRow(idx) {
+            const host = document.getElementById('salary-bonus-rows');
+            const all = [];
+            if (host) {
+                host.querySelectorAll('.salary-bonus-row').forEach((row, i) => {
+                    if (i === idx) return;
+                    const nameEl = row.querySelector('.b-name');
+                    const amtEl = row.querySelector('.b-amt');
+                    all.push({
+                        name: String((nameEl && nameEl.value) || ''),
+                        amount: amtEl && amtEl.value !== '' ? amtEl.value : ''
+                    });
+                });
+            }
+            renderSalaryBonusRows(all.length ? all : [{ name: '', amount: '' }]);
+        }
         function clearSalaryForm() {
             const monthEl = document.getElementById('salary-month');
             if (monthEl) monthEl.value = salaryDefaultMonth();
+            if (typeof syncDatePicker === 'function' && monthEl) try { syncDatePicker(monthEl); } catch (e) {}
             const edit = document.getElementById('salary-edit-month');
             if (edit) edit.value = '';
-            ['salary-amount', 'salary-bonus', 'salary-note'].forEach(id => {
+            ['salary-amount', 'salary-note'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
+            renderSalaryBonusRows([{ name: '', amount: '' }]);
             const title = document.getElementById('salary-form-title');
             if (title) title.textContent = '登錄月薪';
             const btn = document.getElementById('salary-save-btn');
@@ -6840,14 +6957,17 @@
             if (!hit) return;
             const monthEl = document.getElementById('salary-month');
             if (monthEl) monthEl.value = hit.month;
+            if (typeof syncDatePicker === 'function' && monthEl) try { syncDatePicker(monthEl); } catch (e) {}
             const edit = document.getElementById('salary-edit-month');
             if (edit) edit.value = hit.month;
             const amount = document.getElementById('salary-amount');
-            const bonus = document.getElementById('salary-bonus');
             const note = document.getElementById('salary-note');
             if (amount) amount.value = hit.amount || '';
-            if (bonus) bonus.value = hit.bonus || '';
             if (note) note.value = hit.note || '';
+            const bonuses = (hit.bonuses && hit.bonuses.length)
+                ? hit.bonuses.map(b => ({ name: b.name || '', amount: b.amount }))
+                : [{ name: '', amount: '' }];
+            renderSalaryBonusRows(bonuses);
             const title = document.getElementById('salary-form-title');
             if (title) title.textContent = '修改 ' + salaryMonthLabel(hit.month);
             const btn = document.getElementById('salary-save-btn');
@@ -6863,18 +6983,19 @@
             }
             const editEl = document.getElementById('salary-edit-month');
             const prevMonth = editEl ? String(editEl.value || '') : '';
+            const bonuses = readSalaryBonusDom();
             const rec = normalizeSalaryRec({
                 month,
                 amount: document.getElementById('salary-amount').value,
-                bonus: document.getElementById('salary-bonus').value,
+                bonuses,
                 note: document.getElementById('salary-note').value
             });
             if (!rec) {
                 alert('月份格式不正確');
                 return;
             }
-            if (!(rec.amount > 0) && !(rec.bonus > 0)) {
-                alert('請至少填薪水或獎金');
+            if (!(rec.amount > 0) && !(salaryBonusTotal(rec.bonuses) > 0)) {
+                alert('請至少填薪水或一筆獎金');
                 return;
             }
             let next = salaryRecs.slice();
@@ -7033,25 +7154,33 @@
             const tbody = document.getElementById('salary-list');
             const empty = document.getElementById('salary-empty');
             if (tbody) {
-                tbody.innerHTML = filtered.map(r => (
-                    '<tr class="row-hover">' +
+                tbody.innerHTML = filtered.map(r => {
+                    const bonusSum = salaryBonusTotal(r.bonuses);
+                    const bonusNames = (r.bonuses || []).map(b => (b.name || '獎金')).filter(Boolean);
+                    const bonusDetail = bonusSum > 0
+                        ? (fNum(bonusSum) + (bonusNames.length ? '<div class="text-[10px] text-muted mt-0.5">' + escapeHtml(bonusNames.join('、')) + '</div>' : ''))
+                        : '<span class="text-faint">—</span>';
+                    return '<tr class="row-hover">' +
                         '<td class="p-4 font-bold">' + escapeHtml(salaryMonthLabel(r.month)) + '</td>' +
                         '<td class="p-4 text-right c-stock">' + (num(r.amount) > 0 ? fNum(r.amount) : '<span class="text-faint">—</span>') + '</td>' +
-                        '<td class="p-4 text-right">' + (num(r.bonus) > 0 ? fNum(r.bonus) : '<span class="text-faint">—</span>') + '</td>' +
+                        '<td class="p-4 text-right">' + bonusDetail + '</td>' +
                         '<td class="p-4 text-right font-bold">' + fNum(salaryRowTotal(r)) + '</td>' +
                         '<td class="p-4 text-muted">' + escapeHtml(r.note || '') + '</td>' +
                         '<td class="p-4 text-center whitespace-nowrap">' +
                             '<button type="button" class="btn-surface px-2 py-1 rounded-lg text-[11px] font-bold mr-1" onclick="editSalaryRecord(\'' + r.month + '\')">改</button>' +
                             '<button type="button" class="btn-surface px-2 py-1 rounded-lg text-[11px] font-bold c-loss" onclick="deleteSalaryRecord(\'' + r.month + '\')">刪</button>' +
                         '</td>' +
-                    '</tr>'
-                )).join('');
+                    '</tr>';
+                }).join('');
             }
             if (empty) empty.classList.toggle('hidden', filtered.length > 0);
         }
         function openSalaryPage() {
             const monthEl = document.getElementById('salary-month');
             if (monthEl && !monthEl.value) monthEl.value = salaryDefaultMonth();
+            if (typeof syncDatePicker === 'function' && monthEl) try { syncDatePicker(monthEl); } catch (e) {}
+            const host = document.getElementById('salary-bonus-rows');
+            if (host && !host.children.length) renderSalaryBonusRows([{ name: '', amount: '' }]);
             renderSalaryPage();
             setTimeout(resizeSalaryChart, 40);
         }
