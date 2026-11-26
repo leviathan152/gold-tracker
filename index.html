@@ -1573,8 +1573,12 @@
             from { opacity: 0; transform: translateY(-6px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .settings-modal-panel {
-            max-width: 32rem;
+        .settings-page-panel {
+            max-width: 40rem;
+            margin: 0 auto 1.5rem;
+        }
+        body[data-view="settings"] .app-shell {
+            overflow: auto;
         }
 
         .live-dot {
@@ -2199,6 +2203,7 @@
         #view-overview.hidden,
         #view-peer.hidden,
         #view-compound.hidden,
+        #view-settings.hidden,
         #section-stock.hidden,
         #section-gold.hidden,
         #stock-price-bar.hidden {
@@ -3431,7 +3436,7 @@
                 黃金
             </button>
             <p class="sidebar-kicker">工具</p>
-            <button type="button" class="app-nav-btn" onclick="closeSidebar(); openSettingsModal();">
+            <button type="button" class="app-nav-btn" data-view="settings" onclick="switchView('settings')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="2.1" fill="currentColor" stroke="none"/><circle cx="15" cy="16" r="2.1" fill="currentColor" stroke="none"/></svg>
                 設定
             </button>
@@ -4061,21 +4066,10 @@
                 </div>
             </div>
         </div>
-    </div>
-    </div>
-    </div>
-
-    <div id="settings-modal" class="fixed inset-0 z-[100] hidden flex-col items-stretch overflow-y-auto modal-overlay-safe" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" onclick="if(event.target===this)closeSettingsModal()">
-        <div class="card settings-modal-panel w-full p-5 sm:p-6 mx-auto mt-2 modal-panel-bottom-space shrink-0" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-start gap-4 mb-5">
-                <div>
-                    <h2 id="settings-modal-title" class="stat-label mb-1" data-i18n="settings.title">系統設定</h2>
-                    <p class="text-[11px] text-muted" data-i18n="settings.hint">點標題展開各章，收合雜訊</p>
-                </div>
-                <button type="button" onclick="closeSettingsModal()" class="text-muted hover:text-ink text-xl leading-none px-1" aria-label="關閉">✕</button>
-            </div>
-
-            <div class="settings-accordion">
+        <div id="view-settings" class="hidden">
+            <div class="card settings-page-panel w-full p-5 sm:p-6">
+                <p class="text-[11px] text-muted mb-5" data-i18n="settings.hint">點標題展開各章，收合雜訊</p>
+                <div class="settings-accordion">
                 <label class="setting-switch theme-switch">
                     <input type="checkbox" id="theme-toggle" checked onchange="saveAppearance()">
                     <span class="setting-switch-ui" aria-hidden="true"></span>
@@ -4246,7 +4240,11 @@
                     </div>
                 </details>
             </div>
+            </div>
         </div>
+
+    </div>
+    </div>
     </div>
 
     <div id="stock-edit-modal" class="fixed inset-0 z-[102] hidden flex-col items-stretch overflow-y-auto modal-overlay-safe" role="dialog" aria-modal="true" aria-labelledby="stock-edit-modal-title" onclick="if(event.target===this)closeStockEditModal()">
@@ -5762,20 +5760,20 @@
         }
 
         function openSettingsModal() {
-            const el = document.getElementById('settings-modal');
-            el.classList.remove('hidden');
-            el.classList.add('flex');
-            ['pwd-current', 'pwd-new', 'pwd-new2'].forEach(id => { document.getElementById(id).value = ''; });
+            ['pwd-current', 'pwd-new', 'pwd-new2'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
             syncIncludeToUI();
             syncAllocToUI();
             syncAssetToUI();
             initSettingsAccordion();
         }
         function closeSettingsModal() {
-            const el = document.getElementById('settings-modal');
-            el.classList.add('hidden');
-            el.classList.remove('flex');
-            ['pwd-current', 'pwd-new', 'pwd-new2'].forEach(id => { document.getElementById(id).value = ''; });
+            ['pwd-current', 'pwd-new', 'pwd-new2'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
             const ta = document.getElementById('import-json-text');
             if (ta) ta.value = '';
         }
@@ -5928,12 +5926,10 @@
             const editM = document.getElementById('stock-edit-modal');
             const clearM = document.getElementById('clear-data-modal');
             const p = document.getElementById('privacy-modal');
-            const s = document.getElementById('settings-modal');
             if (greetM && !greetM.classList.contains('hidden')) closeGreetingModal();
             else if (editM && !editM.classList.contains('hidden')) closeStockEditModal();
             else if (clearM && !clearM.classList.contains('hidden')) closeClearDataModal();
-            else if (!p.classList.contains('hidden')) closePrivacyPasswordModal();
-            else if (!s.classList.contains('hidden')) closeSettingsModal();
+            else if (p && !p.classList.contains('hidden')) closePrivacyPasswordModal();
         });
 
         function fNum(val, isPrice = true) {
@@ -9037,7 +9033,7 @@
             if (t === 'coll') t = 'stock';
             if (t === 'gold' && !assetEnabled('gold')) t = 'overview';
             if ((t === 'stock' || t === 'peer') && !assetEnabled('stock')) t = 'overview';
-            if (t !== 'overview' && t !== 'peer' && t !== 'compound' && t !== 'stock' && t !== 'gold') t = 'overview';
+            if (t !== 'overview' && t !== 'peer' && t !== 'compound' && t !== 'stock' && t !== 'gold' && t !== 'settings') t = 'overview';
             currentView = t;
             document.body.dataset.view = t;
             const ov = document.getElementById('view-overview');
@@ -9046,6 +9042,8 @@
             if (peer) peer.classList.toggle('hidden', t !== 'peer');
             const compound = document.getElementById('view-compound');
             if (compound) compound.classList.toggle('hidden', t !== 'compound');
+            const settings = document.getElementById('view-settings');
+            if (settings) settings.classList.toggle('hidden', t !== 'settings');
             const stock = document.getElementById('section-stock');
             const gold = document.getElementById('section-gold');
             const price = document.getElementById('stock-price-bar');
@@ -9060,7 +9058,8 @@
                 peer: ['目標', '目標月領與同齡對照'],
                 compound: ['複利', '多標的歷史年化與期末試算'],
                 stock: ['股票', '持倉、賣出、彙總與股利'],
-                gold: ['黃金', '持倉與已實現損益']
+                gold: ['黃金', '持倉與已實現損益'],
+                settings: ['設定', '系統與資料設定']
             };
             const pair = titles[t] || ['資產管理', ''];
             const titleEl = document.getElementById('page-title');
@@ -9076,6 +9075,8 @@
                 openCompoundPage();
                 setTimeout(resizeCompoundChart, 40);
             }
+            if (t === 'settings') openSettingsModal();
+            else closeSettingsModal();
             closeSidebar();
             if (t === 'overview') setTimeout(resizeOverviewCharts, 40);
         }
