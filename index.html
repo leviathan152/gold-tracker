@@ -1996,7 +1996,7 @@
         }
         #view-salary .salary-bonus-row {
             display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(7rem, 0.8fr) 2rem;
+            grid-template-columns: minmax(0, 1.3fr) minmax(6.5rem, 0.75fr) minmax(6.5rem, 0.75fr) 2rem;
             gap: 0.45rem;
             align-items: end;
         }
@@ -2017,7 +2017,8 @@
         @media (max-width: 720px) {
             #view-salary .entry-grid { grid-template-columns: 1fr 1fr; }
             #view-salary .salary-note-field { grid-column: 1 / -1; }
-            #view-salary .salary-bonus-row { grid-template-columns: 1fr 1fr auto; }
+            #view-salary .salary-bonus-row { grid-template-columns: 1fr 1fr; }
+            #view-salary .salary-bonus-row .c-del { grid-column: 2; justify-self: end; }
         }
 
         .row-hover { transition: background 0.2s, transform 0.2s; }
@@ -4128,7 +4129,7 @@
                 </div>
                 <div class="salary-bonus-block">
                     <div class="salary-bonus-head">
-                        <span class="stat-label text-[10px]">獎金（可多筆）</span>
+                        <span class="stat-label text-[10px]">獎金（可多筆，扣稅會從金額扣除）</span>
                         <button type="button" onclick="addSalaryBonusRow()" class="btn-surface px-3 py-1.5 rounded-xl text-[11px] font-bold">＋ 獎金</button>
                     </div>
                     <div id="salary-bonus-rows" class="salary-bonus-rows"></div>
@@ -4591,6 +4592,11 @@
             } catch (e) { return {}; }
         })();
         if (goalPlan.reinvest == null) goalPlan.reinvest = true;
+        function salaryBonusNet(b) {
+            const amount = Math.max(0, num(b && b.amount));
+            const tax = Math.max(0, num(b && b.tax));
+            return Math.max(0, amount - tax);
+        }
         function normalizeSalaryBonuses(raw, fallbackBonus) {
             const out = [];
             if (Array.isArray(raw)) {
@@ -4598,19 +4604,24 @@
                     const o = item && typeof item === 'object' ? item : {};
                     const amount = Math.max(0, num(o.amount));
                     if (!(amount > 0)) return;
+                    const tax = Math.min(amount, Math.max(0, num(o.tax)));
                     out.push({
                         name: String(o.name || '').slice(0, 40),
-                        amount
+                        amount,
+                        tax
                     });
                 });
             }
             if (!out.length && num(fallbackBonus) > 0) {
-                out.push({ name: '', amount: Math.max(0, num(fallbackBonus)) });
+                out.push({ name: '', amount: Math.max(0, num(fallbackBonus)), tax: 0 });
             }
             return out.slice(0, 20);
         }
         function salaryBonusTotal(list) {
-            return (list || []).reduce((s, b) => s + num(b && b.amount), 0);
+            return (list || []).reduce((s, b) => s + salaryBonusNet(b), 0);
+        }
+        function salaryBonusTaxTotal(list) {
+            return (list || []).reduce((s, b) => s + Math.max(0, num(b && b.tax)), 0);
         }
         function normalizeSalaryRec(r) {
             const o = r && typeof r === 'object' ? r : {};
@@ -6868,18 +6879,32 @@
                 return row;
             });
         }
-        function readSalaryBonusDom() {
+        function readSalaryBonusDomRows() {
             const host = document.getElementById('salary-bonus-rows');
-            if (!host) return [];
-            const out = [];
+            const all = [];
+            if (!host) return all;
             host.querySelectorAll('.salary-bonus-row').forEach(row => {
                 const nameEl = row.querySelector('.b-name');
                 const amtEl = row.querySelector('.b-amt');
-                const amount = Math.max(0, num(amtEl && amtEl.value));
+                const taxEl = row.querySelector('.b-tax');
+                all.push({
+                    name: String((nameEl && nameEl.value) || ''),
+                    amount: amtEl && amtEl.value !== '' ? amtEl.value : '',
+                    tax: taxEl && taxEl.value !== '' ? taxEl.value : ''
+                });
+            });
+            return all;
+        }
+        function readSalaryBonusDom() {
+            const out = [];
+            readSalaryBonusDomRows().forEach(row => {
+                const amount = Math.max(0, num(row.amount));
                 if (!(amount > 0)) return;
+                const tax = Math.min(amount, Math.max(0, num(row.tax)));
                 out.push({
-                    name: String((nameEl && nameEl.value) || '').trim().slice(0, 40),
-                    amount
+                    name: String(row.name || '').trim().slice(0, 40),
+                    amount,
+                    tax
                 });
             });
             return out;
@@ -6887,7 +6912,7 @@
         function renderSalaryBonusRows(list) {
             const host = document.getElementById('salary-bonus-rows');
             if (!host) return;
-            const rows = Array.isArray(list) && list.length ? list : [{ name: '', amount: '' }];
+            const rows = Array.isArray(list) && list.length ? list : [{ name: '', amount: '', tax: '' }];
             host.innerHTML = rows.map((b, i) => (
                 '<div class="salary-bonus-row" data-bi="' + i + '">' +
                     '<div class="flex flex-col gap-1">' +
@@ -6898,43 +6923,25 @@
                         (i === 0 ? '<label class="stat-label text-[10px]">金額</label>' : '') +
                         '<input class="b-amt" type="number" min="0" step="1" placeholder="金額" value="' + (b.amount !== '' && b.amount != null ? escapeHtml(b.amount) : '') + '">' +
                     '</div>' +
+                    '<div class="flex flex-col gap-1">' +
+                        (i === 0 ? '<label class="stat-label text-[10px]">扣稅</label>' : '') +
+                        '<input class="b-tax" type="number" min="0" step="1" placeholder="選填" value="' + (b.tax !== '' && b.tax != null ? escapeHtml(b.tax) : '') + '">' +
+                    '</div>' +
                     '<button type="button" class="c-del" onclick="removeSalaryBonusRow(' + i + ')" aria-label="移除獎金">✕</button>' +
                 '</div>'
             )).join('');
         }
         function addSalaryBonusRow() {
             const host = document.getElementById('salary-bonus-rows');
-            const all = [];
-            if (host) {
-                host.querySelectorAll('.salary-bonus-row').forEach(row => {
-                    const nameEl = row.querySelector('.b-name');
-                    const amtEl = row.querySelector('.b-amt');
-                    all.push({
-                        name: String((nameEl && nameEl.value) || ''),
-                        amount: amtEl && amtEl.value !== '' ? amtEl.value : ''
-                    });
-                });
-            }
-            all.push({ name: '', amount: '' });
+            const all = readSalaryBonusDomRows();
+            all.push({ name: '', amount: '', tax: '' });
             renderSalaryBonusRows(all);
             const last = host && host.querySelector('.salary-bonus-row:last-child .b-name');
             if (last) try { last.focus(); } catch (e) {}
         }
         function removeSalaryBonusRow(idx) {
-            const host = document.getElementById('salary-bonus-rows');
-            const all = [];
-            if (host) {
-                host.querySelectorAll('.salary-bonus-row').forEach((row, i) => {
-                    if (i === idx) return;
-                    const nameEl = row.querySelector('.b-name');
-                    const amtEl = row.querySelector('.b-amt');
-                    all.push({
-                        name: String((nameEl && nameEl.value) || ''),
-                        amount: amtEl && amtEl.value !== '' ? amtEl.value : ''
-                    });
-                });
-            }
-            renderSalaryBonusRows(all.length ? all : [{ name: '', amount: '' }]);
+            const all = readSalaryBonusDomRows().filter((_, i) => i !== idx);
+            renderSalaryBonusRows(all.length ? all : [{ name: '', amount: '', tax: '' }]);
         }
         function clearSalaryForm() {
             const monthEl = document.getElementById('salary-month');
@@ -6946,7 +6953,7 @@
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
-            renderSalaryBonusRows([{ name: '', amount: '' }]);
+            renderSalaryBonusRows([{ name: '', amount: '', tax: '' }]);
             const title = document.getElementById('salary-form-title');
             if (title) title.textContent = '登錄月薪';
             const btn = document.getElementById('salary-save-btn');
@@ -6965,8 +6972,8 @@
             if (amount) amount.value = hit.amount || '';
             if (note) note.value = hit.note || '';
             const bonuses = (hit.bonuses && hit.bonuses.length)
-                ? hit.bonuses.map(b => ({ name: b.name || '', amount: b.amount }))
-                : [{ name: '', amount: '' }];
+                ? hit.bonuses.map(b => ({ name: b.name || '', amount: b.amount, tax: b.tax || '' }))
+                : [{ name: '', amount: '', tax: '' }];
             renderSalaryBonusRows(bonuses);
             const title = document.getElementById('salary-form-title');
             if (title) title.textContent = '修改 ' + salaryMonthLabel(hit.month);
@@ -7156,10 +7163,16 @@
             if (tbody) {
                 tbody.innerHTML = filtered.map(r => {
                     const bonusSum = salaryBonusTotal(r.bonuses);
+                    const taxSum = salaryBonusTaxTotal(r.bonuses);
                     const bonusNames = (r.bonuses || []).map(b => (b.name || '獎金')).filter(Boolean);
-                    const bonusDetail = bonusSum > 0
-                        ? (fNum(bonusSum) + (bonusNames.length ? '<div class="text-[10px] text-muted mt-0.5">' + escapeHtml(bonusNames.join('、')) + '</div>' : ''))
-                        : '<span class="text-faint">—</span>';
+                    let bonusDetail = '<span class="text-faint">—</span>';
+                    if (bonusSum > 0 || taxSum > 0) {
+                        bonusDetail = fNum(bonusSum);
+                        const bits = [];
+                        if (bonusNames.length) bits.push(bonusNames.join('、'));
+                        if (taxSum > 0) bits.push('扣稅 ' + fNum(taxSum));
+                        if (bits.length) bonusDetail += '<div class="text-[10px] text-muted mt-0.5">' + escapeHtml(bits.join(' · ')) + '</div>';
+                    }
                     return '<tr class="row-hover">' +
                         '<td class="p-4 font-bold">' + escapeHtml(salaryMonthLabel(r.month)) + '</td>' +
                         '<td class="p-4 text-right c-stock">' + (num(r.amount) > 0 ? fNum(r.amount) : '<span class="text-faint">—</span>') + '</td>' +
@@ -7180,7 +7193,7 @@
             if (monthEl && !monthEl.value) monthEl.value = salaryDefaultMonth();
             if (typeof syncDatePicker === 'function' && monthEl) try { syncDatePicker(monthEl); } catch (e) {}
             const host = document.getElementById('salary-bonus-rows');
-            if (host && !host.children.length) renderSalaryBonusRows([{ name: '', amount: '' }]);
+            if (host && !host.children.length) renderSalaryBonusRows([{ name: '', amount: '', tax: '' }]);
             renderSalaryPage();
             setTimeout(resizeSalaryChart, 40);
         }
