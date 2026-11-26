@@ -1911,6 +1911,91 @@
             width: 100%;
             margin: 0.85rem 0 0.35rem;
         }
+
+        /* Salary tracker */
+        body[data-view="salary"] .app-shell { overflow: auto; }
+        #view-salary.hidden { display: none !important; }
+        .salary-kpis {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0.85rem;
+        }
+        @media (min-width: 900px) {
+            .salary-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+        .salary-kpi {
+            padding: 1rem 1.1rem;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.04);
+        }
+        .salary-kpi .k { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.35rem; }
+        .salary-kpi .v { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        .salary-kpi .s { font-size: 0.68rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.35; }
+        .salary-hint {
+            margin-bottom: 0.85rem;
+            padding: 0.75rem 0.95rem;
+            border-radius: 14px;
+            border: 1px dashed var(--line-strong);
+            background: rgba(255, 176, 32, 0.08);
+            color: var(--ink-soft);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+        .salary-years {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 0.85rem;
+        }
+        .salary-years button {
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--ink-soft);
+            border-radius: 999px;
+            padding: 0.35rem 0.8rem;
+            font: inherit;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .salary-years button.is-on {
+            background: rgba(10, 90, 212, 0.14);
+            border-color: rgba(122, 162, 255, 0.45);
+            color: var(--stock-deep);
+        }
+        .salary-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.12rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            background: rgba(255, 176, 32, 0.16);
+            color: var(--gold-deep);
+            white-space: nowrap;
+        }
+        .salary-year-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+            gap: 0.65rem;
+            margin-top: 0.85rem;
+        }
+        .salary-year-card {
+            padding: 0.85rem 0.95rem;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+        }
+        .salary-year-card .y { font-size: 0.72rem; font-weight: 800; color: var(--muted); letter-spacing: 0.06em; }
+        .salary-year-card .a { font-size: 1.05rem; font-weight: 800; margin-top: 0.25rem; font-variant-numeric: tabular-nums; }
+        .salary-year-card .b { font-size: 0.68rem; color: var(--muted); margin-top: 0.25rem; }
+        html[data-theme="light"] .salary-kpi,
+        html[data-theme="light"] .salary-year-card { background: #f7f8fc; }
+        html[data-theme="light"] .salary-hint { background: rgba(255, 176, 32, 0.1); color: #2a364c; }
+
         .row-hover { transition: background 0.2s, transform 0.2s; }
         .row-hover:hover { background: rgba(10, 90, 212, 0.05); }
 
@@ -2169,6 +2254,7 @@
         }
         #view-overview.hidden,
         #view-peer.hidden,
+        #view-salary.hidden,
         #view-settings.hidden,
         #section-stock.hidden,
         #section-gold.hidden,
@@ -3398,6 +3484,10 @@
                 黃金
             </button>
             <p class="sidebar-kicker">工具</p>
+            <button type="button" class="app-nav-btn" data-view="salary" onclick="switchView('salary')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4"/><path d="M8 12h3.2M8 16h8"/></svg>
+                薪資
+            </button>
             <button type="button" class="app-nav-btn" data-view="settings" onclick="switchView('settings')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="2.1" fill="currentColor" stroke="none"/><circle cx="15" cy="16" r="2.1" fill="currentColor" stroke="none"/></svg>
                 設定
@@ -3956,6 +4046,115 @@
                 </div>
             </div>
         </div>
+        <div id="view-salary" class="hidden">
+            <div class="salary-hint">
+                <strong>本薪</strong>才算真正賺多少。<strong>報銷入帳</strong>是預墊的大眾運輸／計程車／過路費還款，會讓某個月到帳變大，但不計入累計本薪。
+                <strong>待報銷</strong>＝累計預墊 − 累計報銷；大於 0 代表公司還欠你。
+            </div>
+            <section class="salary-kpis" aria-label="薪資摘要">
+                <article class="salary-kpi">
+                    <div class="k formula-lab">累計本薪</div>
+                    <div class="v c-stock" id="salary-kpi-total">--</div>
+                    <div class="s" id="salary-kpi-total-sub">真正賺到的薪水加總</div>
+                </article>
+                <article class="salary-kpi">
+                    <div class="k formula-lab">本年本薪</div>
+                    <div class="v" id="salary-kpi-year">--</div>
+                    <div class="s" id="salary-kpi-year-sub">--</div>
+                </article>
+                <article class="salary-kpi">
+                    <div class="k formula-lab">待報銷餘額</div>
+                    <div class="v" id="salary-kpi-pending">--</div>
+                    <div class="s" id="salary-kpi-pending-sub">預墊 − 已報銷</div>
+                </article>
+                <article class="salary-kpi">
+                    <div class="k formula-lab">本年到帳</div>
+                    <div class="v c-gold" id="salary-kpi-inflow">--</div>
+                    <div class="s">本薪 ＋ 報銷（銀行看到的）</div>
+                </article>
+            </section>
+
+            <section class="card mb-6 section-rise">
+                <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="stat-label c-stock mb-1">歷年本薪</h3>
+                        <p class="text-[11px] text-muted">各年本薪加總；圖上的金色是報銷入帳，方便對照「為什麼那年到帳比較多」。</p>
+                    </div>
+                </div>
+                <div class="goal-chart-wrap" id="salary-chart-wrap">
+                    <canvas id="salaryChart"></canvas>
+                </div>
+                <div id="salary-year-cards" class="salary-year-cards"></div>
+            </section>
+
+            <section class="card mb-6 section-rise entry-card">
+                <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="stat-label mb-1" id="salary-form-title">登錄月薪</h3>
+                        <p class="text-[11px] text-muted">同一月份再存會覆蓋。出差當月填預墊，錢回來的那個月填報銷入帳。</p>
+                    </div>
+                </div>
+                <input type="hidden" id="salary-edit-month" value="">
+                <div class="entry-row">
+                    <div class="entry-grid">
+                        <div class="flex flex-col gap-1">
+                            <label class="stat-label text-[10px]" for="salary-month">月份</label>
+                            <input type="month" id="salary-month">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="stat-label text-[10px] formula-lab" for="salary-base">本薪</label>
+                            <input type="number" id="salary-base" min="0" step="1" placeholder="實領薪水">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="stat-label text-[10px] formula-lab" for="salary-reimburse">報銷入帳</label>
+                            <input type="number" id="salary-reimburse" min="0" step="1" placeholder="出差費還款">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="stat-label text-[10px] formula-lab" for="salary-advance">本月預墊</label>
+                            <input type="number" id="salary-advance" min="0" step="1" placeholder="交通／計程車／過路費">
+                        </div>
+                        <div class="flex flex-col gap-1" style="grid-column: 1 / -1;">
+                            <label class="stat-label text-[10px]" for="salary-note">備註</label>
+                            <input type="text" id="salary-note" maxlength="80" placeholder="例：東京出差報銷、北高過路費">
+                        </div>
+                    </div>
+                    <div class="entry-actions">
+                        <button type="button" id="salary-save-btn" onclick="saveSalaryRecord()" class="btn-primary font-bold tracking-wide">儲存</button>
+                        <button type="button" id="salary-cancel-btn" onclick="clearSalaryForm()" class="btn-surface font-bold">清除</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card mb-6 section-rise overflow-hidden p-0">
+                <div class="p-4 sm:p-5 pb-2">
+                    <div class="flex flex-wrap items-end justify-between gap-3 mb-2">
+                        <div>
+                            <h3 class="stat-label mb-1">每月明細</h3>
+                            <p class="text-[11px] text-muted">到帳合計＝本薪＋報銷。有報銷的月份會標示，避免誤判薪水暴增。</p>
+                        </div>
+                    </div>
+                    <div id="salary-year-filters" class="salary-years"></div>
+                </div>
+                <div class="table-scroll">
+                    <table class="w-full text-xs text-left min-w-[760px]">
+                        <thead class="thead-bar font-bold">
+                            <tr>
+                                <th class="p-4">月份</th>
+                                <th class="p-4 text-right">本薪</th>
+                                <th class="p-4 text-right">報銷入帳</th>
+                                <th class="p-4 text-right">到帳合計</th>
+                                <th class="p-4 text-right">預墊</th>
+                                <th class="p-4">備註</th>
+                                <th class="p-4 text-center">管理</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salary-list" class="divide-y"></tbody>
+                    </table>
+                </div>
+                <p id="salary-empty" class="p-8 text-center text-faint text-xs">尚未登錄薪資。先從上方填一個月份開始。</p>
+            </section>
+        </div>
+
         <div id="view-settings" class="hidden">
             <div class="card settings-page-panel w-full p-4 sm:p-5">
                 <p class="text-[11px] text-muted mb-4" data-i18n="settings.hint">點標題展開各章，收合雜訊</p>
@@ -4234,7 +4433,7 @@
     <script>
         const K_STK = 'WV20_STK', K_GLD = 'WV20_GLD', K_PRC = 'WV20_PRC', K_PRC_META = 'WV20_PRC_META', K_PWD = 'WV20_PWD', K_PRIV = 'WV20_PRIV';
         const K_COLL = 'WV20_COLL', K_STK_SELL = 'WV20_STK_SELL', K_GLD_SELL = 'WV20_GLD_SELL', K_COLL_SELL = 'WV20_COLL_SELL', K_INC = 'WV20_INC';
-        const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL', K_ASSET = 'WV20_ASSET';
+        const K_ALLOC = 'WV20_ALLOC', K_CODES = 'WV20_CODES', K_BIRTH = 'WV20_BIRTH', K_CASH = 'WV20_CASH', K_GOAL = 'WV20_GOAL', K_SALARY = 'WV20_SALARY', K_ASSET = 'WV20_ASSET';
         const K_DIV_LAST = 'WV20_DIV_LAST', K_DIV_CACHE = 'WV20_DIV_CACHE', K_DIV_META = 'WV20_DIV_META';
         const DIV_STALE_MS = 12 * 60 * 60 * 1000;
         const K_WORTH_SNAP = 'WV20_WORTH_SNAP';
@@ -4385,6 +4584,33 @@
             } catch (e) { return {}; }
         })();
         if (goalPlan.reinvest == null) goalPlan.reinvest = true;
+        function normalizeSalaryRec(r) {
+            const o = r && typeof r === 'object' ? r : {};
+            let month = String(o.month || '').trim();
+            if (!/^\d{4}-\d{2}$/.test(month)) return null;
+            return {
+                month,
+                base: Math.max(0, num(o.base)),
+                reimburse: Math.max(0, num(o.reimburse)),
+                advance: Math.max(0, num(o.advance)),
+                note: String(o.note || '').slice(0, 80)
+            };
+        }
+        function normalizeSalaryList(raw) {
+            const arr = Array.isArray(raw) ? raw : [];
+            const map = {};
+            arr.forEach(item => {
+                const n = normalizeSalaryRec(item);
+                if (n) map[n.month] = n;
+            });
+            return Object.keys(map).sort().reverse().map(k => map[k]);
+        }
+        let salaryRecs = (function() {
+            try { return normalizeSalaryList(JSON.parse(localStorage.getItem(K_SALARY) || '[]')); }
+            catch (e) { return []; }
+        })();
+        let salaryYearFilter = 'all';
+        let salaryChartObj = null;
         if ((num(allocTargets.stock) + num(allocTargets.gold)) === 0) {
             allocTargets.stock = 50; allocTargets.gold = 50;
         }
@@ -5727,7 +5953,9 @@
             peerBirthYear = 0;
             peerCash = 0;
             goalPlan = { reinvest: true };
-            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_ASSET, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_DIV_META, K_BIRTH, K_CASH, K_GOAL, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
+            salaryRecs = [];
+            salaryYearFilter = 'all';
+            [K_STK, K_GLD, K_COLL, K_STK_SELL, K_GLD_SELL, K_COLL_SELL, K_PRC, K_PRC_META, K_INC, K_ALLOC, K_ASSET, K_CODES, K_DIV_LAST, K_DIV_CACHE, K_DIV_META, K_BIRTH, K_CASH, K_GOAL, K_SALARY, K_WORTH_SNAP].forEach(k => localStorage.removeItem(k));
             saveAll();
             try { clearStockForm(); } catch (e) {}
             try { clearGoldForm(); } catch (e) {}
@@ -5937,6 +6165,7 @@
                 reinvest: !!goalPlan.reinvest
             };
             try { localStorage.setItem(K_GOAL, JSON.stringify(goalPlan)); } catch (e) {}
+            try { localStorage.setItem(K_SALARY, JSON.stringify(salaryRecs)); } catch (e) {}
         }
         let goalDpsMeta = { years: [], avgYield: 0, avgCash: 0, typical: 0 };
         let goalDivEvents = [];
@@ -6571,6 +6800,277 @@
 
         let allocLegendSnapshot = { labels: [], values: [], total: 0 };
 
+
+        function salaryMonthLabel(ym) {
+            const m = String(ym || '');
+            if (!/^\d{4}-\d{2}$/.test(m)) return m || '--';
+            return m.slice(0, 4) + ' 年 ' + String(parseInt(m.slice(5, 7), 10)) + ' 月';
+        }
+        function salaryDefaultMonth() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        }
+        function salarySummarize(list) {
+            const rows = Array.isArray(list) ? list : [];
+            let base = 0, reimburse = 0, advance = 0;
+            rows.forEach(r => {
+                base += num(r.base);
+                reimburse += num(r.reimburse);
+                advance += num(r.advance);
+            });
+            return { base, reimburse, advance, inflow: base + reimburse, pending: advance - reimburse, count: rows.length };
+        }
+        function salaryByYear(list) {
+            const map = {};
+            (list || []).forEach(r => {
+                const y = String(r.month || '').slice(0, 4);
+                if (!/^\d{4}$/.test(y)) return;
+                if (!map[y]) map[y] = { year: y, base: 0, reimburse: 0, advance: 0, months: 0 };
+                map[y].base += num(r.base);
+                map[y].reimburse += num(r.reimburse);
+                map[y].advance += num(r.advance);
+                map[y].months += 1;
+            });
+            return Object.keys(map).sort().reverse().map(k => map[k]);
+        }
+        function clearSalaryForm() {
+            const monthEl = document.getElementById('salary-month');
+            if (monthEl) monthEl.value = salaryDefaultMonth();
+            const edit = document.getElementById('salary-edit-month');
+            if (edit) edit.value = '';
+            ['salary-base', 'salary-reimburse', 'salary-advance', 'salary-note'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const title = document.getElementById('salary-form-title');
+            if (title) title.textContent = '登錄月薪';
+            const btn = document.getElementById('salary-save-btn');
+            if (btn) btn.textContent = '儲存';
+        }
+        function editSalaryRecord(month) {
+            const hit = salaryRecs.find(r => r.month === month);
+            if (!hit) return;
+            const monthEl = document.getElementById('salary-month');
+            if (monthEl) monthEl.value = hit.month;
+            const edit = document.getElementById('salary-edit-month');
+            if (edit) edit.value = hit.month;
+            const base = document.getElementById('salary-base');
+            const re = document.getElementById('salary-reimburse');
+            const ad = document.getElementById('salary-advance');
+            const note = document.getElementById('salary-note');
+            if (base) base.value = hit.base || '';
+            if (re) re.value = hit.reimburse || '';
+            if (ad) ad.value = hit.advance || '';
+            if (note) note.value = hit.note || '';
+            const title = document.getElementById('salary-form-title');
+            if (title) title.textContent = '修改 ' + salaryMonthLabel(hit.month);
+            const btn = document.getElementById('salary-save-btn');
+            if (btn) btn.textContent = '更新';
+            try { monthEl && monthEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+        }
+        function saveSalaryRecord() {
+            const monthEl = document.getElementById('salary-month');
+            const month = monthEl ? String(monthEl.value || '').trim() : '';
+            if (!/^\d{4}-\d{2}$/.test(month)) {
+                alert('請選擇月份');
+                return;
+            }
+            const editEl = document.getElementById('salary-edit-month');
+            const prevMonth = editEl ? String(editEl.value || '') : '';
+            const rec = normalizeSalaryRec({
+                month,
+                base: document.getElementById('salary-base').value,
+                reimburse: document.getElementById('salary-reimburse').value,
+                advance: document.getElementById('salary-advance').value,
+                note: document.getElementById('salary-note').value
+            });
+            if (!rec) {
+                alert('月份格式不正確');
+                return;
+            }
+            if (!(rec.base > 0) && !(rec.reimburse > 0) && !(rec.advance > 0)) {
+                alert('請至少填本薪、報銷或預墊其中一項');
+                return;
+            }
+            let next = salaryRecs.slice();
+            if (prevMonth && prevMonth !== month) next = next.filter(r => r.month !== prevMonth);
+            next = next.filter(r => r.month !== month);
+            next.push(rec);
+            salaryRecs = normalizeSalaryList(next);
+            saveAll();
+            clearSalaryForm();
+            renderSalaryPage();
+        }
+        function deleteSalaryRecord(month) {
+            if (!confirm('確定刪除 ' + salaryMonthLabel(month) + ' 的薪資紀錄？')) return;
+            salaryRecs = salaryRecs.filter(r => r.month !== month);
+            saveAll();
+            if ((document.getElementById('salary-edit-month') || {}).value === month) clearSalaryForm();
+            renderSalaryPage();
+        }
+        function setSalaryYearFilter(y) {
+            salaryYearFilter = y || 'all';
+            renderSalaryPage();
+        }
+        function destroySalaryChart() {
+            if (salaryChartObj) {
+                try { salaryChartObj.destroy(); } catch (e) {}
+                salaryChartObj = null;
+            }
+        }
+        function resizeSalaryChart() {
+            requestAnimationFrame(() => {
+                try { if (salaryChartObj) salaryChartObj.resize(); } catch (e) {}
+            });
+        }
+        function renderSalaryChart(years) {
+            const canvas = document.getElementById('salaryChart');
+            const wrap = document.getElementById('salary-chart-wrap');
+            if (!canvas) return;
+            const rows = (years || []).slice().reverse();
+            if (!rows.length) {
+                destroySalaryChart();
+                if (wrap) wrap.classList.add('hidden');
+                return;
+            }
+            if (wrap) wrap.classList.remove('hidden');
+            destroySalaryChart();
+            const ctx = canvas.getContext('2d');
+            const labels = rows.map(r => r.year);
+            const baseData = rows.map(r => r.base);
+            const reData = rows.map(r => r.reimburse);
+            salaryChartObj = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: '本薪',
+                            data: baseData,
+                            backgroundColor: 'rgba(122, 162, 255, 0.72)',
+                            borderRadius: 8,
+                            maxBarThickness: 42
+                        },
+                        {
+                            label: '報銷入帳',
+                            data: reData,
+                            backgroundColor: 'rgba(255, 176, 32, 0.55)',
+                            borderRadius: 8,
+                            maxBarThickness: 42
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#8ea0c4', boxWidth: 10 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => {
+                                    const v = Number(c.raw) || 0;
+                                    const name = c.dataset.label || '';
+                                    if (isPrivacyMode) return ' ' + name + '：****';
+                                    return ' ' + name + '：NT$' + Math.round(v).toLocaleString('zh-TW');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#8ea0c4' },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#8ea0c4',
+                                callback: (v) => isPrivacyMode ? '****' : Math.round(Number(v) || 0).toLocaleString('zh-TW')
+                            },
+                            grid: { color: 'rgba(130, 164, 255, 0.08)' }
+                        }
+                    }
+                }
+            });
+            if (wrap) wrap.classList.toggle('privacy-masked', !!isPrivacyMode);
+        }
+        function renderSalaryPage() {
+            const all = salaryRecs.slice();
+            const years = salaryByYear(all);
+            const yearNow = String(new Date().getFullYear());
+            const thisYearRows = all.filter(r => String(r.month).slice(0, 4) === yearNow);
+            const total = salarySummarize(all);
+            const yearSum = salarySummarize(thisYearRows);
+
+            const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setTxt('salary-kpi-total', fNum(total.base));
+            setTxt('salary-kpi-total-sub', total.count ? ('共 ' + total.count + ' 個月 · 報銷累計 ' + fNum(total.reimburse)) : '真正賺到的薪水加總');
+            setTxt('salary-kpi-year', fNum(yearSum.base));
+            setTxt('salary-kpi-year-sub', yearNow + ' 年 · ' + yearSum.count + ' 個月');
+            const pendingEl = document.getElementById('salary-kpi-pending');
+            if (pendingEl) {
+                pendingEl.textContent = fNum(total.pending);
+                pendingEl.classList.remove('c-gain', 'c-drop', 'c-gold', 'c-stock');
+                if (total.pending > 0) pendingEl.classList.add('c-gold');
+                else if (total.pending < 0) pendingEl.classList.add('c-drop');
+            }
+            setTxt('salary-kpi-pending-sub', total.pending > 0 ? '公司還欠你的預墊' : (total.pending < 0 ? '報銷多於已登錄預墊' : '預墊與報銷打平'));
+            setTxt('salary-kpi-inflow', fNum(yearSum.inflow));
+
+            const cards = document.getElementById('salary-year-cards');
+            if (cards) {
+                cards.innerHTML = years.map(y => (
+                    '<button type="button" class="salary-year-card text-left" onclick="setSalaryYearFilter(\'' + y.year + '\')">' +
+                        '<div class="y">' + y.year + ' 年</div>' +
+                        '<div class="a c-stock">' + fNum(y.base) + '</div>' +
+                        '<div class="b">本薪 · ' + y.months + ' 個月' + (y.reimburse > 0 ? ' · 報銷 ' + fNum(y.reimburse) : '') + '</div>' +
+                    '</button>'
+                )).join('');
+            }
+            renderSalaryChart(years);
+
+            const filters = document.getElementById('salary-year-filters');
+            if (filters) {
+                const opts = ['all'].concat(years.map(y => y.year));
+                if (salaryYearFilter !== 'all' && opts.indexOf(salaryYearFilter) < 0) salaryYearFilter = 'all';
+                filters.innerHTML = opts.map(y => {
+                    const lab = y === 'all' ? '全部' : (y + ' 年');
+                    const on = salaryYearFilter === y ? ' is-on' : '';
+                    return '<button type="button" class="' + on.trim() + '" onclick="setSalaryYearFilter(\'' + y + '\')">' + lab + '</button>';
+                }).join('');
+            }
+
+            const filtered = salaryYearFilter === 'all' ? all : all.filter(r => String(r.month).slice(0, 4) === salaryYearFilter);
+            const tbody = document.getElementById('salary-list');
+            const empty = document.getElementById('salary-empty');
+            if (tbody) {
+                tbody.innerHTML = filtered.map(r => {
+                    const inflow = num(r.base) + num(r.reimburse);
+                    const chip = num(r.reimburse) > 0 ? ' <span class="salary-chip">含報銷</span>' : '';
+                    return '<tr class="row-hover">' +
+                        '<td class="p-4 font-bold">' + escapeHtml(salaryMonthLabel(r.month)) + chip + '</td>' +
+                        '<td class="p-4 text-right c-stock">' + fNum(r.base) + '</td>' +
+                        '<td class="p-4 text-right">' + (num(r.reimburse) > 0 ? fNum(r.reimburse) : '<span class="text-faint">—</span>') + '</td>' +
+                        '<td class="p-4 text-right">' + fNum(inflow) + '</td>' +
+                        '<td class="p-4 text-right">' + (num(r.advance) > 0 ? fNum(r.advance) : '<span class="text-faint">—</span>') + '</td>' +
+                        '<td class="p-4 text-muted">' + escapeHtml(r.note || '') + '</td>' +
+                        '<td class="p-4 text-center whitespace-nowrap">' +
+                            '<button type="button" class="btn-surface px-2 py-1 rounded-lg text-[11px] font-bold mr-1" onclick="editSalaryRecord(\'' + r.month + '\')">改</button>' +
+                            '<button type="button" class="btn-surface px-2 py-1 rounded-lg text-[11px] font-bold c-loss" onclick="deleteSalaryRecord(\'' + r.month + '\')">刪</button>' +
+                        '</td>' +
+                    '</tr>';
+                }).join('');
+            }
+            if (empty) empty.classList.toggle('hidden', filtered.length > 0);
+        }
+        function openSalaryPage() {
+            const monthEl = document.getElementById('salary-month');
+            if (monthEl && !monthEl.value) monthEl.value = salaryDefaultMonth();
+            renderSalaryPage();
+            setTimeout(resizeSalaryChart, 40);
+        }
+
         function updateUI() {
             const goldTWD_g = curGoldUSD > 0 ? (curGoldUSD / 31.1035) * rateUSD : 0;
             const inc = activeInc();
@@ -6796,6 +7296,7 @@
                 renderPeerCompare(tV);
                 renderGoalCalc();
             }
+            if (currentView === 'salary') renderSalaryPage();
         }
 
         let trendChartObj, allocChartObj, goalChartObj;
@@ -7920,6 +8421,7 @@
                 prices: marketPrices, priceMeta, includeFlags, allocTargets, assetEnabled: { stock: assetEnabled('stock'), gold: assetEnabled('gold') },
                 peerBirthYear, peerCash,
                 goalPlan,
+                salaryRecs,
                 stockCodes: collectStockCodes(),
                 goldBuyPricesByDate
             };
@@ -7982,6 +8484,10 @@
             if (data.goalPlan && typeof data.goalPlan === 'object') {
                 goalPlan = data.goalPlan;
                 if (goalPlan.reinvest == null) goalPlan.reinvest = true;
+                touched = true;
+            }
+            if (Array.isArray(data.salaryRecs)) {
+                salaryRecs = normalizeSalaryList(data.salaryRecs);
                 touched = true;
             }
             if (data.goldBuyPricesByDate && typeof data.goldBuyPricesByDate === 'object') {
@@ -8310,13 +8816,15 @@
             if (t === 'coll') t = 'stock';
             if (t === 'gold' && !assetEnabled('gold')) t = 'overview';
             if ((t === 'stock' || t === 'peer') && !assetEnabled('stock')) t = 'overview';
-            if (t !== 'overview' && t !== 'peer' && t !== 'stock' && t !== 'gold' && t !== 'settings') t = 'overview';
+            if (t !== 'overview' && t !== 'peer' && t !== 'stock' && t !== 'gold' && t !== 'salary' && t !== 'settings') t = 'overview';
             currentView = t;
             document.body.dataset.view = t;
             const ov = document.getElementById('view-overview');
             if (ov) ov.classList.toggle('hidden', t !== 'overview');
             const peer = document.getElementById('view-peer');
             if (peer) peer.classList.toggle('hidden', t !== 'peer');
+            const salary = document.getElementById('view-salary');
+            if (salary) salary.classList.toggle('hidden', t !== 'salary');
             const settings = document.getElementById('view-settings');
             if (settings) settings.classList.toggle('hidden', t !== 'settings');
             const stock = document.getElementById('section-stock');
@@ -8333,6 +8841,7 @@
                 peer: ['目標', '目標月領與同齡對照'],
                 stock: ['股票', '持倉、賣出、彙總與股利'],
                 gold: ['黃金', '持倉與已實現損益'],
+                salary: ['薪資', '本薪、出差預墊與報銷'],
                 settings: ['設定', '系統與資料設定']
             };
             const pair = titles[t] || ['資產管理', ''];
@@ -8345,6 +8854,7 @@
                 renderPeerCompare(computeAssetWorth().tV);
                 setTimeout(resizeGoalChart, 40);
             }
+            if (t === 'salary') openSalaryPage();
             if (t === 'settings') openSettingsModal();
             else closeSettingsModal();
             closeSidebar();
@@ -9087,6 +9597,21 @@
                 eq: '目前每月股息 ÷ 目標月領',
                 body: '<p>超過 100% 時進度條停在滿格。</p>'
             },
+            'salary-base': {
+                title: '本薪',
+                eq: '當月實領薪水',
+                body: '<p>只記真正的薪水。儀表板的「累計本薪／本年本薪／歷年本薪」都只用這一欄加總。</p>'
+            },
+            'salary-reimburse': {
+                title: '報銷入帳',
+                eq: '當月收到的出差費還款',
+                body: '<p>預墊的大眾運輸、計程車、過路費等，公司之後匯回來的金額。會讓到帳合計變大，但不算進「賺多少」。</p>'
+            },
+            'salary-advance': {
+                title: '本月預墊',
+                eq: '當月自己先墊的出差費用',
+                body: '<p>用來追蹤待報銷餘額：累計預墊 − 累計報銷。大於 0 代表公司還欠你。</p>'
+            },
             'peer-you': {
                 title: '你的資產',
                 eq: '總覽淨值 ＋ 手填銀行存款',
@@ -9210,6 +9735,7 @@
             if (typeof fitAllocCenterText === 'function') fitAllocCenterText();
             if (currentView === 'overview') resizeOverviewCharts();
             if (currentView === 'peer') resizeGoalChart();
+            if (currentView === 'salary') resizeSalaryChart();
         });
     </script>
     <script src="./app-extras.js"></script>
